@@ -6,83 +6,17 @@ using UnityEngine.UI;
 using UnityEditor;
 public class Field : MonoBehaviour
 {
-    public bool isMonsterField;
-    [SerializeField] private Duelist player;
-    [SerializeField] private protected TMP_Text NameTextUI;
-    [SerializeField] private protected TMP_Text EffectTextUI;
-    [SerializeField] private protected TMP_Text AttackTextUI;
-    [SerializeField] private protected TMP_Text DefenseTextUI;
-    [SerializeField] private protected TMP_Text PlayCostTextUI;
-    [SerializeField] private Button button;
-    public MonsterCard monsterCard;
-    private FieldState state;
-    public MonsterCard MonsterCard
-    {
-        get => monsterCard;
-        set
-        {
-            if(value != null)
-            {
-                NameTextUI.text = value.CardName;
-                if (value.Effect != null) EffectTextUI.text = value.Effect.EffectDescription;
-                else EffectTextUI.text = "";
-                DefenseTextUI.text = value.Defense.ToString();
-                AttackTextUI.text = value.Attack.ToString();
-                PlayCostTextUI.text = value.PlayCost.ToString();
-            }
-            else
-            {
-                NameTextUI.text = "";
-                EffectTextUI.text = "";
-                DefenseTextUI.text = "";
-                AttackTextUI.text = "";
-                PlayCostTextUI.text = "";
-            }
-            monsterCard = value;
-        }
-    }
-    private void Start()
-    {
-        if(button != null) button.onClick.AddListener(() => { OnFieldButtonClick(); });
-        state = FieldState.Unselected;
-    }
-    public void Update()
-    {
-        if (state == FieldState.Selected)
-        {
+    [SerializeField] private Image backgroundImage;
 
-        }
-    }
-    public void VisualFeedback()
-    {
-        float step = 0.2f;
-    }
-    public void OnFieldButtonClick()
-    {
+    public Image BackgroundImage { get => backgroundImage; set => backgroundImage = value; }
 
-        GameManager gm = GameManager.Instance;
-        if(gm.TurnState == TurnState.Normal)
-        {
-            Board.Instance.CardInfo.MonsterCard = monsterCard;
-            if(monsterCard != null)
-            {
-                if(player.SummonPower >= monsterCard.PlayCost)
-                {
-                    gm.TurnState = TurnState.Summoning;
-                    gm.cardToBeSummoned = this;
-                }
-            }
-        }
-        else if(gm.TurnState == TurnState.Summoning)
-        {
-            if(isMonsterField && monsterCard == null)
-            {
-                MonsterCard = gm.cardToBeSummoned.MonsterCard;
-                gm.TurnState = TurnState.Normal;
-                gm.cardToBeSummoned.MonsterCard = null;
-                gm.cardToBeSummoned = null;
-                gm.CurrentPlayer.SummonPower -= monsterCard.PlayCost;
-            }
-        }
+    private GameObject card;
+    public GameObject Card { get => card; set => card = value; }
+    public void AssignCard(MonsterCardStats cardStats)
+    {
+        if (Card != null) return;
+        GameObject card = Instantiate(GameUIManager.Instance.CardLayoutPrefab, this.transform);
+        CardLayout cardLayout = card.GetComponent<CardLayout>();
+        cardLayout.MonsterCard = cardStats;
     }
 }

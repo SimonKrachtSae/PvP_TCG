@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class Deck : MonoBehaviour
 {
-    [SerializeField] private List<MonsterCard> monsterCards;
-    public List<MonsterCard> MonsterCards
+    [SerializeField] private List<MonsterCardStats> monsterCards;
+    public List<MonsterCardStats> MonsterCards
     { 
         get => monsterCards;
         set => monsterCards = value;
     }
+    public Deck() { }
 }
