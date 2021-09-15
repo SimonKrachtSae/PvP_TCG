@@ -32,3 +32,15 @@ public enum ClientType
     Host,
     Client
 }
+public enum TurnPhase
+{
+    DrawPhase,
+    MainPhase,
+    AttackPhase,
+    EndPhase
+}
+public enum MonsterCardButton
+{
+    Attack,
+    Summon
+}

@@ -44,6 +44,14 @@ public class CardLayout : MonoBehaviour
     }
    public void OnFieldButtonClick()
    {
+        Board.Instance.CardInfo.AssignCard(MonsterCard);
+        foreach (Button b in Board.Instance.MonsterCardControls)
+        {
+            b.onClick = null;
+            b.gameObject.SetActive(false);
+        }
+        Board.Instance.AddMonsterCardCommandButton(MonsterCardButton.Summon);
+   }
   //
   //     GameManager gm = GameManager.Instance;
   //     if (gm.TurnState == TurnState.Normal)
@@ -69,5 +77,4 @@ public class CardLayout : MonoBehaviour
   //             gm.CurrentPlayer.SummonPower -= monsterCard.PlayCost;
   //         }
   //     }
-   }
 }

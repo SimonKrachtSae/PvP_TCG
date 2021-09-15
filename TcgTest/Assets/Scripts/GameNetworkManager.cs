@@ -12,6 +12,7 @@ public class GameNetworkManager : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.IsConnected)
         {
             PhotonNetwork.OfflineMode = true;
+            PhotonNetwork.CreateRoom(default);
         }
     }
 }

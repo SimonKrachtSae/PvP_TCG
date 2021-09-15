@@ -47,6 +47,9 @@ MonoBehaviour:
   - RPC_StartGame
   - RPC_DrawCard
   - RPC_Start
+  - RPC_EndTurn
+  - RPC_UpdateGameInfo
+  - RPC_UpdatePlayerUIs
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

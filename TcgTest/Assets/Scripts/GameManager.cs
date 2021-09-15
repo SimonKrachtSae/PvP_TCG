@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     public Duelist Enemy { get => enemyDuelist; set => enemyDuelist = value; }
 
     public ClientType StartingClient { get; set; }
+    public DuelistType CurrentDuelist { get; set; }
 
     public Duelist CurrentPlayer { get; set; }
 
@@ -21,6 +22,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     private Board board;
     private UIDesriptions descriptions;
     public int Turn = 1;
+    private TurnPhase currentTurnPhase;
     private int rounds = 0;
     public int Rounds
     {
@@ -43,6 +45,8 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     private void Start()
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
+        if(PhotonNetwork.OfflineMode)PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
+        currentTurnPhase = TurnPhase.DrawPhase;
     }
     public void StartGame()
     {
@@ -52,49 +56,98 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         //AssignPlayers
         //CurrentPlayer = localDuelist;
         //Draw Starting Hand
-        for (int i = 0; i < 4; i++)
+
+        int cardCount = 5;
+        CurrentDuelist = DuelistType.Enemy;
+        if (!PhotonNetwork.OfflineMode)
         {
-            int index = LocalDuelist.Deck.MonsterCards.Count - 1;
-            DrawCard(index);
-        }
-        LocalDuelist.RedrawHandCards();
-        board.PlayerDeckText.text = LocalDuelist.Deck.MonsterCards.Count.ToString();
-        //board.EnemyDeckText.text = enemyDuelist.Deck.MonsterCards.Count.ToString();
-        //TurnStart(DuelistType.Player);
-    }
-    void Update()
-    {
-        
-    }
-    private void TurnStart(DuelistType type)
-    {
-        Rounds++;
-        if (type == DuelistType.Player)
-        {
-            CurrentPlayer = LocalDuelist;
+            bool isFirst = false;
+            if (PhotonNetwork.LocalPlayer.IsMasterClient && StartingClient == ClientType.Host)
+            {
+                isFirst = true;
+                cardCount = 4;
+                CurrentDuelist = DuelistType.Player;
+                GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+            }
+            if (!PhotonNetwork.LocalPlayer.IsMasterClient && StartingClient == ClientType.Client)
+            {
+                GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+                CurrentDuelist = DuelistType.Player;
+                isFirst = true;
+                cardCount = 4;
+            }
+
+            for (int i = 0; i < cardCount; i++)
+            {
+                int index = LocalDuelist.Deck.MonsterCards.Count - 1;
+                DrawCard(index);
+            }
+           
+            if (isFirst) StartTurn();
+            else UpdatePlayerUIs();
         }
         else
         {
-            CurrentPlayer = enemyDuelist;
+            for (int i = 0; i < 5; i++)
+            {
+                if (i < 4) LocalDuelist.AddHandCard(i);
+                Enemy.AddHandCard(i);
+            }
         }
-        CurrentPlayer.SummonPower = Turn;
-        //DrawTopDeckCard();
     }
+
     public void DrawCard(int index)
     {
         LocalDuelist.AddHandCard(index);
-        photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others, index);
+        if(!PhotonNetwork.OfflineMode) photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others, index);
     }
     [PunRPC]
     public void RPC_DrawCard(int index)
     {
         Debug.Log("Toe");
         Enemy.AddHandCard(index);
-        Enemy.RedrawHandCards();
         Debug.Log("EnemyHandCards:" + Enemy.HandCards.Count);
         Debug.Log("EnemyDeckCards:" + Enemy.Deck.MonsterCards.Count);
     }
-
+    private void StartTurn()
+    {
+        rounds++;
+        DrawCard(localDuelist.Deck.MonsterCards.Count - 1);
+        //UpdateUIs
+        UpdatePlayerUIs();
+        photonView.RPC(nameof(RPC_UpdateGameInfo), RpcTarget.All);
+    }
+    public void EndTurn()
+    {
+        if(CurrentDuelist == DuelistType.Enemy)
+        {
+            StartTurn();
+            CurrentDuelist = DuelistType.Player;
+            GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
+            CurrentDuelist = DuelistType.Enemy;
+        }
+    }
+    public void UpdatePlayerUIs()
+    {
+        LocalDuelist.SummonPower = Turn;
+        LocalDuelist.UpgradePlayerUIs();
+        photonView.RPC(nameof(RPC_UpdatePlayerUIs), RpcTarget.Others);
+    }
+    [PunRPC]
+    public void RPC_UpdatePlayerUIs()
+    {
+        Enemy.UpgradePlayerUIs();
+    }
+        //photonView.RPC(nameof(RPC_UpdateGameInfo), RpcTarget.All);
+    [PunRPC]
+    public void RPC_UpdateGameInfo()
+    {
+        Board.Instance.TurnCount.text = Turn.ToString();
+    }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
     }

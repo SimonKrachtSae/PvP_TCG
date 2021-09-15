@@ -11,12 +11,15 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] private Button HeadsButton;
     [SerializeField] private Button TailsButton;
     [SerializeField] private Button startButton;
+    [SerializeField] private Button endTurnButton;
+    public Button EndTurnButton { get => endTurnButton; set => endTurnButton = value; }
     public Button StartButton { get => startButton; set => startButton = value; }
 
     [SerializeField] private GameObject BoardCanvas;
 
     [SerializeField] private GameObject cardLayoutPrefab;
     public GameObject CardLayoutPrefab { get => cardLayoutPrefab; set => cardLayoutPrefab = value; }
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -28,6 +31,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         HeadsButton.onClick.AddListener(() => { OnHeadsClicked(); });
         TailsButton.onClick.AddListener(() => { OnTailsClicked(); });
         StartButton.onClick.AddListener(() => { StartGame(); });
+        EndTurnButton.onClick.AddListener(() => { EndTurn(); });
         if(PhotonNetwork.LocalPlayer.IsMasterClient)
         {
             HeadsButton.gameObject.SetActive(true);
@@ -71,6 +75,15 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         GameUIManager.Instance.SetGameState(GameState.Running);
         GameManager.Instance.StartGame();
+    }
+    public void EndTurn()
+    {
+        photonView.RPC(nameof(RPC_EndTurn), RpcTarget.All);
+    }
+    [PunRPC]
+    public void RPC_EndTurn()
+    {
+        GameManager.Instance.EndTurn();
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
