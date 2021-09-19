@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4838278927547470812}
   - component: {fileID: 4838278927547470813}
-  - component: {fileID: 4838278927547470815}
   - component: {fileID: 440790744318260366}
+  - component: {fileID: 5056016565163611224}
+  - component: {fileID: 3452105645764755438}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -45,9 +46,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20bfe77a0e56ab24c87fee01477e3397, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deck: {fileID: 4838278927547470815}
+  deck: {fileID: 3452105645764755438}
   graveyard: []
---- !u!114 &4838278927547470815
+  allCards: {fileID: 5056016565163611224}
+--- !u!114 &440790744318260366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4838278927547470814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 4838278927547470813}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &5056016565163611224
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -70,7 +95,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
   - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
   - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
---- !u!114 &440790744318260366
+--- !u!114 &3452105645764755438
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -79,16 +104,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4838278927547470814}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Script: {fileID: 11500000, guid: 4cb04c621a0335041a2121f5ba208ad0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 0
-  observableSearch: 2
-  ObservedComponents: []
-  sceneViewId: 0
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
+  monsterCards: []

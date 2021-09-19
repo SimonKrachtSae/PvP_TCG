@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using TMPro;
 public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameManager Instance;
@@ -17,11 +18,19 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     public Duelist CurrentPlayer { get; set; }
 
     public TurnState TurnState { get; set; }
-    public CardStats CardToBeSummoned { get; set; }
 
     private Board board;
     private UIDesriptions descriptions;
-    public int Turn = 1;
+    private int turn = 1;
+    public int Turn
+    {
+        get => turn;
+        set
+        {
+            turn = value;
+            photonView.RPC(nameof(RPC_UpdateTurnInfo), RpcTarget.All, turn);
+        }
+    }
     private TurnPhase currentTurnPhase;
     private int rounds = 0;
     public int Rounds
@@ -29,14 +38,27 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         get => rounds;
         set
         {
-            if (value > 2)
+            rounds = value;
+            if(rounds >= 2)
             {
-                rounds = 0;
                 Turn++;
+                rounds = 0;
             }
-            else { rounds = value; }
+            photonView.RPC(nameof(RPC_UpdateRoundInfo), RpcTarget.All, rounds);
         }
     }
+
+    public MainPhaseStates MainPhaseStates
+    { 
+        get => mainPhaseStates;
+        set
+        {
+            mainPhaseStates = value;
+            photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, mainPhaseStates);
+        }
+    }
+
+    private MainPhaseStates mainPhaseStates;
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -79,43 +101,18 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 
             for (int i = 0; i < cardCount; i++)
             {
-                int index = LocalDuelist.Deck.MonsterCards.Count - 1;
-                DrawCard(index);
+                LocalDuelist.DrawCard(0);
             }
            
             if (isFirst) StartTurn();
-            else UpdatePlayerUIs();
         }
-        else
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                if (i < 4) LocalDuelist.AddHandCard(i);
-                Enemy.AddHandCard(i);
-            }
-        }
-    }
-
-    public void DrawCard(int index)
-    {
-        LocalDuelist.AddHandCard(index);
-        if(!PhotonNetwork.OfflineMode) photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others, index);
-    }
-    [PunRPC]
-    public void RPC_DrawCard(int index)
-    {
-        Debug.Log("Toe");
-        Enemy.AddHandCard(index);
-        Debug.Log("EnemyHandCards:" + Enemy.HandCards.Count);
-        Debug.Log("EnemyDeckCards:" + Enemy.Deck.MonsterCards.Count);
     }
     private void StartTurn()
     {
-        rounds++;
-        DrawCard(localDuelist.Deck.MonsterCards.Count - 1);
-        //UpdateUIs
-        UpdatePlayerUIs();
-        photonView.RPC(nameof(RPC_UpdateGameInfo), RpcTarget.All);
+        Rounds++;
+        LocalDuelist.SummonPower = Turn;
+        LocalDuelist.DrawCard(LocalDuelist.Deck.MonsterCards.Count - 1);
+        MainPhaseStates = MainPhaseStates.StandardView;
     }
     public void EndTurn()
     {
@@ -131,22 +128,22 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
             CurrentDuelist = DuelistType.Enemy;
         }
     }
-    public void UpdatePlayerUIs()
+    [PunRPC]
+    public void RPC_SetMainPhaseState(MainPhaseStates state)
     {
-        LocalDuelist.SummonPower = Turn;
-        LocalDuelist.UpgradePlayerUIs();
-        photonView.RPC(nameof(RPC_UpdatePlayerUIs), RpcTarget.Others);
+        mainPhaseStates = state;
+    }
+   
+    [PunRPC]
+    public void RPC_UpdateRoundInfo(int value)
+    {
+        rounds = value;
     }
     [PunRPC]
-    public void RPC_UpdatePlayerUIs()
+    public void RPC_UpdateTurnInfo(int value)
     {
-        Enemy.UpgradePlayerUIs();
-    }
-        //photonView.RPC(nameof(RPC_UpdateGameInfo), RpcTarget.All);
-    [PunRPC]
-    public void RPC_UpdateGameInfo()
-    {
-        Board.Instance.TurnCount.text = Turn.ToString();
+        turn = value;
+        Board.Instance.TurnCount.text = turn.ToString();
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

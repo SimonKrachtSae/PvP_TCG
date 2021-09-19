@@ -85,6 +85,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         GameManager.Instance.EndTurn();
     }
+    public void Summon()
+    {
+        GameManager.Instance.MainPhaseStates = MainPhaseStates.Summoning;
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
     }

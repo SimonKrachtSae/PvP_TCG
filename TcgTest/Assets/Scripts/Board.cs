@@ -3,27 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEditor;
 
 public class Board : MonoBehaviour
 {
     public static Board Instance;
 
-    [SerializeField] private List<Field> playerHandCards;
-    public List<Field> PlayerHandCards { get => playerHandCards; set => playerHandCards = value; }
-    [SerializeField] private List<Field> playerMonsterFields;
-    [SerializeField] private TMP_Text playerCardsInDeckCount;
-    [SerializeField] private TMP_Text playerCardsInGraveyardCount;
+    [SerializeField] private List<HandField> playerHandCards;
+    public List<HandField> PlayerHandCards { get => playerHandCards; set => playerHandCards = value; }
+    [SerializeField] private List<MonsterField> playerMonsterFields;
+    public List<MonsterField> PlayerMonsterFields { get => playerMonsterFields; set => playerMonsterFields = value; }
 
-    [SerializeField] private TMP_Text playerGraveyard;
-
-    [SerializeField] private List<Field> enemyMonsterFields;
-    public List<Field> EnemyHandCards;
+    [SerializeField] private List<MonsterField> enemyMonsterFields;
+    public List<MonsterField> EnemyMonsterFields { get => enemyMonsterFields; set => enemyMonsterFields = value; }
+    public List<HandField> EnemyHandCards;
     [SerializeField] private TMP_Text enemyDeck;
     [SerializeField] private TMP_Text enemyGraveyard;
-    [SerializeField] private TMP_Text enemyCardsInDeckCount;
-    [SerializeField] private TMP_Text enemyCardsInGraveyardCount;
-    public TMP_Text EnemyDeckText { get => enemyCardsInDeckCount; set => enemyCardsInDeckCount = value; }
     public GameObject PlayerHandParent { get => playerHandParent; set => playerHandParent = value; }
 
     [SerializeField] private GameObject playerHandParent;
@@ -33,9 +29,7 @@ public class Board : MonoBehaviour
     public GameObject HandFieldPrefab { get => handFieldPrefab; set => handFieldPrefab = value; }
     [SerializeField] private GameObject handFieldPrefab;
 
-    public Field CardInfo;
-    [SerializeField] private TMP_Text playerSummonPowerText;
-    [SerializeField] private TMP_Text enemySummonPowerText;
+    public HandField CardInfo;
     public DuelistUIs PlayerUIs { get; set; }
     public DuelistUIs EnemyUIs { get; set; }
     public TMP_Text TurnCount { get => turnCount; set => turnCount = value; }
@@ -43,23 +37,33 @@ public class Board : MonoBehaviour
 
     [SerializeField] private TMP_Text turnCount;
     [SerializeField] private List<Button> monsterCardControls;
+
+    [SerializeField] TMP_Text playerCardsInDeckCount;
+    [SerializeField] TMP_Text playerSummonPowerText;
+    [SerializeField] TMP_Text playerCardsInGraveyardCount;
+
+    [SerializeField] TMP_Text enemyCardsInDeckCount;
+    [SerializeField] TMP_Text enemyCardsInGraveyardCount;
+    [SerializeField] TMP_Text enemySummonPowerText;
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
         else Instance = this;
-        PlayerUIs = new DuelistUIs(playerCardsInDeckCount,playerCardsInGraveyardCount,playerSummonPowerText);
-        EnemyUIs = new DuelistUIs(enemyCardsInDeckCount,enemyCardsInGraveyardCount,enemySummonPowerText);
+
+        PlayerUIs = new DuelistUIs(playerCardsInDeckCount, playerCardsInGraveyardCount, playerSummonPowerText);
+        EnemyUIs = new DuelistUIs(enemyCardsInDeckCount, enemyCardsInGraveyardCount, enemySummonPowerText);
     }
-    public Field GetFreeMonsterField(DuelistType type)
-    {
-        List<Field> MonsterFields = playerMonsterFields;
-        if (type == DuelistType.Enemy) MonsterFields = enemyMonsterFields;
-        for (int i = 0; i < 5; i++)
-        {
-            if (MonsterFields[i].Card == null) return MonsterFields[i];
-        }
-        return null;
-    }
+   // public HandField GetFreeMonsterField(DuelistType type)
+   // {
+   //     List<HandField> MonsterFields = playerMonsterFields;
+   //     if (type == DuelistType.Enemy) MonsterFields = enemyMonsterFields;
+   //     for (int i = 0; i < 5; i++)
+   //     {
+   //         if (MonsterFields[i].Card == null) return MonsterFields[i];
+   //     }
+   //     return null;
+   // }
     public void AddMonsterCardCommandButton(MonsterCardButton monsterCardButton)
     {
         int index = 0;
@@ -70,7 +74,10 @@ public class Board : MonoBehaviour
             case MonsterCardButton.Summon:
                 MonsterCardControls[index].gameObject.SetActive(true);
                 MonsterCardControls[index].GetComponentInChildren<TMP_Text>().text = "Summon";
-                //monsterCardControls[index].onClick.AddListener(() => { OnHeadsClicked(); });
+                for (int i = 0; i < PlayerMonsterFields.Count; i++)
+                {
+                    //PlayerMonsterFields[i].Button.onClick.AddListener(() => { GameManager.Instance.SummonMonsterCard(cardLayout, i); });
+                }
                 break;
         }
     }

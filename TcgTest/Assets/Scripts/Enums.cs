@@ -44,3 +44,17 @@ public enum MonsterCardButton
     Attack,
     Summon
 }
+public enum MainPhaseStates
+{
+    StandardView,
+    HandCardSelected,
+    Summoning,
+    Aborting
+}
+public enum MonsterCardLocation
+{
+    InDeck,
+    OnField,
+    InGraveyard,
+    InHand
+}

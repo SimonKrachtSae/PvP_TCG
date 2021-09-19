@@ -50,6 +50,21 @@ MonoBehaviour:
   - RPC_EndTurn
   - RPC_UpdateGameInfo
   - RPC_UpdatePlayerUIs
+  - RPC_SetMainPhaseState
+  - RPC_SummonMonsterCard
+  - RPC_UpdateDeckCountText
+  - RPC_UpdateSummonPowerText
+  - RPC_UpdateTurnText
+  - RPC_UpdateDeck
+  - RPC_UpdateHandCards
+  - RPC_UpdateSummonPower
+  - RPC_UpdateDeckCount
+  - RPC_UpdateRoundInfo
+  - RPC_UpdateTurnInfo
+  - RPC_RemoveCardFromHand
+  - RPC_Summon
+  - RPC_UpdateMonsterFields
+  - RPC_UpdateDeckCardCount
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

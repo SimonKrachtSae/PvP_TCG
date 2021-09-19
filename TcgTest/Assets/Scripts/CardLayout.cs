@@ -13,7 +13,6 @@ public class CardLayout : MonoBehaviour
     [SerializeField] private protected TMP_Text AttackTextUI;
     [SerializeField] private protected TMP_Text DefenseTextUI;
     [SerializeField] private protected TMP_Text PlayCostTextUI;
-    [SerializeField] private Button button;
     private MonsterCardStats monsterCard;
     private FieldState state;
     public MonsterCardStats MonsterCard
@@ -32,7 +31,6 @@ public class CardLayout : MonoBehaviour
     }
     private void Start()
     {
-        if (button != null) button.onClick.AddListener(() => { OnFieldButtonClick(); });
         state = FieldState.Unselected;
     }
     public void Update()
@@ -42,16 +40,6 @@ public class CardLayout : MonoBehaviour
 
         }
     }
-   public void OnFieldButtonClick()
-   {
-        Board.Instance.CardInfo.AssignCard(MonsterCard);
-        foreach (Button b in Board.Instance.MonsterCardControls)
-        {
-            b.onClick = null;
-            b.gameObject.SetActive(false);
-        }
-        Board.Instance.AddMonsterCardCommandButton(MonsterCardButton.Summon);
-   }
   //
   //     GameManager gm = GameManager.Instance;
   //     if (gm.TurnState == TurnState.Normal)

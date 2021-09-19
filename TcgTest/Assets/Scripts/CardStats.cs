@@ -4,9 +4,13 @@ using UnityEngine;
 
 public abstract class CardStats : ScriptableObject
 {
+    public int Index { get; set; }
+
     [SerializeField]
     private string cardName;
     public string CardName { get => cardName; set => cardName = value; }
+
+    public MonsterCardLocation MonsterCardLocation { get; set; }
 
     [SerializeField]
     private Effect effect;
