@@ -49,7 +49,8 @@ public enum MainPhaseStates
     StandardView,
     HandCardSelected,
     Summoning,
-    Aborting
+    Aborting,
+    AttackPhase
 }
 public enum MonsterCardLocation
 {

@@ -26,7 +26,6 @@ public class HandField : CardField
             Board.Instance.MonsterCardControls[i].gameObject.GetComponentInChildren<TMP_Text>().text = "Summon";
             Board.Instance.MonsterCardControls[i].onClick.AddListener(() => { GameUIManager.Instance.Summon(); });
             GameManager.Instance.LocalDuelist.CardToBeSummoned = this.Layout.MonsterCard;
-            GameManager.Instance.MainPhaseStates = MainPhaseStates.Summoning;
         }
     }
 }

@@ -17,11 +17,13 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     public MonsterCardStats CardToBeSummoned 
     { 
         get => cardToBeSummoned; 
-        set
-        {
-            GameManager.Instance.MainPhaseStates = MainPhaseStates.Summoning;
-            cardToBeSummoned = value;
-        }
+        set => cardToBeSummoned = value;
+    }
+    private MonsterCardStats attackingCard;
+    public MonsterCardStats AttackingCard
+    {
+        get => attackingCard;
+        set=> attackingCard = value;
     }
     private int summonPower; 
     public int SummonPower
