@@ -19,10 +19,8 @@ public class CardEffect : ScriptableObject
         Debug.Log("DDD");
         OnSummon = null;
         OnDestroy = null;
-        OnSummon += SummonEffect.Execute;
-        OnSummon += DestroyEffect.Execute;
-    }
-    private void BoostEffect(Effect effect)
-    { 
+
+        for(int i = 0; i < onSummonEffects.Count; i++) OnSummon += onSummonEffects[i].Execute;
+        for(int i = 0; i < onDestroyEffects.Count; i++) OnDestroy += onDestroyEffects[i].Execute;
     }
 }

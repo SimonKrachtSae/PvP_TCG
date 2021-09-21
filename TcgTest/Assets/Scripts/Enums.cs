@@ -51,7 +51,8 @@ public enum MainPhaseStates
     Summoning,
     Aborting,
     AttackPhase,
-    Blocking
+    Blocking,
+    Tributing
 }
 public enum MonsterCardLocation
 {

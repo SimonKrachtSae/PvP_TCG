@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bd14b0f4145bfb45955ca4e3cd65f9a, type: 3}
   m_Name: CardEffect
   m_EditorClassIdentifier: 
-  onSummonEffects: []
-  onDestroyEffects: []
+  onSummonEffects:
+  - {fileID: 11400000, guid: 761ae7d3ec6e53e46822c1467957d179, type: 2}
+  onDestroyEffects:
+  - {fileID: 11400000, guid: 5516245be325b4e4e858b7ccdc1bc67a, type: 2}
   SummonEffect: {fileID: 11400000, guid: 761ae7d3ec6e53e46822c1467957d179, type: 2}
   DestroyEffect: {fileID: 11400000, guid: 5516245be325b4e4e858b7ccdc1bc67a, type: 2}

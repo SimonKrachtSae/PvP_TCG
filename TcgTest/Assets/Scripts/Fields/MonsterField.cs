@@ -29,6 +29,11 @@ public class MonsterField : CardField
             }
             switch (GameManager.Instance.MainPhaseStates)
             {
+                case MainPhaseStates.StandardView:
+                    Board.Instance.MonsterCardControls[2].gameObject.SetActive(true);
+                    Board.Instance.MonsterCardControls[2].gameObject.GetComponentInChildren<TMP_Text>().text = "Tribute";
+                    Board.Instance.MonsterCardControls[2].onClick.AddListener(() => { Tribute(); });
+                    break;
                 case MainPhaseStates.Summoning:
                     GameManager.Instance.LocalDuelist.Summon(this);
                     GameManager.Instance.LocalDuelist.CardToBeSummoned = null;
@@ -81,6 +86,11 @@ public class MonsterField : CardField
         {
             GameManager.Instance.Enemy.ShowBlockRequest();
         }
+    }
+    private void Tribute()
+    {
+        GameManager.Instance.LocalDuelist.SummonPower += Layout.MonsterCard.PlayCost;
+        GameManager.Instance.LocalDuelist.DestroyMonster(this);
     }
     public void AssignCard(MonsterCardStats cardStats)
     {

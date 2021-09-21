@@ -50,14 +50,14 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
         set => photonView.RPC(nameof(RPC_UpdateBlockingMonsterIndex), RpcTarget.All, value); 
     }
 
-
     private List<MonsterField> activeMonsterFields;
     public List<MonsterField> ActiveMonsterFields { get => activeMonsterFields; set => activeMonsterFields = value; }
     public int SummonPowerBoost { get => summonPowerBoost; set => summonPowerBoost = value; }
 
     private int summonPowerBoost;
 
-
+    private MonsterField cardToBeTributed;
+    public MonsterField CardToBeTributed { get => cardToBeTributed; set => cardToBeTributed = value; }
     private void Awake()
     {
         for (int i = 0; i < allCards.MonsterCards.Count; i++) deck.MonsterCards.Add(allCards.MonsterCards[i]);
