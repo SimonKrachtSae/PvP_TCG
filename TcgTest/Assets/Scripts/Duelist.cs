@@ -19,13 +19,13 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
         get => cardToBeSummoned; 
         set => cardToBeSummoned = value;
     }
-    private MonsterCardStats attackingCard;
-    public MonsterCardStats AttackingCard
+    private MonsterField attackingCard;
+    public MonsterField AttackingCard
     {
         get => attackingCard;
         set=> attackingCard = value;
     }
-    private int summonPower; 
+    private int summonPower = 0; 
     public int SummonPower
     { 
         get => summonPower;
@@ -42,6 +42,22 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     }
     private DuelistUIs UIs;
     public List<HandField> HandCardFields { get => handCardFields; set => handCardFields = value; }
+    public List<MonsterField> MonsterFields { get => monsterFields; set => monsterFields = value; }
+    private int blockingMonsterIndex;
+    public int BlockingMonsterIndex
+    {
+        get => blockingMonsterIndex;
+        set => photonView.RPC(nameof(RPC_UpdateBlockingMonsterIndex), RpcTarget.All, value); 
+    }
+
+
+    private List<MonsterField> activeMonsterFields;
+    public List<MonsterField> ActiveMonsterFields { get => activeMonsterFields; set => activeMonsterFields = value; }
+    public int SummonPowerBoost { get => summonPowerBoost; set => summonPowerBoost = value; }
+
+    private int summonPowerBoost;
+
+
     private void Awake()
     {
         for (int i = 0; i < allCards.MonsterCards.Count; i++) deck.MonsterCards.Add(allCards.MonsterCards[i]);
@@ -52,6 +68,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
         foreach (MonsterCardStats stats in deck.MonsterCards) stats.MonsterCardLocation = MonsterCardLocation.InDeck;
         graveyard = new List<MonsterCardStats>();
         handCards = new List<MonsterCardStats>();
+        ActiveMonsterFields = new List<MonsterField>();
         if (photonView.IsMine)
         {
             Debug.Log("tic");
@@ -59,7 +76,8 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
             handCardsParent = Board.Instance.PlayerHandParent;
             handCardFields = new List<HandField>();
             UIs = Board.Instance.PlayerUIs;
-            monsterFields = Board.Instance.PlayerMonsterFields;
+            MonsterFields = Board.Instance.PlayerMonsterFields;
+            return;
         }
         else
         {
@@ -67,7 +85,8 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
             handCardFields = new List<HandField>();
             handCardsParent = Board.Instance.EnemyHandParent;
             UIs = Board.Instance.EnemyUIs;
-            monsterFields = Board.Instance.EnemyMonsterFields;
+            MonsterFields = Board.Instance.EnemyMonsterFields;
+            return;
         }
     }
     public void DrawCard(int index)
@@ -87,10 +106,19 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
         summonPower = value;
         UIs.SummonPower.text = value.ToString();
     }
+    public void UpdateSummonPowerBoost(int value)
+    {
+        photonView.RPC(nameof(RPC_UpdateSummonPowerBoost), RpcTarget.All, value);
+    }
+    [PunRPC]
+    public void RPC_UpdateSummonPowerBoost(int value)
+    {
+        summonPowerBoost = summonPowerBoost + value;
+    }
     [PunRPC]
     public void RPC_UpdateDeckCardCount()
     {
-        UIs.CardsInDeckCount.text = deck.MonsterCards.ToString();
+        UIs.CardsInDeckCount.text = deck.MonsterCards.Count.ToString();
     }
     [PunRPC]
     public void RPC_UpdateHandCards(List<MonsterCardStats> value)
@@ -101,7 +129,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_UpdateMonsterFields(List<MonsterField> fields)
     {
-        monsterFields = fields;
+        MonsterFields = fields;
     }
     public void RedrawHandCards()
     {
@@ -124,15 +152,56 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     public void Summon(MonsterField field)
     {
         SummonPower -= CardToBeSummoned.PlayCost;
-        photonView.RPC(nameof(RPC_Summon), RpcTarget.All, monsterFields.IndexOf(field), handCards.IndexOf(CardToBeSummoned));
+        CardToBeSummoned.Effect.OnSummon?.Invoke();
+        photonView.RPC(nameof(RPC_Summon), RpcTarget.All, MonsterFields.IndexOf(field), handCards.IndexOf(CardToBeSummoned));
         CardToBeSummoned = null;
     }
     [PunRPC]
     public void RPC_Summon(int monsterFieldIndex, int handFieldIndex)
     {
-        monsterFields[monsterFieldIndex].AssignCard(handCards[handFieldIndex]);
+        MonsterFields[monsterFieldIndex].AssignCard(handCards[handFieldIndex]);
         handCards.RemoveAt(handFieldIndex);
         RedrawHandCards();
+    }
+    public void DestroyMonster(MonsterField field)
+    {
+        field.Layout.MonsterCard.Effect.OnDestroy?.Invoke();
+        photonView.RPC(nameof(RPC_DestroyMonster), RpcTarget.All, MonsterFields.IndexOf(field));
+    }
+    [PunRPC]
+    public void RPC_DestroyMonster(int index)
+    {
+        graveyard.Add(MonsterFields[index].Layout.MonsterCard);
+        MonsterFields[index].UnAssignCard();
+
+    }
+    public void ShowBlockRequest()
+    {
+        photonView.RPC(nameof(RPC_ShowBlockRequest), RpcTarget.Others);
+    }
+    [PunRPC]
+    public void RPC_ShowBlockRequest()
+    {
+        Board.Instance.BlockRequest.SetActive(true);
+    }
+    [PunRPC]
+    public void RPC_UpdateBlockingMonsterIndex(int value)
+    {
+        blockingMonsterIndex = value;
+        if(photonView.IsMine)
+        {
+            if(value == 6)
+            {
+                DrawCard(0);
+                AttackingCard = null;
+                return;
+            }
+            MonsterCardStats attackingCardStats = AttackingCard.Layout.MonsterCard;
+            MonsterCardStats defendingCardStats = GameManager.Instance.Enemy.MonsterFields[value].Layout.MonsterCard;
+            if (attackingCardStats.Attack > defendingCardStats.Defense) { GameManager.Instance.Enemy.DestroyMonster(GameManager.Instance.Enemy.MonsterFields[value]); }
+            else if (attackingCardStats.Attack < defendingCardStats.Defense) { DestroyMonster(AttackingCard); }
+            AttackingCard = null;
+        }
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

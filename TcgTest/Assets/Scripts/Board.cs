@@ -46,6 +46,11 @@ public class Board : MonoBehaviour
     [SerializeField] TMP_Text enemyCardsInGraveyardCount;
     [SerializeField] TMP_Text enemySummonPowerText;
 
+    [SerializeField] private TMP_Text playerInfoText;
+    public TMP_Text PlayerInfoText { get => playerInfoText; set => playerInfoText = value; }
+
+    [SerializeField] private GameObject blockRequest;
+    public GameObject BlockRequest { get => blockRequest; set => blockRequest = value; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);

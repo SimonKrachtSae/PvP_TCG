@@ -21,8 +21,8 @@ public class CardLayout : MonoBehaviour
         set
         {
             NameTextUI.text = value.CardName;
-            if (value.Effect != null) EffectTextUI.text = value.Effect.EffectDescription;
-            else EffectTextUI.text = "";
+            //if (value.Effect != null) EffectTextUI.text = value.Effect.EffectDescription;
+            EffectTextUI.text = "";
             DefenseTextUI.text = value.Defense.ToString();
             AttackTextUI.text = value.Attack.ToString();
             PlayCostTextUI.text = value.PlayCost.ToString();

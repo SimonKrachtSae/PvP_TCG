@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEditor;
 public abstract class CardField : MonoBehaviour
 {
+
     [SerializeField] protected Image backgroundImage;
 
     public Image BackgroundImage { get => backgroundImage; set => backgroundImage = value; }
@@ -18,11 +19,4 @@ public abstract class CardField : MonoBehaviour
     [SerializeField]protected Button button;
 
     public Button Button { get => button; set => button = value; }
-    public void AssignCard(MonsterCardStats cardStats)
-    {
-        if (Card != null) return;
-        Card = Instantiate(GameUIManager.Instance.CardLayoutPrefab, this.transform);
-        layout = card.GetComponent<CardLayout>();
-        layout.MonsterCard = cardStats;
-    }
 }

@@ -13,11 +13,15 @@ public abstract class CardStats : ScriptableObject
     public MonsterCardLocation MonsterCardLocation { get; set; }
 
     [SerializeField]
-    private Effect effect;
-    public Effect Effect { get => effect; set => effect = value; }
+    private CardEffect effect;
+    public CardEffect Effect { get => effect; set => effect = value; }
 
     [SerializeField]
     private int playCost;
     public int PlayCost { get => playCost; set => playCost = value; }
+    private void OnValidate()
+    {
+        
+    }
 }
 

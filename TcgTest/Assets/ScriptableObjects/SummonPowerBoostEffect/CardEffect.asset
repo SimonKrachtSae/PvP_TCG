@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bd14b0f4145bfb45955ca4e3cd65f9a, type: 3}
+  m_Name: CardEffect
+  m_EditorClassIdentifier: 
+  onSummonEffects: []
+  onDestroyEffects: []
+  SummonEffect: {fileID: 11400000, guid: 761ae7d3ec6e53e46822c1467957d179, type: 2}
+  DestroyEffect: {fileID: 11400000, guid: 5516245be325b4e4e858b7ccdc1bc67a, type: 2}

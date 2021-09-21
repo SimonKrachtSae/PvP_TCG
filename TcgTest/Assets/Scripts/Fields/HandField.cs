@@ -10,6 +10,13 @@ public class HandField : CardField
     {
         if(Button != null)Button.onClick.AddListener(() => { OnFieldButtonClick(); });
     }
+    public void AssignCard(MonsterCardStats cardStats)
+    {
+        //if (Card != null) return;
+        Card = Instantiate(GameUIManager.Instance.CardLayoutPrefab, this.transform);
+        layout = card.GetComponent<CardLayout>();
+        layout.MonsterCard = cardStats;
+    }
     public void OnFieldButtonClick()
     {
         Board.Instance.CardInfo.AssignCard(Layout.MonsterCard);

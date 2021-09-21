@@ -50,7 +50,8 @@ public enum MainPhaseStates
     HandCardSelected,
     Summoning,
     Aborting,
-    AttackPhase
+    AttackPhase,
+    Blocking
 }
 public enum MonsterCardLocation
 {
