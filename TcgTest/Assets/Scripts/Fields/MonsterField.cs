@@ -30,9 +30,9 @@ public class MonsterField : CardField
             switch (GameManager.Instance.MainPhaseStates)
             {
                 case MainPhaseStates.StandardView:
-                    Board.Instance.MonsterCardControls[2].gameObject.SetActive(true);
-                    Board.Instance.MonsterCardControls[2].gameObject.GetComponentInChildren<TMP_Text>().text = "Tribute";
-                    Board.Instance.MonsterCardControls[2].onClick.AddListener(() => { Tribute(); });
+                    Board.Instance.MonsterCardControls[0].gameObject.SetActive(true);
+                    Board.Instance.MonsterCardControls[0].gameObject.GetComponentInChildren<TMP_Text>().text = "Tribute";
+                    Board.Instance.MonsterCardControls[0].onClick.AddListener(() => { Tribute(); });
                     break;
                 case MainPhaseStates.Summoning:
                     GameManager.Instance.LocalDuelist.Summon(this);
