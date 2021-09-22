@@ -152,7 +152,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     public void Summon(MonsterField field)
     {
         SummonPower -= CardToBeSummoned.PlayCost;
-        CardToBeSummoned.Effect.OnSummon?.Invoke();
+        if(cardToBeSummoned.Effect != null) CardToBeSummoned.Effect.OnSummon?.Invoke();
         photonView.RPC(nameof(RPC_Summon), RpcTarget.All, MonsterFields.IndexOf(field), handCards.IndexOf(CardToBeSummoned));
         CardToBeSummoned = null;
     }
@@ -165,7 +165,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void DestroyMonster(MonsterField field)
     {
-        field.Layout.MonsterCard.Effect.OnDestroy?.Invoke();
+        if (cardToBeSummoned.Effect != null) field.Layout.MonsterCard.Effect.OnDestroy?.Invoke();
         photonView.RPC(nameof(RPC_DestroyMonster), RpcTarget.All, MonsterFields.IndexOf(field));
     }
     [PunRPC]
