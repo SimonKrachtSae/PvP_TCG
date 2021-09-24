@@ -11,7 +11,11 @@ public class MonsterCardStats : CardStats
 
     [SerializeField]
     private int defense;
-    public int Defense { get => attack; set => attack = value; }
+    public int Defense { get => defense; set => defense = value; }
+    [SerializeField]
+    private MonsterCardEffect effect;
+    public MonsterCardEffect Effect { get => effect; set => effect = value; }
+
     private void OnValidate()
     {
         if (attack > 10) attack = 10;

@@ -10,18 +10,8 @@ public abstract class CardStats : ScriptableObject
     private string cardName;
     public string CardName { get => cardName; set => cardName = value; }
 
-    public MonsterCardLocation MonsterCardLocation { get; set; }
-
-    [SerializeField]
-    private CardEffect effect;
-    public CardEffect Effect { get => effect; set => effect = value; }
-
     [SerializeField]
     private int playCost;
     public int PlayCost { get => playCost; set => playCost = value; }
-    private void OnValidate()
-    {
-        
-    }
 }
 

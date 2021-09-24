@@ -17,9 +17,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 
     [SerializeField] private GameObject BoardCanvas;
 
-    [SerializeField] private GameObject cardLayoutPrefab;
-    public GameObject CardLayoutPrefab { get => cardLayoutPrefab; set => cardLayoutPrefab = value; }
+    [SerializeField] private GameObject monsterCardLayoutPrefab;
+    public GameObject MonsterCardLayoutPrefab { get => monsterCardLayoutPrefab; set => monsterCardLayoutPrefab = value; }
 
+    [SerializeField] private GameObject effectCardLayoutPrefab;
+    public GameObject EffectCardLayoutPrefab { get => effectCardLayoutPrefab; set => effectCardLayoutPrefab = value; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);

@@ -96,8 +96,8 @@ public class MonsterField : CardField
     {
         //if (Card != null) return;
         if (duelistType == DuelistType.Player) GameManager.Instance.LocalDuelist.ActiveMonsterFields.Add(this);
-        Card = Instantiate(GameUIManager.Instance.CardLayoutPrefab, this.transform);
-        layout = card.GetComponent<CardLayout>();
+        Card = Instantiate(GameUIManager.Instance.MonsterCardLayoutPrefab, this.transform);
+        layout = card.GetComponent<MonsterCardLayout>();
         layout.MonsterCard = cardStats;
     }
     public void UnAssignCard()

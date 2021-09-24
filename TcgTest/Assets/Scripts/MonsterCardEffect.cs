@@ -4,19 +4,16 @@ using UnityEngine;
 using System;
 using UnityEngine.Events;
 
-[CreateAssetMenu(fileName = "CardEffect", menuName = "ScriptableObjects/CardEffect", order = 1)]
-public class CardEffect : ScriptableObject
+[CreateAssetMenu(fileName = "MonsterCardEffect", menuName = "ScriptableObjects/MonsterCardEffect", order = 1)]
+public class MonsterCardEffect : ScriptableObject
 {
     private UnityAction onSummon;
-    public UnityAction OnSummon { get => onSummon; set { onSummon = value; Debug.Log("HOA"); } }
+    public UnityAction OnSummon { get => onSummon; set => onSummon = value; }
     [SerializeField] private List<Effect> onSummonEffects;
     public UnityAction OnDestroy { get; set; }
     [SerializeField] private List<Effect> onDestroyEffects;
-    public Effect SummonEffect;
-    public Effect DestroyEffect;
     private void OnValidate()
     {
-        Debug.Log("DDD");
         OnSummon = null;
         OnDestroy = null;
 

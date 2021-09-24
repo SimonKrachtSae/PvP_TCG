@@ -11,7 +11,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     private List<HandField> handCardFields;
     private List<MonsterField> monsterFields;
     private GameObject handCardsParent;
-    private List<MonsterCardStats> handCards;
+    private List<CardStats> handCards;
     private List<MonsterCardStats> monstersOnField;
     private MonsterCardStats cardToBeSummoned;
     public MonsterCardStats CardToBeSummoned 
@@ -61,13 +61,14 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     private void Awake()
     {
         for (int i = 0; i < allCards.MonsterCards.Count; i++) deck.MonsterCards.Add(allCards.MonsterCards[i]);
+
     }
 
     void Start()
     {
-        foreach (MonsterCardStats stats in deck.MonsterCards) stats.MonsterCardLocation = MonsterCardLocation.InDeck;
+        //foreach (MonsterCardStats stats in deck.MonsterCards) stats.MonsterCardLocation = MonsterCardLocation.InDeck;
         graveyard = new List<MonsterCardStats>();
-        handCards = new List<MonsterCardStats>();
+        handCards = new List<CardStats>();
         ActiveMonsterFields = new List<MonsterField>();
         if (photonView.IsMine)
         {
@@ -121,7 +122,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
         UIs.CardsInDeckCount.text = deck.MonsterCards.Count.ToString();
     }
     [PunRPC]
-    public void RPC_UpdateHandCards(List<MonsterCardStats> value)
+    public void RPC_UpdateHandCards(List<CardStats> value)
     {
         handCards = value;
         RedrawHandCards();
@@ -159,13 +160,13 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_Summon(int monsterFieldIndex, int handFieldIndex)
     {
-        MonsterFields[monsterFieldIndex].AssignCard(handCards[handFieldIndex]);
+        MonsterFields[monsterFieldIndex].AssignCard((MonsterCardStats)handCards[handFieldIndex]);
         handCards.RemoveAt(handFieldIndex);
         RedrawHandCards();
     }
     public void DestroyMonster(MonsterField field)
     {
-        if (cardToBeSummoned.Effect != null) field.Layout.MonsterCard.Effect.OnDestroy?.Invoke();
+        if (field.Layout.MonsterCard.Effect != null) field.Layout.MonsterCard.Effect.OnDestroy?.Invoke();
         photonView.RPC(nameof(RPC_DestroyMonster), RpcTarget.All, MonsterFields.IndexOf(field));
     }
     [PunRPC]

@@ -4682,6 +4682,7 @@ GameObject:
   - component: {fileID: 1301901503}
   - component: {fileID: 1301901505}
   - component: {fileID: 1301901504}
+  - component: {fileID: 1301901506}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -4712,7 +4713,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1301901498}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a332f37b6eb3d44a9ccb65fcab465a0, type: 3}
   m_Name: 
@@ -4723,7 +4724,8 @@ MonoBehaviour:
   startButton: {fileID: 2011390043}
   endTurnButton: {fileID: 1807528431}
   BoardCanvas: {fileID: 2061302015}
-  cardLayoutPrefab: {fileID: 369626032510239763, guid: fcb30f89ad6ceaf48b225797813fbd25, type: 3}
+  monsterCardLayoutPrefab: {fileID: 369626032510239763, guid: fcb30f89ad6ceaf48b225797813fbd25, type: 3}
+  effectCardLayoutPrefab: {fileID: 369626032510239763, guid: 8dec6e34101e74e488189dc16738a8f6, type: 3}
 --- !u!114 &1301901501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4745,6 +4747,7 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 1301901500}
   - {fileID: 1301901503}
+  - {fileID: 1301901506}
   sceneViewId: 10
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -4755,7 +4758,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1301901498}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 681c6411ea37ddd468b24885c3f99a7a, type: 3}
   m_Name: 
@@ -4767,7 +4770,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1301901498}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3665ef3932b60f4cbac22591a962ab5, type: 3}
   m_Name: 
@@ -4830,6 +4833,29 @@ MonoBehaviour:
   enemySummonPowerText: {fileID: 1191814364}
   playerInfoText: {fileID: 1096376017}
   blockRequest: {fileID: 324100174}
+--- !u!114 &1301901506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301901498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cd5f4e12c72ade4b8e253f8d7bd74a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startingDeck:
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 69c7f6ff09461ed4c97f70fce0f4754f, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
 --- !u!1 &1337986208
 GameObject:
   m_ObjectHideFlags: 0

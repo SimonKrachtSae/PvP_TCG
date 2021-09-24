@@ -10,12 +10,22 @@ public class HandField : CardField
     {
         if(Button != null)Button.onClick.AddListener(() => { OnFieldButtonClick(); });
     }
-    public void AssignCard(MonsterCardStats cardStats)
+    public void AssignCard(CardStats cardStats)
     {
         //if (Card != null) return;
-        Card = Instantiate(GameUIManager.Instance.CardLayoutPrefab, this.transform);
-        layout = card.GetComponent<CardLayout>();
-        layout.MonsterCard = cardStats;
+        if(cardStats.GetType().ToString() == nameof(MonsterCardStats))
+        {
+            Debug.Log("Match");
+            Card = Instantiate(GameUIManager.Instance.MonsterCardLayoutPrefab, this.transform);
+            layout = card.GetComponent<MonsterCardLayout>();
+            layout.MonsterCard = (MonsterCardStats)cardStats;
+        }
+        else
+        {
+            Card = Instantiate(GameUIManager.Instance.EffectCardLayoutPrefab, this.transform);
+            EffectCardLayout = card.GetComponent<EffectCardLayout>();
+            EffectCardLayout.EffectCard = (EffectCardStats)cardStats;
+        }
     }
     public void OnFieldButtonClick()
     {

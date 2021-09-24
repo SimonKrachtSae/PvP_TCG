@@ -51,6 +51,8 @@ public class Board : MonoBehaviour
 
     [SerializeField] private GameObject blockRequest;
     public GameObject BlockRequest { get => blockRequest; set => blockRequest = value; }
+
+    private GameObject deckFieldObj;
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -58,32 +60,5 @@ public class Board : MonoBehaviour
 
         PlayerUIs = new DuelistUIs(playerCardsInDeckCount, playerCardsInGraveyardCount, playerSummonPowerText);
         EnemyUIs = new DuelistUIs(enemyCardsInDeckCount, enemyCardsInGraveyardCount, enemySummonPowerText);
-    }
-   // public HandField GetFreeMonsterField(DuelistType type)
-   // {
-   //     List<HandField> MonsterFields = playerMonsterFields;
-   //     if (type == DuelistType.Enemy) MonsterFields = enemyMonsterFields;
-   //     for (int i = 0; i < 5; i++)
-   //     {
-   //         if (MonsterFields[i].Card == null) return MonsterFields[i];
-   //     }
-   //     return null;
-   // }
-    public void AddMonsterCardCommandButton(MonsterCardButton monsterCardButton)
-    {
-        int index = 0;
-        foreach (Button b in MonsterCardControls) if (b.isActiveAndEnabled) index++;
-        if (index > 2) return;
-        switch(monsterCardButton)
-        {
-            case MonsterCardButton.Summon:
-                MonsterCardControls[index].gameObject.SetActive(true);
-                MonsterCardControls[index].GetComponentInChildren<TMP_Text>().text = "Summon";
-                for (int i = 0; i < PlayerMonsterFields.Count; i++)
-                {
-                    //PlayerMonsterFields[i].Button.onClick.AddListener(() => { GameManager.Instance.SummonMonsterCard(cardLayout, i); });
-                }
-                break;
-        }
     }
 }

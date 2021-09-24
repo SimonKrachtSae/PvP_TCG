@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardName: Cheese
   effect: {fileID: 11400000, guid: bf9f0acecd91ce449a92536824dcab70, type: 2}
-  playCost: 1
+  playCost: 3
   attack: 10
   defense: 5

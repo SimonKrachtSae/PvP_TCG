@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEditor;
 
-public class CardLayout : MonoBehaviour
+public class MonsterCardLayout : MonoBehaviour
 {
     [SerializeField] private Duelist player;
     [SerializeField] private protected TMP_Text NameTextUI;
