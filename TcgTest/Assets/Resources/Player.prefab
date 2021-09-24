@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4838278927547470814
+--- !u!1 &1369013443263108150
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,11 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4838278927547470812}
-  - component: {fileID: 4838278927547470813}
-  - component: {fileID: 440790744318260366}
-  - component: {fileID: 5056016565163611224}
-  - component: {fileID: 3452105645764755438}
+  - component: {fileID: 8483696807608920903}
+  - component: {fileID: 2920040875169415094}
+  - component: {fileID: 1491771139646323026}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -20,42 +18,50 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4838278927547470812
+--- !u!4 &8483696807608920903
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4838278927547470814}
+  m_GameObject: {fileID: 1369013443263108150}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 90}
+  m_LocalPosition: {x: -0.121769674, y: -6.534577, z: 504.52103}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4838278927547470813
+--- !u!114 &2920040875169415094
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4838278927547470814}
+  m_GameObject: {fileID: 1369013443263108150}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20bfe77a0e56ab24c87fee01477e3397, type: 3}
+  m_Script: {fileID: 11500000, guid: 0cd5f4e12c72ade4b8e253f8d7bd74a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deck: {fileID: 3452105645764755438}
-  graveyard: []
-  allCards: {fileID: 5056016565163611224}
---- !u!114 &440790744318260366
+  startingDeck:
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 69c7f6ff09461ed4c97f70fce0f4754f, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
+--- !u!114 &1491771139646323026
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4838278927547470814}
+  m_GameObject: {fileID: 1369013443263108150}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
@@ -68,43 +74,7 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
-  - {fileID: 4838278927547470813}
+  - {fileID: 2920040875169415094}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &5056016565163611224
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4838278927547470814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cb04c621a0335041a2121f5ba208ad0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  monsterCards:
-  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
-  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
-  - {fileID: 11400000, guid: 8643b2e40ca8b8a4687fdce64cf5f9ff, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
-  - {fileID: 11400000, guid: f09e37b398051e74d90bd645bca7a637, type: 2}
---- !u!114 &3452105645764755438
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4838278927547470814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cb04c621a0335041a2121f5ba208ad0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  monsterCards: []

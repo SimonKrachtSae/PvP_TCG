@@ -8,8 +8,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3404350296418062767}
+  - component: {fileID: 7710367356938180946}
   - component: {fileID: 7803732572516669065}
+  - component: {fileID: 2559599405622884817}
+  - component: {fileID: 9008035613714886164}
   m_Layer: 0
   m_Name: MonsterCard
   m_TagString: Untagged
@@ -17,7 +19,7 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3404350296418062767
+--- !u!4 &7710367356938180946
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -25,8 +27,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3404350296418062766}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.1388783, y: -70.47173, z: 3877.046}
-  m_LocalScale: {x: 9.353074, y: 9.353074, z: 9.353074}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
   m_Children:
   - {fileID: 3547478600292092011}
   m_Father: {fileID: 0}
@@ -45,6 +47,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardObj: {fileID: 3547478600292092010}
+  IsMoving: 0
+--- !u!114 &2559599405622884817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3404350296418062766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 7803732572516669065}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!61 &9008035613714886164
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3404350296418062766}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 40, y: 60}
+  m_EdgeRadius: 0
 --- !u!1 &3547478598881834113
 GameObject:
   m_ObjectHideFlags: 0
@@ -737,6 +789,7 @@ GameObject:
   - component: {fileID: 3547478600292092004}
   - component: {fileID: 3547478600292092007}
   - component: {fileID: 7575896903288331282}
+  - component: {fileID: 1092567097120280958}
   m_Layer: 5
   m_Name: MonsterCardLayout
   m_TagString: Untagged
@@ -756,7 +809,7 @@ RectTransform:
   m_LocalScale: {x: 0.25, y: 2, z: 1}
   m_Children:
   - {fileID: 3547478600464626478}
-  m_Father: {fileID: 3404350296418062767}
+  m_Father: {fileID: 7710367356938180946}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -819,6 +872,27 @@ MonoBehaviour:
   playCostTextUI: {fileID: 3547478599326711392}
   attackTextUI: {fileID: 3547478599470341702}
   defenseTextUI: {fileID: 3547478599023832579}
+--- !u!223 &1092567097120280958
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3547478600292092010}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_AdditionalShaderChannelsFlag: 25
+  m_SortingLayerID: 0
+  m_SortingOrder: 1
+  m_TargetDisplay: 0
 --- !u!1 &3547478600464626481
 GameObject:
   m_ObjectHideFlags: 0

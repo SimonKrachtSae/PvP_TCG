@@ -75,21 +75,32 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_StartGame()
     {
-        GameUIManager.Instance.SetGameState(GameState.Running);
-        GameManager.Instance.StartGame();
+        SetGameState(GameState.Running);
+
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        {
+            Game_Manager.Instance.CurrentDuelist = DuelistType.Player;
+            Game_Manager.Instance.Player.Mana = GameManager.Instance.Turn;
+        }
+
+        Game_Manager.Instance.StartGame();
     }
     public void EndTurn()
     {
-        photonView.RPC(nameof(RPC_EndTurn), RpcTarget.All);
+        Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
+        GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
+        Game_Manager.Instance.Round++;
+        photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
     public void RPC_EndTurn()
     {
-        GameManager.Instance.EndTurn();
+        GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+        Game_Manager.Instance.StartTurn();
     }
     public void Summon()
     {
-        GameManager.Instance.MainPhaseStates = MainPhaseStates.Summoning;
+        Game_Manager.Instance.state = MainPhaseStates.Summoning;
     }
     public void StartAttackPhase()
     {

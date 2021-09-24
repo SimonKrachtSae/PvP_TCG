@@ -12,11 +12,11 @@ public class Board : MonoBehaviour
 
     [SerializeField] private List<HandField> playerHandCards;
     public List<HandField> PlayerHandCards { get => playerHandCards; set => playerHandCards = value; }
-    [SerializeField] private List<MonsterField> playerMonsterFields;
-    public List<MonsterField> PlayerMonsterFields { get => playerMonsterFields; set => playerMonsterFields = value; }
+    [SerializeField] private List<GameObject> playerMonsterFields;
+    public List<GameObject> PlayerMonsterFields { get => playerMonsterFields; set => playerMonsterFields = value; }
 
-    [SerializeField] private List<MonsterField> enemyMonsterFields;
-    public List<MonsterField> EnemyMonsterFields { get => enemyMonsterFields; set => enemyMonsterFields = value; }
+    [SerializeField] private List<GameObject> enemyMonsterFields;
+    public List<GameObject> EnemyMonsterFields { get => enemyMonsterFields; set => enemyMonsterFields = value; }
     public List<HandField> EnemyHandCards;
     [SerializeField] private TMP_Text enemyDeck;
     [SerializeField] private TMP_Text enemyGraveyard;
@@ -52,7 +52,11 @@ public class Board : MonoBehaviour
     [SerializeField] private GameObject blockRequest;
     public GameObject BlockRequest { get => blockRequest; set => blockRequest = value; }
 
-    private GameObject deckFieldObj;
+    [SerializeField] private GameObject playerDeckFieldObj;
+    public GameObject PlayerDeckFieldObj { get => playerDeckFieldObj; set => playerDeckFieldObj = value; }
+    [SerializeField] private GameObject enemyDeckFieldObj;
+    public GameObject EnemyDeckFieldObj { get => enemyDeckFieldObj; set => enemyDeckFieldObj = value; }
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);

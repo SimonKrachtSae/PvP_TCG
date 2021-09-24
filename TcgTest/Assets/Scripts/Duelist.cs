@@ -77,7 +77,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
             handCardsParent = Board.Instance.PlayerHandParent;
             handCardFields = new List<HandField>();
             UIs = Board.Instance.PlayerUIs;
-            MonsterFields = Board.Instance.PlayerMonsterFields;
+            //MonsterFields = Board.Instance.PlayerMonsterFields;
             return;
         }
         else
@@ -86,7 +86,7 @@ public class Duelist : MonoBehaviourPunCallbacks, IPunObservable
             handCardFields = new List<HandField>();
             handCardsParent = Board.Instance.EnemyHandParent;
             UIs = Board.Instance.EnemyUIs;
-            MonsterFields = Board.Instance.EnemyMonsterFields;
+            //MonsterFields = Board.Instance.EnemyMonsterFields;
             return;
         }
     }
