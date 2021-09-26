@@ -100,21 +100,21 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void Summon()
     {
-        Game_Manager.Instance.state = MainPhaseStates.Summoning;
+        Game_Manager.Instance.State = MainPhaseStates.Summoning;
     }
     public void StartAttackPhase()
     {
-        GameManager.Instance.MainPhaseStates = MainPhaseStates.AttackPhase;
+        Game_Manager.Instance.State = MainPhaseStates.AttackPhase;
     }
     public void Block()
     {
-        GameManager.Instance.MainPhaseStates = MainPhaseStates.Blocking;
+        Game_Manager.Instance.State = MainPhaseStates.Blocking;
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }
     public void DontBlock()
     {
-        GameManager.Instance.Enemy.BlockingMonsterIndex = 6;
+        Game_Manager.Instance.BlockingMonsterIndex = 6;
         Board.Instance.BlockRequest.SetActive(false);
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

@@ -29,7 +29,7 @@ public class MonsterField : CardField
             }
             switch (GameManager.Instance.MainPhaseStates)
             {
-                case MainPhaseStates.StandardView:
+                case MainPhaseStates.StartPhase:
                     Board.Instance.MonsterCardControls[0].gameObject.SetActive(true);
                     Board.Instance.MonsterCardControls[0].gameObject.GetComponentInChildren<TMP_Text>().text = "Tribute";
                     Board.Instance.MonsterCardControls[0].onClick.AddListener(() => { Tribute(); });
@@ -37,7 +37,7 @@ public class MonsterField : CardField
                 case MainPhaseStates.Summoning:
                     GameManager.Instance.LocalDuelist.Summon(this);
                     GameManager.Instance.LocalDuelist.CardToBeSummoned = null;
-                    GameManager.Instance.MainPhaseStates = MainPhaseStates.StandardView;
+                    GameManager.Instance.MainPhaseStates = MainPhaseStates.StartPhase;
                     break;
                 case MainPhaseStates.AttackPhase:
                     if (Card == null) return;

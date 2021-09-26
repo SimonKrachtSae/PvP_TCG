@@ -4,13 +4,15 @@ using UnityEngine;
 using Photon.Pun;
 public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 {
-    [SerializeField] private List<CardStats> startingDeck;
-    public List<CardStats> StartingDeck { get => startingDeck; set => startingDeck = value; }
+    [SerializeField] private List<GameObject> startingDeck;
+    public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
     public List<Card> Deck { get; set; }
     public List<Card> Hand { get; set; }
-    public List<Card> Field { get; set; }
+    public List<MonsterCard> Field { get; set; }
+    public List<Card> Graveyard { get; set; }
     public GameObject DeckField { get; set; }
     public RectTransform HandParent { get; set; }
+    public GameObject GraveyardObj { get; set; }
 
     private Game_Manager gameManager;
     private DuelistUIs UIs;
@@ -21,11 +23,11 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         set => photonView.RPC(nameof(RPC_UpdateMana),RpcTarget.All, value); 
     }
 
-    void Awake()
+    private int summonPowerBoost = 0;
+    public int SummonPowerBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value);}
+
+    public override void OnEnable()
     {
-        Deck = new List<Card>();
-        Hand = new List<Card>();
-        Field = new List<Card>();
         gameManager = Game_Manager.Instance;
 
         if (photonView.IsMine)
@@ -34,6 +36,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             UIs = Board.Instance.PlayerUIs;
             DeckField = Board.Instance.PlayerDeckFieldObj;
             HandParent = (RectTransform)Board.Instance.PlayerHandParent.transform;
+            GraveyardObj = Board.Instance.PlayerGraveyard.gameObject;
         }
         else
         {
@@ -41,35 +44,27 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             UIs = Board.Instance.EnemyUIs;
             DeckField = Board.Instance.EnemyDeckFieldObj;
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
+            GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-    }
-    void Start()
-    {
-        if (photonView.IsMine)
-        {
-            for(int i = 0; i < StartingDeck.Count; i++)
-            {
-                if (StartingDeck[i].GetType().ToString() == nameof(MonsterCardStats))
-                {
-                    GameObject obj = PhotonNetwork.Instantiate("MonsterCard", Vector3.zero, Quaternion.identity);
-                    obj.GetComponent<MonsterCard>().CardStats = i;
-                }
-                else if (StartingDeck[i].GetType().ToString() == nameof(EffectCardStats))
-                {
-                    GameObject obj = PhotonNetwork.Instantiate("EffectCard", Vector3.zero, Quaternion.identity);
-                    obj.GetComponent<EffectCard>().CardStats = i;
-                }
-            }
-        }
+        Deck = new List<Card>();
+        Hand = new List<Card>();
+        Field = new List<MonsterCard>();
+        Graveyard = new List<Card>();
     }
     public void DrawCard(int index)
+    {
+        if (!photonView.IsMine) photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others);
+        else Deck[index].DrawThisCard();
+    }
+    [PunRPC]
+    public void RPC_DrawCard(int index)
     {
         Deck[index].DrawThisCard();
     }
     public void RedrawHandCards()
     {
-        float step = 5;
-        float start = -(Hand.Count / 2);
+        float step = 10;
+        float start = -((Hand.Count / 2) * step);
         for(int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
@@ -88,6 +83,20 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         mana = value;
         UIs.SummonPower.text = value.ToString();
+    }
+    public void ShowBlockRequest()
+    {
+        photonView.RPC(nameof(RPC_ShowBlockRequest), RpcTarget.Others);
+    }
+    [PunRPC]
+    public void RPC_ShowBlockRequest()
+    {
+        Board.Instance.BlockRequest.SetActive(true);
+    }
+    [PunRPC]
+    public void RPC_UpdateSumonPowerBoost(int value)
+    {
+        summonPowerBoost = value;
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

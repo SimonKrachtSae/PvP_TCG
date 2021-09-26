@@ -75,6 +75,12 @@ MonoBehaviour:
   - RPC_UpdateMana
   - RPC_UpdateStats
   - RPC_AddToFields
+  - RPC_SeetMainPhaseState
+  - RPC_AddToField
+  - RPC_RemoveFromField
+  - RPC_UpdateSumonPowerBoost
+  - RPC_ThisEnemySendToGraveyard
+  - RPC_SendToGraveyard
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

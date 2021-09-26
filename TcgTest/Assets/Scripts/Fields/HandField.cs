@@ -36,7 +36,7 @@ public class HandField : CardField
             b.gameObject.SetActive(false);
         }
         int i = 0;
-        if (GameManager.Instance.MainPhaseStates == MainPhaseStates.StandardView
+        if (GameManager.Instance.MainPhaseStates == MainPhaseStates.StartPhase
             && GameManager.Instance.LocalDuelist.SummonPower >= Layout.MonsterCard.PlayCost)
         {
             Board.Instance.MonsterCardControls[i].gameObject.SetActive(true);

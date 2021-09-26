@@ -21,12 +21,31 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    public MainPhaseStates state;
+    private MainPhaseStates state;
+    public MainPhaseStates State
+    {
+        get => state;
+        set
+        {
+            state = value;
+            Debug.Log(state.ToString());
+            photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
+        } 
+    }
+    private Card blockingMonster;
+    public int BlockingMonsterIndex 
+    { 
+        get => 0; 
+        set => photonView.RPC(nameof(RPC_UpdateBlockingMonsterIndex), RpcTarget.Others, value);
+    }
+    public Card AttackingMonster { get; set; }
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
-        state = MainPhaseStates.StandardView;
+        if(PhotonNetwork.LocalPlayer.IsMasterClient)
+        State = MainPhaseStates.StartPhase;
     }
     public void Start()
     {
@@ -66,10 +85,42 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
             Board.Instance.TurnCount.text = turn.ToString();
         }
     }
+    [PunRPC]
+    public void RPC_UpdateBlockingMonsterIndex(int index)
+    {
+        if (index == 6)
+        {
+            Player.DrawCard(0);
+            if(photonView.IsMine) State = MainPhaseStates.AttackPhase;
+            return;
+        }
+        blockingMonster = Enemy.Field[index];
+        if (((MonsterCardStats)blockingMonster.CardStats).Defense < ((MonsterCardStats)AttackingMonster.CardStats).Attack)
+        {
+            ((MonsterCard)blockingMonster).SendToGraveyard();
+        }
+        else if (((MonsterCardStats)blockingMonster.CardStats).Defense > ((MonsterCardStats)AttackingMonster.CardStats).Attack)
+        {
+            ((MonsterCard)AttackingMonster).SendToGraveyard();
+        }
+        State = MainPhaseStates.AttackPhase;
+    }
     public void StartTurn()
     {
-        Player.Mana = turn;
+        CurrentDuelist = DuelistType.Player;
+        State = MainPhaseStates.StartPhase;
+        Player.Mana = turn + Player.SummonPowerBoost;
         Player.DrawCard(0);
+        for(int i = 0; i < Player.Field.Count; i++)
+        {
+            Player.Field[i].HasAttacked = false;
+            Player.Field[i].HasBlocked = false;
+        }
+    }
+    [PunRPC]
+    public void RPC_SetMainPhaseState(MainPhaseStates value)
+    {
+        state = value;
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

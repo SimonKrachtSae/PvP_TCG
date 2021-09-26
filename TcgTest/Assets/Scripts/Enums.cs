@@ -46,7 +46,7 @@ public enum MonsterCardButton
 }
 public enum MainPhaseStates
 {
-    StandardView,
+    StartPhase,
     HandCardSelected,
     Summoning,
     Aborting,

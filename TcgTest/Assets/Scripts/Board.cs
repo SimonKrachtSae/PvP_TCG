@@ -19,7 +19,7 @@ public class Board : MonoBehaviour
     public List<GameObject> EnemyMonsterFields { get => enemyMonsterFields; set => enemyMonsterFields = value; }
     public List<HandField> EnemyHandCards;
     [SerializeField] private TMP_Text enemyDeck;
-    [SerializeField] private TMP_Text enemyGraveyard;
+    [SerializeField] private TMP_Text enemyGraveyardTxt;
     public GameObject PlayerHandParent { get => playerHandParent; set => playerHandParent = value; }
 
     [SerializeField] private GameObject playerHandParent;
@@ -57,6 +57,13 @@ public class Board : MonoBehaviour
     [SerializeField] private GameObject enemyDeckFieldObj;
     public GameObject EnemyDeckFieldObj { get => enemyDeckFieldObj; set => enemyDeckFieldObj = value; }
 
+    [SerializeField] private GameObject playerGraveyard;
+    public GameObject PlayerGraveyard { get => playerGraveyard; set => playerGraveyard = value; }
+    [SerializeField] private GameObject enemyGraveyard;
+    public GameObject EnemyGraveyard { get => enemyGraveyard; set => enemyGraveyard = value; }
+
+    [SerializeField] private GameObject burnField;
+    public GameObject BurnField { get => burnField; set => burnField = value; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);

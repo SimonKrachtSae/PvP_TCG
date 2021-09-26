@@ -57,7 +57,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (PhotonNetwork.OfflineMode) { mainPhaseStates = value; return; }
             mainPhaseStates = value;
-            photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, mainPhaseStates);
+            photonView.RPC(nameof(RPC_SeetMainPhaseState), RpcTarget.All, mainPhaseStates);
         }
     }
 
@@ -116,7 +116,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         Rounds++;
         LocalDuelist.SummonPower = Turn + LocalDuelist.SummonPowerBoost;
         LocalDuelist.DrawCard(LocalDuelist.Deck.MonsterCards.Count - 1);
-        MainPhaseStates = MainPhaseStates.StandardView;
+        MainPhaseStates = MainPhaseStates.StartPhase;
     }
     public void EndTurn()
     {
@@ -133,7 +133,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
     [PunRPC]
-    public void RPC_SetMainPhaseState(MainPhaseStates state)
+    public void RPC_SeetMainPhaseState(MainPhaseStates state)
     {
         Debug.Log(state.ToString());
         mainPhaseStates = state;
