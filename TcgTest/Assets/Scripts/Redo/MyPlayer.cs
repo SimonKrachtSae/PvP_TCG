@@ -13,7 +13,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         set
         {
             deck = value;
-            if (deck.Count == 0 && gameManager.Turn > 1)
+            if (deck.Count == 1 && gameManager.Turn > 1)
             {
                 photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
             }
@@ -65,7 +65,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void DrawCard(int index)
     {
-        if (deck.Count == 0 && gameManager.Turn > 1)
+        if (deck.Count == 1 && gameManager.Turn > 1)
         {
             photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
             return;
