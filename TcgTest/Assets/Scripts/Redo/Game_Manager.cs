@@ -9,6 +9,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     public MyPlayer Enemy { get; set; }
     private int round = 0;
     private int turn = 1;
+    public int Turn { get => turn; }
     public int Round { get => round; set => photonView.RPC(nameof(RPC_UpdateRound), RpcTarget.All, value); }
     private DuelistType currentDuelist;
     public DuelistType CurrentDuelist 
@@ -39,7 +40,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         set => photonView.RPC(nameof(RPC_UpdateBlockingMonsterIndex), RpcTarget.Others, value);
     }
     public Card AttackingMonster { get; set; }
-
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);

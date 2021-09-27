@@ -20,7 +20,8 @@ public enum FieldState
 public enum GameState
 {
     CoinFlip,
-    Running
+    Running,
+    GameOver
 }
 public enum CoinState
 {

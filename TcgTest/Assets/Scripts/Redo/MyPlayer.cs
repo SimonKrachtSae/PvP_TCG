@@ -6,7 +6,19 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 {
     [SerializeField] private List<GameObject> startingDeck;
     public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
-    public List<Card> Deck { get; set; }
+    private List<Card> deck;
+    public List<Card> Deck
+    {
+        get => deck;
+        set
+        {
+            deck = value;
+            if (deck.Count == 0 && gameManager.Turn > 1)
+            {
+                photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
+            }
+        }
+    }
     public List<Card> Hand { get; set; }
     public List<MonsterCard> Field { get; set; }
     public List<Card> Graveyard { get; set; }
@@ -17,14 +29,14 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     private Game_Manager gameManager;
     private DuelistUIs UIs;
     private int mana;
-    public int Mana 
-    { 
-        get => mana; 
-        set => photonView.RPC(nameof(RPC_UpdateMana),RpcTarget.All, value); 
+    public int Mana
+    {
+        get => mana;
+        set => photonView.RPC(nameof(RPC_UpdateMana), RpcTarget.All, value);
     }
 
     private int summonPowerBoost = 0;
-    public int SummonPowerBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value);}
+    public int SummonPowerBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value); }
 
     public override void OnEnable()
     {
@@ -53,6 +65,11 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void DrawCard(int index)
     {
+        if (deck.Count == 0 && gameManager.Turn > 1)
+        {
+            photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
+            return;
+        }
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others);
         else Deck[index].DrawThisCard();
     }
@@ -65,7 +82,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         float step = 10;
         float start = -((Hand.Count / 2) * step);
-        for(int i = 0; i < Hand.Count; i++)
+        for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
             Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
@@ -76,7 +93,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         //if (Deck.Contains(card)) Destroy(card.gameObject);
         Deck.Add(card);
         card.Location = CardLocation.Deck;
-        card.gameObject.transform.position = DeckField.transform.position + new Vector3(0,0,Deck.IndexOf(card)/100);
+        card.gameObject.transform.position = DeckField.transform.position + new Vector3(0, 0, Deck.IndexOf(card) / 100);
     }
     [PunRPC]
     public void RPC_UpdateMana(int value)
@@ -97,6 +114,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     public void RPC_UpdateSumonPowerBoost(int value)
     {
         summonPowerBoost = value;
+    }
+    [PunRPC]
+    public void RPC_GameOver()
+    {
+        foreach (GameObject gameObject in startingDeck) PhotonNetwork.Destroy(gameObject);
+        GameUIManager.Instance.SetGameState(GameState.GameOver);
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

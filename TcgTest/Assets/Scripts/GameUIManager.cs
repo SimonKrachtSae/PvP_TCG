@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using TMPro;
 public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameUIManager Instance;
 
     [SerializeField] private GameObject CoinFlipCanvas;
+    [SerializeField] private GameObject GameOverCanvas;
+    [SerializeField] private TMP_Text winText;
     [SerializeField] private Button HeadsButton;
     [SerializeField] private Button TailsButton;
     [SerializeField] private Button startButton;
@@ -44,6 +48,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         CoinFlipCanvas.SetActive(false);
         BoardCanvas.SetActive(false);
+        GameOverCanvas.SetActive(false);
         switch(state)
         {
             case GameState.CoinFlip:
@@ -51,6 +56,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
             case GameState.Running:
                 BoardCanvas.SetActive(true);
+                break;
+            case GameState.GameOver:
+                GameOverCanvas.SetActive(true);
+                if (Game_Manager.Instance.Player.Deck.Count == 0) winText.text = "You Win!!!";
+                else winText.text = "You Lose...";
                 break;
         }
     }
@@ -116,6 +126,15 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         Game_Manager.Instance.BlockingMonsterIndex = 6;
         Board.Instance.BlockRequest.SetActive(false);
+    }
+    public void MainMenuPressed()
+    {
+        PhotonNetwork.Disconnect();
+        SceneManager.LoadScene(0);
+    }
+    public void QuitPressed()
+    {
+        Application.Quit();
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
