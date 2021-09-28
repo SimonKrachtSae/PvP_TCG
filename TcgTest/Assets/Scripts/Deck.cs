@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Deck : MonoBehaviour
 {
-    int i = 0;
+	public string Name = "Deck 1";
     [SerializeField] private List<MonsterCardStats> monsterCards;
     public List<MonsterCardStats> MonsterCards
     { 

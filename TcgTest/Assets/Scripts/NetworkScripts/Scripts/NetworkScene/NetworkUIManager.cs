@@ -18,6 +18,7 @@ public class NetworkUIManager : MonoBehaviour
 
     private List<GameObject> panels;
 
+	[SerializeField] private GameObject deckBuilderUI;
 
     [Header("Connection Failed UIs")]
     [SerializeField] private GameObject connectFailedPanel;
@@ -53,7 +54,6 @@ public class NetworkUIManager : MonoBehaviour
     }
     public void Start()
     {
-
         punCallbacks = NetworkSceneManager.Instance;
         roomInfos = new List<RoomInfo>();
         panels = new List<GameObject>();
@@ -227,6 +227,17 @@ public class NetworkUIManager : MonoBehaviour
             startGameButton.SetActive(false);
         }
     }
+
+	public void GoToDeckbuilder()
+	{
+		for (int i = 0; i < panels.Count; i++)
+		{
+			panels[i].SetActive(false);
+		}
+
+		deckBuilderUI.SetActive(true);
+	}
+
     public void GoBack()
     {
         if (PhotonNetwork.InRoom)
