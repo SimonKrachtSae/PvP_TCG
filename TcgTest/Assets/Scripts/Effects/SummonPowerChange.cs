@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class SummonPowerChange : Effect
+public class SummonPowerChangeEffect : Effect
 {
     [SerializeField] private DuelistType duelistType;
     [SerializeField] private int amount;

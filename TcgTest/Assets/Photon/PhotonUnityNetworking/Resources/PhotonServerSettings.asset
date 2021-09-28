@@ -82,6 +82,8 @@ MonoBehaviour:
   - RPC_ThisEnemySendToGraveyard
   - RPC_SendToGraveyard
   - RPC_GameOver
+  - RPC_UpdateAttackBoost
+  - RPC_UpdateDefenseBoost
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -37,6 +37,10 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 
     private int summonPowerBoost = 0;
     public int SummonPowerBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value); }
+    private int attackBoost = 0;
+    public int AttackBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); }
+    private int defenseBoost = 0;
+    public int DefenseBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
 
     public override void OnEnable()
     {
@@ -116,9 +120,30 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         summonPowerBoost = value;
     }
     [PunRPC]
+    public void RPC_UpdateAttackBoost(int value)
+    {
+        attackBoost = value;
+        for(int i = 0; i < Field.Count; i++)
+        {
+            int newAttack = ((MonsterCardStats)Field[i].CardStats).DefaultAttack + attackBoost;
+            ((MonsterCardStats)Field[i].CardStats).Attack = newAttack;
+            ((MonsterCard_Layout)Field[i].Layout).AttackTextUI.text = newAttack.ToString();
+        }
+    }
+    [PunRPC]
+    public void RPC_UpdateDefenseBoost(int value)
+    {
+        defenseBoost = value;
+        for (int i = 0; i < Field.Count; i++)
+        {
+            int newDefense = ((MonsterCardStats)Field[i].CardStats).DefaultDefense + defenseBoost;
+            ((MonsterCardStats)Field[i].CardStats).Defense = newDefense;
+            ((MonsterCard_Layout)Field[i].Layout).DefenseTextUI.text = newDefense.ToString();
+        }
+    }
+    [PunRPC]
     public void RPC_GameOver()
     {
-        foreach (GameObject gameObject in startingDeck) PhotonNetwork.Destroy(gameObject);
         GameUIManager.Instance.SetGameState(GameState.GameOver);
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

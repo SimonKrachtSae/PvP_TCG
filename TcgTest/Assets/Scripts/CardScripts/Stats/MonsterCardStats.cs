@@ -8,19 +8,22 @@ public class MonsterCardStats : CardStats
     private int attack;
     public int Attack { get => attack; set => attack = value; }
     private int defaultAttack;
+    public int DefaultAttack { get => defaultAttack; set => defaultAttack = value; }
 
     [SerializeField]
     private int defense;
     public int Defense { get => defense; set => defense = value; }
     private int defaultDefense;
+    public int DefaultDefense { get => defaultDefense; set => defaultDefense = value; }
 
     [SerializeField]
     private MonsterCardEffect effect;
     public MonsterCardEffect Effect { get => effect; set => effect = value; }
+
     private void Start()
     {
-        defaultAttack = attack;
-        defaultDefense = defense;
+        DefaultAttack = attack;
+        DefaultDefense = defense;
     }
     private void OnValidate()
     {
@@ -31,7 +34,7 @@ public class MonsterCardStats : CardStats
     }
     public void SetValuesToDefault()
     {
-        attack = defaultAttack;
-        defense = defaultDefense;
+        attack = DefaultAttack;
+        defense = DefaultDefense;
     }
 }

@@ -14,7 +14,7 @@ public class MonsterCard : Card, IPunObservable
     {
         try
         {
-            layout = cardObj.gameObject.GetComponent<MonsterCard_Layout>();
+            Layout = cardObj.gameObject.GetComponent<MonsterCard_Layout>();
             gameManager = Game_Manager.Instance;
         }
         catch
@@ -52,11 +52,11 @@ public class MonsterCard : Card, IPunObservable
     }
     public void DrawValues()
     {
-        layout = cardObj.GetComponent<MonsterCard_Layout>();
-        ((MonsterCard_Layout)layout).AttackTextUI.text = ((MonsterCardStats)cardStats).Attack.ToString();
-        ((MonsterCard_Layout)layout).NameTextUI.text = ((MonsterCardStats)cardStats).CardName.ToString();
-        ((MonsterCard_Layout)layout).PlayCostTextUI.text = ((MonsterCardStats)cardStats).PlayCost.ToString();
-        ((MonsterCard_Layout)layout).DefenseTextUI.text = ((MonsterCardStats)cardStats).Defense.ToString();
+        Layout = cardObj.GetComponent<MonsterCard_Layout>();
+        ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)cardStats).Attack.ToString();
+        ((MonsterCard_Layout)Layout).NameTextUI.text = ((MonsterCardStats)cardStats).CardName.ToString();
+        ((MonsterCard_Layout)Layout).PlayCostTextUI.text = ((MonsterCardStats)cardStats).PlayCost.ToString();
+        ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)cardStats).Defense.ToString();
     }
 
     private void OnMouseDown()
@@ -249,12 +249,20 @@ public class MonsterCard : Card, IPunObservable
     {
         if (photonView.IsMine) player.Field.Add(this);
         else gameManager.Enemy.Field.Add(this);
+        ((MonsterCardStats)CardStats).Attack += player.AttackBoost;
+        ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)CardStats).Attack.ToString();
+        ((MonsterCardStats)CardStats).Defense += player.DefenseBoost;
+        ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)CardStats).Defense.ToString();
     }
     [PunRPC]
     public void RPC_RemoveFromField()
     {
         if (photonView.IsMine) player.Field.Remove(this);
         else gameManager.Enemy.Field.Remove(this);
+        ((MonsterCardStats)CardStats).Attack -= player.AttackBoost;
+        ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)CardStats).Attack.ToString();
+        ((MonsterCardStats)CardStats).Defense -= player.DefenseBoost;
+        ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)CardStats).Defense.ToString();
     }
     private void OnDestroy()
     {

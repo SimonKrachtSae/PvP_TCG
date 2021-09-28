@@ -59,6 +59,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
             case GameState.GameOver:
                 GameOverCanvas.SetActive(true);
+                foreach (GameObject gameObject in Game_Manager.Instance.Player.StartingDeck) PhotonNetwork.Destroy(gameObject);
                 if (Game_Manager.Instance.Player.Deck.Count == 0) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
                 break;
@@ -90,7 +91,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
             Game_Manager.Instance.CurrentDuelist = DuelistType.Player;
-            Game_Manager.Instance.Player.Mana = GameManager.Instance.Turn;
+            Game_Manager.Instance.Player.Mana = Game_Manager.Instance.Turn;
         }
 
         Game_Manager.Instance.StartGame();

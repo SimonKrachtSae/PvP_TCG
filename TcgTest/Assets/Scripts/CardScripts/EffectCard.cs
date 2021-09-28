@@ -9,7 +9,7 @@ public class EffectCard : Card,IPunObservable
     {
         try
         { 
-            layout = cardObj.gameObject.GetComponent<EffectCard_Layout>();
+            Layout = cardObj.gameObject.GetComponent<EffectCard_Layout>();
             gameManager = Game_Manager.Instance;
         }
         catch 
@@ -43,9 +43,9 @@ public class EffectCard : Card,IPunObservable
     }
     public void DrawValues()
     {
-        layout = cardObj.GetComponent<EffectCard_Layout>();
-        ((EffectCard_Layout)layout).NameTextUI.text = cardStats.CardName.ToString();
-        ((EffectCard_Layout)layout).PlayCostTextUI.text = cardStats.PlayCost.ToString();
+        Layout = cardObj.GetComponent<EffectCard_Layout>();
+        ((EffectCard_Layout)Layout).NameTextUI.text = cardStats.CardName.ToString();
+        ((EffectCard_Layout)Layout).PlayCostTextUI.text = cardStats.PlayCost.ToString();
     }
     [PunRPC]
     public void RPC_UpdateStats(int index)

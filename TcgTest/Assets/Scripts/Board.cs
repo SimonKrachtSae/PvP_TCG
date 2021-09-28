@@ -10,14 +10,11 @@ public class Board : MonoBehaviour
 {
     public static Board Instance;
 
-    [SerializeField] private List<HandField> playerHandCards;
-    public List<HandField> PlayerHandCards { get => playerHandCards; set => playerHandCards = value; }
     [SerializeField] private List<GameObject> playerMonsterFields;
     public List<GameObject> PlayerMonsterFields { get => playerMonsterFields; set => playerMonsterFields = value; }
 
     [SerializeField] private List<GameObject> enemyMonsterFields;
     public List<GameObject> EnemyMonsterFields { get => enemyMonsterFields; set => enemyMonsterFields = value; }
-    public List<HandField> EnemyHandCards;
     [SerializeField] private TMP_Text enemyDeck;
     [SerializeField] private TMP_Text enemyGraveyardTxt;
     public GameObject PlayerHandParent { get => playerHandParent; set => playerHandParent = value; }
@@ -28,8 +25,6 @@ public class Board : MonoBehaviour
     [SerializeField] private GameObject enemyHandParent;
     public GameObject HandFieldPrefab { get => handFieldPrefab; set => handFieldPrefab = value; }
     [SerializeField] private GameObject handFieldPrefab;
-
-    public HandField CardInfo;
     public DuelistUIs PlayerUIs { get; set; }
     public DuelistUIs EnemyUIs { get; set; }
     public TMP_Text TurnCount { get => turnCount; set => turnCount = value; }

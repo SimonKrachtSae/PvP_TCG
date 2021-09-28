@@ -8,6 +8,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
 {
     [SerializeField] protected GameObject cardObj;
     protected CardLayout layout;
+    public CardLayout Layout { get => layout; set => layout = value; }
     public CardType Type { get; protected set; }
     public DuelistType DuelistType { get; protected set; }
     protected MyPlayer player;

@@ -70,7 +70,6 @@ public class Coin : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_CoinStopped(ClientType type)
     {
-        GameManager.Instance.StartingClient = type;
         if (PhotonNetwork.LocalPlayer.IsMasterClient) 
             GameUIManager.Instance.StartButton.gameObject.SetActive(true);
     }
