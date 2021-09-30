@@ -841,8 +841,8 @@ GameObject:
   - component: {fileID: 4303878926809202804}
   - component: {fileID: 6490949842211856397}
   - component: {fileID: 5497562137710980484}
-  - component: {fileID: 8496058224963679049}
-  - component: {fileID: 2287546646638836656}
+  - component: {fileID: 8990775859445571193}
+  - component: {fileID: 8575842117332852011}
   m_Layer: 0
   m_Name: Tomato
   m_TagString: Untagged
@@ -993,10 +993,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   onSummonEffects:
-  - {fileID: 8496058224963679049}
+  - {fileID: 8990775859445571193}
   onDestroyEffects:
-  - {fileID: 2287546646638836656}
---- !u!114 &8496058224963679049
+  - {fileID: 8575842117332852011}
+--- !u!114 &8990775859445571193
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1010,7 +1010,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   duelistType: 0
   amount: 2
---- !u!114 &2287546646638836656
+--- !u!114 &8575842117332852011
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

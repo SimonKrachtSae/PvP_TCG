@@ -20,12 +20,6 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public Button StartButton { get => startButton; set => startButton = value; }
 
     [SerializeField] private GameObject BoardCanvas;
-
-    [SerializeField] private GameObject monsterCardLayoutPrefab;
-    public GameObject MonsterCardLayoutPrefab { get => monsterCardLayoutPrefab; set => monsterCardLayoutPrefab = value; }
-
-    [SerializeField] private GameObject effectCardLayoutPrefab;
-    public GameObject EffectCardLayoutPrefab { get => effectCardLayoutPrefab; set => effectCardLayoutPrefab = value; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -98,6 +92,8 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void EndTurn()
     {
+        if (Game_Manager.Instance.State == GameManagerStates.Busy || Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
+            { Debug.Log(Game_Manager.Instance.State.ToString()); return; }
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
@@ -111,15 +107,15 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void Summon()
     {
-        Game_Manager.Instance.State = MainPhaseStates.Summoning;
+        Game_Manager.Instance.State = GameManagerStates.Summoning;
     }
     public void StartAttackPhase()
     {
-        Game_Manager.Instance.State = MainPhaseStates.AttackPhase;
+        Game_Manager.Instance.State = GameManagerStates.AttackPhase;
     }
     public void Block()
     {
-        Game_Manager.Instance.State = MainPhaseStates.Blocking;
+        Game_Manager.Instance.State = GameManagerStates.Blocking;
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }

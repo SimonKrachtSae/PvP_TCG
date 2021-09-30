@@ -45,7 +45,7 @@ public enum MonsterCardButton
     Attack,
     Summon
 }
-public enum MainPhaseStates
+public enum GameManagerStates
 {
     StartPhase,
     HandCardSelected,
@@ -53,7 +53,13 @@ public enum MainPhaseStates
     Aborting,
     AttackPhase,
     Blocking,
-    Tributing
+    Tributing,
+    SelectingCardFromFieldToSendToDeck,
+    SelectingCardFromHandToSendToDeck,
+    SelectingCardToSendToGraveyard,
+    Busy,
+    Discarding,
+    Destroying
 }
 public enum MonsterCardLocation
 {

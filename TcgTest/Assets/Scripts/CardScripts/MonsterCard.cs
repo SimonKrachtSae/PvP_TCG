@@ -61,7 +61,7 @@ public class MonsterCard : Card, IPunObservable
 
     private void OnMouseDown()
     {
-        if (gameManager.State == MainPhaseStates.Blocking && gameManager.CurrentDuelist == DuelistType.Enemy)
+        if (gameManager.State == GameManagerStates.Blocking && gameManager.CurrentDuelist == DuelistType.Enemy)
         {
             if (HasBlocked) { Board.Instance.PlayerInfoText.text = "Already blocked!"; return; }
 
@@ -69,8 +69,8 @@ public class MonsterCard : Card, IPunObservable
             HasBlocked = true;
             return;
         }
-        else if (gameManager.State == MainPhaseStates.Blocking && gameManager.CurrentDuelist == DuelistType.Enemy) return;
-        if(gameManager.State == MainPhaseStates.AttackPhase)
+        else if (gameManager.State == GameManagerStates.Blocking && gameManager.CurrentDuelist == DuelistType.Enemy) return;
+        if(gameManager.State == GameManagerStates.AttackPhase)
         {
             if (HasAttacked) { Board.Instance.PlayerInfoText.text = "Already attacked!"; return; }
 
@@ -80,7 +80,7 @@ public class MonsterCard : Card, IPunObservable
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
             }
         }
-        else if(gameManager.State == MainPhaseStates.StartPhase)
+        else if(gameManager.State == GameManagerStates.StartPhase)
         {
             if (Location == CardLocation.Hand || Location == CardLocation.Field)
             {
@@ -89,12 +89,36 @@ public class MonsterCard : Card, IPunObservable
                 transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
             }
         }
+        else if(gameManager.State == GameManagerStates.SelectingCardFromFieldToSendToDeck && Location == CardLocation.Field)
+        {
+            SendToDeck();
+        }
+        else if (gameManager.State == GameManagerStates.SelectingCardFromHandToSendToDeck && Location == CardLocation.Hand)
+        {
+            SendToDeck();
+        }
+        else if (gameManager.State == GameManagerStates.SelectingCardToSendToGraveyard)
+        {
+            SendToGraveyard();
+        }
+        else if (gameManager.State == GameManagerStates.Discarding && Location == CardLocation.Hand)
+        {
+            player.Hand.Remove(this);
+            SendToGraveyard();
+            player.DiscardCounter--;
+        }
+        else if (gameManager.State == GameManagerStates.Destroying && Location == CardLocation.Field)
+        {
+            photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+            SendToGraveyard();
+            player.DestroyCounter--;
+        }
     }
     private void OnMouseDrag()
     {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
 
-        if (gameManager.State == MainPhaseStates.AttackPhase)
+        if (gameManager.State == GameManagerStates.AttackPhase)
         {
             if (HasAttacked) { Board.Instance.PlayerInfoText.text = "Already attacked!"; return; }
 
@@ -134,15 +158,16 @@ public class MonsterCard : Card, IPunObservable
                 l.useWorldSpace = true;
             }
         }
-        else if(gameManager.State == MainPhaseStates.StartPhase)
+        else if(gameManager.State == GameManagerStates.StartPhase)
         {
             if (Location == CardLocation.Hand || Location == CardLocation.Field)
                 transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
         }
     }
+
     private void OnMouseUp()
     {
-        if (gameManager.State == MainPhaseStates.AttackPhase)
+        if (gameManager.State == GameManagerStates.AttackPhase)
         {
             if (HasAttacked) { Board.Instance.PlayerInfoText.text = "Already attacked!"; return; }
 
@@ -177,7 +202,7 @@ public class MonsterCard : Card, IPunObservable
                 l = null;
             }
         }
-        else if (gameManager.State == MainPhaseStates.StartPhase)
+        else if (gameManager.State == GameManagerStates.StartPhase)
         {
             if (Location == CardLocation.Hand)
             {
@@ -233,7 +258,8 @@ public class MonsterCard : Card, IPunObservable
         if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         Location = CardLocation.Graveyard;
         Vector3 direction;
-        photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+        if (player.Field.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+        else if (player.Hand.Contains(this)) player.Hand.Remove(this);
         while (true)
         {
             yield return new WaitForFixedUpdate();
@@ -243,6 +269,34 @@ public class MonsterCard : Card, IPunObservable
         }
         transform.position = Board.Instance.PlayerGraveyard.transform.position;
         player.Graveyard.Add(this);
+    }
+    public void SendToDeck()
+    {
+        if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToDeck), RpcTarget.Others);
+        else StartCoroutine(SendToDeckVisuals());
+    }
+    [PunRPC]
+    public void RPC_SendToDeck()
+    {
+        StartCoroutine(SendToDeckVisuals());
+    }
+    public IEnumerator SendToDeckVisuals()
+    {
+        ((MonsterCardStats)cardStats).SetValuesToDefault();
+        if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
+        Location = CardLocation.Deck;
+        Vector3 direction;
+        photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+        while (true)
+        {
+            yield return new WaitForFixedUpdate();
+            direction = player.DeckField.transform.position - transform.position;
+            transform.position += direction.normalized * Time.fixedDeltaTime * 25;
+            if (direction.magnitude < 0.3f) break;
+        }
+        transform.position = player.DeckField.transform.position;
+        player.Deck.Insert(0, this);
+        gameManager.State = gameManager.PrevState;
     }
     [PunRPC]
     public void RPC_AddToField()

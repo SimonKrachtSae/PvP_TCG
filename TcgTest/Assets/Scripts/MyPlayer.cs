@@ -36,12 +36,17 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     private int summonPowerBoost = 0;
-    public int SummonPowerBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value); }
+    public int ManaBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value); }
     private int attackBoost = 0;
     public int AttackBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); }
     private int defenseBoost = 0;
-    public int DefenseBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
+    public int DefenseBoost { get => defenseBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
 
+    private int discardCounter = 0;
+    public int DiscardCounter { get => discardCounter; set => discardCounter = value; }
+
+    private int destroyCounter = 0;
+    public int DestroyCounter { get => destroyCounter; set => destroyCounter = value; }
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
@@ -80,6 +85,11 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_DrawCard(int index)
     {
+        if (deck.Count == 1 && gameManager.Turn > 1)
+        {
+            photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
+            return;
+        }
         Deck[index].DrawThisCard();
     }
     public void RedrawHandCards()
@@ -94,7 +104,6 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void Subscribe(Card card)
     {
-        //if (Deck.Contains(card)) Destroy(card.gameObject);
         Deck.Add(card);
         card.Location = CardLocation.Deck;
         card.gameObject.transform.position = DeckField.transform.position + new Vector3(0, 0, Deck.IndexOf(card) / 100);
@@ -145,6 +154,94 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     public void RPC_GameOver()
     {
         GameUIManager.Instance.SetGameState(GameState.GameOver);
+    }
+    public void SendToDeckSelected(MonsterCardLocation targetLocation)
+    {
+        if (photonView.IsMine) SendToDeck(targetLocation);
+        else photonView.RPC(nameof(RPC_SendToDeckSelected), RpcTarget.Others, targetLocation);
+    }
+    [PunRPC]
+    public void RPC_SendToDeckSelected(MonsterCardLocation targetLocation)
+    {
+        SendToDeck(targetLocation);
+    }
+    public void SendToDeck(MonsterCardLocation targetLocation)
+    {
+        //if(Field.Count < 1)
+        //{
+        //    Board.Instance.PlayerInfoText.text = "No Card To Send To Graveyard";
+        //    return;
+        //}
+        gameManager.PrevState = gameManager.State;
+        if (targetLocation == MonsterCardLocation.OnField)
+        {
+            gameManager.State = GameManagerStates.Busy;
+            gameManager.SetStateLocally(GameManagerStates.SelectingCardFromFieldToSendToDeck);
+            Board.Instance.PlayerInfoText.text = "Select Card From Field To Send To Deck";
+        }
+        else if (targetLocation == MonsterCardLocation.InHand)
+        {
+            gameManager.State = GameManagerStates.Busy;
+            gameManager.SetStateLocally(GameManagerStates.SelectingCardFromHandToSendToDeck);
+            Board.Instance.PlayerInfoText.text = "Select Card From Hand To Send To Deck";
+            RedrawHandCards();
+        }
+    }
+    public void Call_Discard(int amount)
+    {
+        if (photonView.IsMine)
+        {
+            DiscardCounter = amount;
+            StartCoroutine(Discard());
+        }
+        else photonView.RPC(nameof(RPC_Discard), RpcTarget.Others, amount);
+    }
+    [PunRPC]
+    public void RPC_Discard(int amount)
+    {
+        DiscardCounter = amount;
+        StartCoroutine(Discard());
+    }
+    public IEnumerator Discard()
+    {
+        gameManager.PrevState = gameManager.State;
+        gameManager.State = GameManagerStates.Busy;
+        gameManager.SetStateLocally(GameManagerStates.Discarding);
+        while(DiscardCounter != 0)
+        {
+            yield return new WaitForFixedUpdate();
+            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + DiscardCounter.ToString();
+            if (Hand.Count == 0) break;
+        }
+        gameManager.State = gameManager.PrevState;
+    }
+    public void Call_Destroy(int amount)
+    {
+        if (photonView.IsMine)
+        {
+            DestroyCounter = amount;
+            StartCoroutine(Destroy());
+        }
+        else photonView.RPC(nameof(RPC_Destroy), RpcTarget.Others, amount);
+    }
+    [PunRPC]
+    public void RPC_Destroy(int amount)
+    {
+        DestroyCounter = amount;
+        StartCoroutine(Destroy());
+    }
+    public IEnumerator Destroy()
+    {
+        gameManager.PrevState = gameManager.State;
+        gameManager.State = GameManagerStates.Busy;
+        gameManager.SetStateLocally(GameManagerStates.Destroying);
+        while (DestroyCounter != 0)
+        {
+            if (Field.Count == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
+            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + DestroyCounter.ToString();
+            yield return new WaitForFixedUpdate();
+        }
+        gameManager.State = gameManager.PrevState;
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

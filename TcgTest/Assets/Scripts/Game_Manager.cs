@@ -22,17 +22,19 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    private MainPhaseStates state;
-    public MainPhaseStates State
+    private GameManagerStates state;
+    public GameManagerStates State
     {
         get => state;
         set
         {
             state = value;
             Debug.Log(state.ToString());
+            if (value == GameManagerStates.Busy) Board.Instance.PlayerInfoText.text = "Waiting...";
             photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
         } 
     }
+    public GameManagerStates PrevState { get; set; }
     private Card blockingMonster;
     public int BlockingMonsterIndex 
     { 
@@ -45,7 +47,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
         if(PhotonNetwork.LocalPlayer.IsMasterClient)
-        State = MainPhaseStates.StartPhase;
+        State = GameManagerStates.StartPhase;
     }
     public void Start()
     {
@@ -91,7 +93,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         if (index == 6)
         {
             Player.DrawCard(0);
-            if(photonView.IsMine) State = MainPhaseStates.AttackPhase;
+            if(photonView.IsMine) State = GameManagerStates.AttackPhase;
             return;
         }
         blockingMonster = Enemy.Field[index];
@@ -103,13 +105,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         {
             ((MonsterCard)AttackingMonster).SendToGraveyard();
         }
-        State = MainPhaseStates.AttackPhase;
+        State = GameManagerStates.AttackPhase;
     }
     public void StartTurn()
     {
         CurrentDuelist = DuelistType.Player;
-        State = MainPhaseStates.StartPhase;
-        Player.Mana = turn + Player.SummonPowerBoost;
+        State = GameManagerStates.StartPhase;
+        Player.Mana = turn + Player.ManaBoost;
         Player.DrawCard(0);
         for(int i = 0; i < Player.Field.Count; i++)
         {
@@ -117,8 +119,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
             Player.Field[i].HasBlocked = false;
         }
     }
+    public void SetStateLocally(GameManagerStates value)
+    {
+        state = value;
+    }
+
     [PunRPC]
-    public void RPC_SetMainPhaseState(MainPhaseStates value)
+    public void RPC_SetMainPhaseState(GameManagerStates value)
     {
         state = value;
     }

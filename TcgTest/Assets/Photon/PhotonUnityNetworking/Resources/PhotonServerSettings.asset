@@ -84,6 +84,11 @@ MonoBehaviour:
   - RPC_GameOver
   - RPC_UpdateAttackBoost
   - RPC_UpdateDefenseBoost
+  - RPC_SendToDeck
+  - RPC_SendToDeckSelected
+  - RPC_Discard
+  - RPC_Destroy
+  - RPC_DrawLine
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
