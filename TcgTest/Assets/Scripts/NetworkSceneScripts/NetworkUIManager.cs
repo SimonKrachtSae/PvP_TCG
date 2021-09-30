@@ -218,7 +218,7 @@ public class NetworkUIManager : MonoBehaviour
                 playerDescriptionTexts[i].text = "Player: NPC";
             }
         }
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        if (PhotonNetwork.LocalPlayer.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
             startGameButton.SetActive(true);
         }
