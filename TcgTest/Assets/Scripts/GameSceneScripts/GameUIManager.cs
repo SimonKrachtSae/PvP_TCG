@@ -53,9 +53,10 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
             case GameState.GameOver:
                 GameOverCanvas.SetActive(true);
-                foreach (GameObject gameObject in Game_Manager.Instance.Player.StartingDeck) PhotonNetwork.Destroy(gameObject);
-                if (Game_Manager.Instance.Player.Deck.Count == 0) winText.text = "You Win!!!";
+                if (Game_Manager.Instance.Player.Deck.Count == 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
+                foreach (GameObject gameObject in Game_Manager.Instance.Player.StartingDeck) Destroy(gameObject);
+                foreach (GameObject gameObject in Game_Manager.Instance.Enemy.StartingDeck) Destroy(gameObject);
                 break;
         }
     }

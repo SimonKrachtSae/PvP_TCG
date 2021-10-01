@@ -41,11 +41,21 @@ public abstract class Card : MonoBehaviourPunCallbacks
         }
         prevPos = transform.position;
     }
+    void Update()
+    {
+        if (!photonView.IsMine) return;
+        if (transform.position != prevPos)
+        {
+            photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
+        }
+        prevPos = transform.position;
+    }
     public void DrawThisCard()
     {
         targetTransform = player.HandParent;
         player.Deck.Remove(this);
         StartCoroutine(MoveCardFromDeckToHand());
+        //StartCoroutine(RotateToFront());
     }
     public IEnumerator MoveCardFromDeckToHand()
     {
@@ -64,6 +74,40 @@ public abstract class Card : MonoBehaviourPunCallbacks
         player.Hand.Add(this);
         player.RedrawHandCards();
         yield return new WaitForSeconds(0);
+    }
+    [PunRPC]
+    public void RPC_UpdatePosition(Vector3 value)
+    {
+        transform.position = new Vector3(value.x, value.y * -1, value.z);
+    }
+    public IEnumerator RotateToBack()
+    {
+        while (true)
+        {
+            yield return new WaitForFixedUpdate();
+            transform.rotation = Quaternion.Euler(0, transform.rotation.y + 2, 0);
+            if(transform.rotation.y > 175 && transform.rotation.y < 185)
+            {
+                transform.rotation = Quaternion.Euler(0, 180, 0);
+                break;
+            }
+        }
+    }
+    public IEnumerator RotateToFront()
+    {
+        while (true)
+        {
+            yield return new WaitForFixedUpdate();
+            if ((transform.rotation.y > 350 && (transform.rotation.y < 359) || (transform.rotation.y < 10 && transform.rotation.y >= 0)))
+            {
+                transform.rotation = Quaternion.Euler(0, 0, 0);
+                break;
+            }
+            else
+            {
+                transform.Rotate(new Vector3(0,1,0));
+            }
+        }
     }
 }
 

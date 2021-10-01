@@ -954,8 +954,8 @@ MonoBehaviour:
     ExtrapolateIncludingRoundTripTime: 1
     ExtrapolateNumberOfStoredPositions: 1
   m_RotationModel:
-    SynchronizeEnabled: 0
-    InterpolateOption: 1
+    SynchronizeEnabled: 1
+    InterpolateOption: 0
     InterpolateRotateTowardsSpeed: 180
     InterpolateLerpSpeed: 5
   m_ScaleModel:
@@ -996,6 +996,9 @@ MonoBehaviour:
   - {fileID: 8990775859445571193}
   onDestroyEffects:
   - {fileID: 8575842117332852011}
+  onAttackEffects: []
+  onBlockEffects: []
+  onDirectAttackSucceedsEffects: []
 --- !u!114 &8990775859445571193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1008,7 +1011,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24cf7c0e4367333408ccc067880ba0da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duelistType: 0
+  targetDuelist: 0
   amount: 2
 --- !u!114 &8575842117332852011
 MonoBehaviour:
@@ -1022,5 +1025,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24cf7c0e4367333408ccc067880ba0da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duelistType: 0
+  targetDuelist: 0
   amount: -2

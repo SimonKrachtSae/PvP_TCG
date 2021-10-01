@@ -89,6 +89,7 @@ MonoBehaviour:
   - RPC_Discard
   - RPC_Destroy
   - RPC_DrawLine
+  - RPC_UpdateRotation
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

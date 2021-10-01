@@ -92,11 +92,14 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (index == 6)
         {
+            if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnDirectAttackSucceeds?.Invoke();
             Player.DrawCard(0);
             if(photonView.IsMine) State = GameManagerStates.AttackPhase;
             return;
         }
         blockingMonster = Enemy.Field[index];
+        if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnAttack?.Invoke();
+        if (((MonsterCardStats)blockingMonster.CardStats).Effect != null) ((MonsterCardStats)blockingMonster.CardStats).Effect.OnBlock?.Invoke();
         if (((MonsterCardStats)blockingMonster.CardStats).Defense < ((MonsterCardStats)AttackingMonster.CardStats).Attack)
         {
             ((MonsterCard)blockingMonster).SendToGraveyard();

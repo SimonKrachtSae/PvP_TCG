@@ -26,24 +26,10 @@ public class MonsterCard : Card, IPunObservable
         player.Subscribe(this);
         Type = CardType.Monster;
     }
-    void Update()
-    {
-        if (!photonView.IsMine) return;
-        if (transform.position != prevPos)
-        {
-            photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
-        }
-        prevPos = transform.position;
-    }
     private void OnValidate()
     {
         if (cardStats == null) return;
-        DrawValues();
-    }
-    [PunRPC]
-    public void RPC_UpdatePosition(Vector3 value)
-    {
-        transform.position = new Vector3(value.x, value.y * -1, value.z);
+       // DrawValues();
     }
     [PunRPC]
     public void RPC_UpdateStats(int index)
@@ -156,6 +142,7 @@ public class MonsterCard : Card, IPunObservable
                 l.endWidth = 1f;
                 l.SetPositions(pos.ToArray());
                 l.useWorldSpace = true;
+                //photonView.RPC(nameof(RPC_DrawLine), RpcTarget.Others, target);
             }
         }
         else if(gameManager.State == GameManagerStates.StartPhase)
@@ -175,6 +162,8 @@ public class MonsterCard : Card, IPunObservable
             {
                 if(attackTarget != null)
                 {
+                    if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
+                    if (((MonsterCardStats)attackTarget.CardStats).Effect != null) ((MonsterCardStats)attackTarget.CardStats).Effect.OnBlock?.Invoke();
                     if (((MonsterCardStats)attackTarget.CardStats).Defense < ((MonsterCardStats)cardStats).Attack)
                     {
                         ((MonsterCard)attackTarget).SendToGraveyard();
@@ -189,10 +178,13 @@ public class MonsterCard : Card, IPunObservable
                 {
                     if (gameManager.Enemy.Field.Count == 0)
                     {
+                        if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
+                        if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDirectAttackSucceeds?.Invoke();
                         player.DrawCard(0);
                     }
                     else
                     {
+                        if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
                         gameManager.AttackingMonster = this;
                         gameManager.Enemy.ShowBlockRequest();
                     }
@@ -274,6 +266,17 @@ public class MonsterCard : Card, IPunObservable
     {
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToDeck), RpcTarget.Others);
         else StartCoroutine(SendToDeckVisuals());
+    }
+    [PunRPC]
+    public void RPC_DrawLine(Vector3 target)
+    {
+        List<Vector3> pos = new List<Vector3>();
+        pos.Add(transform.position);
+        pos.Add(new Vector3(target.x, -target.y, target.z));
+        l.startWidth = 1f;
+        l.endWidth = 1f;
+        l.SetPositions(pos.ToArray());
+        l.useWorldSpace = true;
     }
     [PunRPC]
     public void RPC_SendToDeck()

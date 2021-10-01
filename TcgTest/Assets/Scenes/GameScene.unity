@@ -3103,8 +3103,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b2feee6ceb7f7a479fa9df91e5492be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backgroundImage: {fileID: 1420266461}
-  button: {fileID: 0}
 --- !u!1 &745091142
 GameObject:
   m_ObjectHideFlags: 0

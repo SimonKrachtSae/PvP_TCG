@@ -396,8 +396,8 @@ MonoBehaviour:
     ExtrapolateIncludingRoundTripTime: 1
     ExtrapolateNumberOfStoredPositions: 1
   m_RotationModel:
-    SynchronizeEnabled: 0
-    InterpolateOption: 1
+    SynchronizeEnabled: 1
+    InterpolateOption: 0
     InterpolateRotateTowardsSpeed: 180
     InterpolateLerpSpeed: 5
   m_ScaleModel:
@@ -438,6 +438,9 @@ MonoBehaviour:
   - {fileID: 4866875857951301557}
   onDestroyEffects:
   - {fileID: 2415007298052195429}
+  onAttackEffects: []
+  onBlockEffects: []
+  onDirectAttackSucceedsEffects: []
 --- !u!114 &4866875857951301557
 MonoBehaviour:
   m_ObjectHideFlags: 0

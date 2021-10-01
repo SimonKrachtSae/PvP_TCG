@@ -22,24 +22,10 @@ public class EffectCard : Card,IPunObservable
         player.Subscribe(this);
         Type = CardType.Effect;
     }
-    void Update()
-    {
-        if (!photonView.IsMine) return;
-        if (transform.position != prevPos)
-        {
-            photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
-        }
-        prevPos = transform.position;
-    }
     private void OnValidate()
     {
         if (cardStats == null) return;
         DrawValues();
-    }
-    [PunRPC]
-    public void RPC_UpdatePosition(Vector3 value)
-    {
-        transform.position = new Vector3(value.x, value.y * -1, value.z);
     }
     public void DrawValues()
     {

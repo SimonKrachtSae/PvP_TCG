@@ -85,11 +85,6 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_DrawCard(int index)
     {
-        if (deck.Count == 1 && gameManager.Turn > 1)
-        {
-            photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
-            return;
-        }
         Deck[index].DrawThisCard();
     }
     public void RedrawHandCards()
@@ -106,7 +101,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         Deck.Add(card);
         card.Location = CardLocation.Deck;
-        card.gameObject.transform.position = DeckField.transform.position + new Vector3(0, 0, Deck.IndexOf(card) / 100);
+        card.gameObject.transform.position = DeckField.transform.position;
     }
     [PunRPC]
     public void RPC_UpdateMana(int value)
