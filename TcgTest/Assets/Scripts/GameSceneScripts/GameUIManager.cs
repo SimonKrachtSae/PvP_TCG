@@ -83,21 +83,16 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         SetGameState(GameState.Running);
 
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-        {
-            Game_Manager.Instance.CurrentDuelist = DuelistType.Player;
-            Game_Manager.Instance.Player.Mana = Game_Manager.Instance.Turn;
-        }
-
         Game_Manager.Instance.StartGame();
     }
     public void EndTurn()
     {
-        if (Game_Manager.Instance.State == GameManagerStates.Busy || Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
+        if (Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
             { Debug.Log(Game_Manager.Instance.State.ToString()); return; }
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Busy);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
@@ -106,17 +101,14 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
         Game_Manager.Instance.StartTurn();
     }
-    public void Summon()
-    {
-        Game_Manager.Instance.State = GameManagerStates.Summoning;
-    }
     public void StartAttackPhase()
     {
-        Game_Manager.Instance.State = GameManagerStates.AttackPhase;
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.AttackPhase);
     }
     public void Block()
     {
-        Game_Manager.Instance.State = GameManagerStates.Blocking;
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Blocking);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }

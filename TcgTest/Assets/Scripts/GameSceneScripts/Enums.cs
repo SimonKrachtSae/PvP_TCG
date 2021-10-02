@@ -2,10 +2,38 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum CardEvent
+{
+    FollowMouse_MouseDown,
+    FollowMouse_MouseDrag,
+    Block,
+    Attack,
+    Summon,
+    Discard,
+    Destroy,
+    Play,
+    Burn,
+    DrawLine_MouseDown,
+    DrawLine_MouseDrag,
+    Recall
+}
+public enum MouseEvent
+{
+    Down,
+    Drag,
+    Up
+}
+public enum NetworkTarget
+{
+    Local,
+    Other,
+    All
+}
 public enum DuelistType
 {
     Player,
-    Enemy
+    Enemy,
+    Both
 }
 public enum TurnState
 {
@@ -54,12 +82,11 @@ public enum GameManagerStates
     AttackPhase,
     Blocking,
     Tributing,
-    SelectingCardFromFieldToSendToDeck,
-    SelectingCardFromHandToSendToDeck,
-    SelectingCardToSendToGraveyard,
     Busy,
+    Recalling,
     Discarding,
-    Destroying
+    Destroying,
+    EndPhase
 }
 public enum MonsterCardLocation
 {

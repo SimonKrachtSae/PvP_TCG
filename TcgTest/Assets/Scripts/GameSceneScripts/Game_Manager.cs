@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using Photon.Pun;
 public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -23,17 +24,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     private GameManagerStates state;
-    public GameManagerStates State
-    {
-        get => state;
-        set
-        {
-            state = value;
-            Debug.Log(state.ToString());
-            if (value == GameManagerStates.Busy) Board.Instance.PlayerInfoText.text = "Waiting...";
-            photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
-        } 
-    }
+    public GameManagerStates State  { get => state; }
     public GameManagerStates PrevState { get; set; }
     private Card blockingMonster;
     public int BlockingMonsterIndex 
@@ -46,8 +37,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
-        if(PhotonNetwork.LocalPlayer.IsMasterClient)
-        State = GameManagerStates.StartPhase;
     }
     public void Start()
     {
@@ -55,11 +44,14 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void StartGame()
     {
-        StartCoroutine(DrawHandCards());
-        if(currentDuelist == DuelistType.Player)
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
+            CurrentDuelist = DuelistType.Player;
+            Player.Mana = Turn;
             GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+            StartTurn();
         }
+        StartCoroutine(DrawHandCards());
     }
     private IEnumerator DrawHandCards()
     {
@@ -94,7 +86,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnDirectAttackSucceeds?.Invoke();
             Player.DrawCard(0);
-            if(photonView.IsMine) State = GameManagerStates.AttackPhase;
             return;
         }
         blockingMonster = Enemy.Field[index];
@@ -102,18 +93,20 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         if (((MonsterCardStats)blockingMonster.CardStats).Effect != null) ((MonsterCardStats)blockingMonster.CardStats).Effect.OnBlock?.Invoke();
         if (((MonsterCardStats)blockingMonster.CardStats).Defense < ((MonsterCardStats)AttackingMonster.CardStats).Attack)
         {
-            ((MonsterCard)blockingMonster).SendToGraveyard();
+            blockingMonster.Call_SendToGraveyard();
         }
         else if (((MonsterCardStats)blockingMonster.CardStats).Defense > ((MonsterCardStats)AttackingMonster.CardStats).Attack)
         {
-            ((MonsterCard)AttackingMonster).SendToGraveyard();
+            AttackingMonster.Call_SendToGraveyard();
         }
-        State = GameManagerStates.AttackPhase;
+        Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
+        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.AttackPhase);
     }
     public void StartTurn()
     {
+        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.StartPhase);
+        Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         CurrentDuelist = DuelistType.Player;
-        State = GameManagerStates.StartPhase;
         Player.Mana = turn + Player.ManaBoost;
         Player.DrawCard(0);
         for(int i = 0; i < Player.Field.Count; i++)
@@ -121,16 +114,83 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
             Player.Field[i].HasAttacked = false;
             Player.Field[i].HasBlocked = false;
         }
+        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.StartPhase);
     }
     public void SetStateLocally(GameManagerStates value)
     {
         state = value;
     }
+    public void Call_SetMainPhaseState(NetworkTarget networkTarget, GameManagerStates value)
+    {
+        if (networkTarget == NetworkTarget.Local) SetMainPhaseState(value);
+        else if (networkTarget == NetworkTarget.Other) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.Others, value);
+        else if (networkTarget == NetworkTarget.All) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
+
+    }
 
     [PunRPC]
     public void RPC_SetMainPhaseState(GameManagerStates value)
     {
+        SetMainPhaseState(value);
+    }
+    public void SetMainPhaseState(GameManagerStates value)
+    {
+        PrevState = state;
         state = value;
+        switch(state)
+        {
+            case GameManagerStates.StartPhase:
+                foreach (Card c in Player.Hand)
+                {
+                    c.ClearEvents();
+                    if (c.GetType().ToString() == nameof(MonsterCard)) ((MonsterCard)c).AssignHandEvents(NetworkTarget.Local);
+                    else if (c.GetType().ToString() == nameof(EffectCard)) ((EffectCard)c).AssignHandEvents(NetworkTarget.Local);
+                }
+                foreach (MonsterCard c in Player.Field)
+                {
+                    c.ClearEvents();
+                    c.Assign_BurnEvents(NetworkTarget.Local);
+                }
+                break;
+            case GameManagerStates.AttackPhase:
+                foreach (Card c in Player.Hand) c.ClearEvents();
+                foreach (MonsterCard c in Player.Field)
+                {
+                    c.ClearEvents();
+                    c.Assign_AttackPhaseEvents(NetworkTarget.Local);
+                }
+                break;
+            case GameManagerStates.Blocking:
+                {
+                    foreach (MonsterCard c in Player.Field)
+                    {
+                        c.ClearEvents();
+                        c.Call_AddEvent(CardEvent.Block, MouseEvent.Down, NetworkTarget.Local);
+                    }
+                }
+                break;
+            case GameManagerStates.Busy:
+                {
+                    foreach (MonsterCard c in Player.Field) c.ClearEvents();
+                    foreach (Card c in Player.Hand)  c.ClearEvents();
+                }
+                break;
+        }
+    }
+    public void Call_SetMainPhaseStateToPrevious(NetworkTarget networkTarget)
+    {
+        if (networkTarget == NetworkTarget.Local) SetMainPhaseStateToPrevious();
+        else if (networkTarget == NetworkTarget.Other) photonView.RPC(nameof(RPC_SetMainPhaseStateToPrevious), RpcTarget.Others);
+        else if (networkTarget == NetworkTarget.All) photonView.RPC(nameof(RPC_SetMainPhaseStateToPrevious), RpcTarget.All);
+    }
+    [PunRPC]
+    public void RPC_SetMainPhaseStateToPrevious()
+    {
+        SetMainPhaseStateToPrevious();
+    }
+    public void SetMainPhaseStateToPrevious()
+    {
+        SetMainPhaseState(PrevState);
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

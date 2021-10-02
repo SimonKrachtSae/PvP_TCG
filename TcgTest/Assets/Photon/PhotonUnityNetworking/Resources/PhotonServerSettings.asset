@@ -90,6 +90,19 @@ MonoBehaviour:
   - RPC_Destroy
   - RPC_DrawLine
   - RPC_UpdateRotation
+  - RPC_AddEvent
+  - RPC_AddToDeck
+  - RPC_AddToGraveyard
+  - RPC_AddToHand
+  - RPC_ClearCardEvents
+  - RPC_RemoveFromDeck
+  - RPC_RemoveFromGraveyard
+  - RPC_RemoveFromHand
+  - RPC_SetValuesToDefault
+  - RPC_AddDestroyEvents
+  - RPC_AddDiscardEffects
+  - RPC_AddRecallEvents
+  - RPC_SetMainPhaseStateToPrevious
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

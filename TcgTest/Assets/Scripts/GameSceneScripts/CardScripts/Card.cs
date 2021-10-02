@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using Photon.Pun;
 
@@ -25,7 +26,11 @@ public abstract class Card : MonoBehaviourPunCallbacks
     protected Vector3 prevPos;
     protected Vector3 mouseDownPos;
     protected LineRenderer l;
-
+    public UnityAction OnMouseDownEvent { get; set; }
+    public UnityAction OnMouseDragEvent { get; set; }
+    public UnityAction OnMouseUpEvent { get; set; }
+    public Vector3 Target { get; set; }
+    protected Vector3 mousePos;
     protected void Awake()
     {
         gameManager = Game_Manager.Instance;
@@ -41,7 +46,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         }
         prevPos = transform.position;
     }
-    void Update()
+    protected void Update()
     {
         if (!photonView.IsMine) return;
         if (transform.position != prevPos)
@@ -50,17 +55,24 @@ public abstract class Card : MonoBehaviourPunCallbacks
         }
         prevPos = transform.position;
     }
-    public void DrawThisCard()
+    public void Local_DrawCard()
     {
-        targetTransform = player.HandParent;
-        player.Deck.Remove(this);
-        StartCoroutine(MoveCardFromDeckToHand());
-        //StartCoroutine(RotateToFront());
+        photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
+        photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
+        MoveTowardsHand(player.HandParent.transform.position);
+        if (gameManager.State == GameManagerStates.StartPhase) AssignHandEvents(NetworkTarget.Local);
+    }
+    public void AssignHandEvents(NetworkTarget networkTarget)
+    {
+        ClearEvents();
+        Call_AddEvent(CardEvent.FollowMouse_MouseDown, MouseEvent.Down, networkTarget);
+        Call_AddEvent(CardEvent.FollowMouse_MouseDrag, MouseEvent.Drag, networkTarget);
+        if(GetType().ToString() == nameof(MonsterCard))Call_AddEvent(CardEvent.Summon, MouseEvent.Up, networkTarget);
+        else if(GetType().ToString() == nameof(EffectCard))Call_AddEvent(CardEvent.Play, MouseEvent.Up, networkTarget);
     }
     public IEnumerator MoveCardFromDeckToHand()
     {
         Vector3 direction;
-        IsMoving = true;
         while (true)
         {
             yield return new WaitForFixedUpdate();
@@ -68,7 +80,6 @@ public abstract class Card : MonoBehaviourPunCallbacks
             transform.position += direction.normalized * Time.fixedDeltaTime * 25;
             if (direction.magnitude < 0.3f) break;
         }
-        IsMoving = false;
         transform.position = targetTransform.position;
         Location = CardLocation.Hand;
         player.Hand.Add(this);
@@ -108,6 +119,187 @@ public abstract class Card : MonoBehaviourPunCallbacks
                 transform.Rotate(new Vector3(0,1,0));
             }
         }
+    }
+    public void MoveTowardsTarget(Vector3 target)
+    {
+        Target = target;
+        StartCoroutine(TranslateCard());
+    }
+    protected IEnumerator TranslateCard()
+    {
+        Vector3 direction;
+        int maxIterations = 5000;
+        while((Target - transform.position).magnitude > 0.5f)
+        {
+            yield return new WaitForFixedUpdate();
+            direction = Target - transform.position;
+            transform.position += direction.normalized * Time.fixedDeltaTime * 25;
+
+            maxIterations--;
+            if (maxIterations <= 0) break;
+        }
+        transform.position = Target;
+    }
+    public void MoveTowardsHand(Vector3 target)
+    {
+        Target = target;
+        StartCoroutine(TranslateCardTowardsHand());
+    }
+    protected IEnumerator TranslateCardTowardsHand()
+    {
+        Vector3 direction;
+        int maxIterations = 5000;
+        while ((Target - transform.position).magnitude > 0.5f)
+        {
+            yield return new WaitForFixedUpdate();
+            direction = Target - transform.position;
+            transform.position += direction.normalized * Time.fixedDeltaTime * 25;
+
+            maxIterations--;
+            if (maxIterations <= 0) break;
+        }
+        transform.position = Target;
+        player.RedrawHandCards();
+    }
+    [PunRPC]
+    public void RPC_AddToHand()
+    {
+        if (photonView.IsMine) player.Hand.Add(this);
+        else gameManager.Enemy.Hand.Add(this);
+    }
+    [PunRPC]
+    public void RPC_RemoveFromHand()
+    {
+        if (photonView.IsMine) player.Hand.Remove(this);
+        else gameManager.Enemy.Hand.Remove(this);
+    }
+    [PunRPC]
+    public void RPC_AddToDeck()
+    {
+        if (photonView.IsMine) player.Deck.Add(this);
+        else gameManager.Enemy.Deck.Add(this);
+    }
+    [PunRPC]
+    public void RPC_RemoveFromDeck()
+    {
+        if (photonView.IsMine) player.Deck.Remove(this);
+        else gameManager.Enemy.Deck.Remove(this);
+    }
+    [PunRPC]
+    public void RPC_AddToGraveyard()
+    {
+        if (photonView.IsMine) player.Graveyard.Add(this);
+        else gameManager.Enemy.Graveyard.Add(this);
+    }
+    [PunRPC]
+    public void RPC_RemoveFromGraveyard()
+    {
+        if (photonView.IsMine) player.Graveyard.Remove(this);
+        else gameManager.Enemy.Graveyard.Remove(this);
+    }
+    public void Event_FollowMouseDown()
+    {
+        transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
+    }
+    public void Event_FollowMouseDrag()
+    {
+        transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
+    }
+    public void Event_Discard()
+    {
+        Call_SendToGraveyard();
+        player.DiscardCounter--;
+    }
+    public void Event_Destroy()
+    {
+        Call_SendToGraveyard();
+        player.DestroyCounter--;
+    }
+    public void Event_Recall()
+    {
+        Call_SendToDeck();
+        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+    }
+    public void Call_SendToDeck()
+    {
+        Local_RemoveFromCurrentLists();
+        ClearEvents();
+        photonView.RPC(nameof(RPC_AddToDeck), RpcTarget.All);
+
+        if (this.GetType().ToString() == nameof(MonsterCard).ToString()) photonView.RPC(nameof(RPC_SetValuesToDefault), RpcTarget.All);
+
+        if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToDeck), RpcTarget.Others);
+        else
+        {
+            Target = player.DeckField.transform.position;
+            StartCoroutine(TranslateCard());
+        }
+    }
+    [PunRPC]
+    public void RPC_SendToDeck()
+    {
+        MoveTowardsTarget(player.DeckField.transform.position);
+        StartCoroutine(TranslateCard());
+    }
+    public void Call_SendToGraveyard()
+    {
+        Local_RemoveFromCurrentLists();
+        ClearEvents();
+        photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
+
+        if (this.GetType().ToString() == nameof(MonsterCard).ToString()) photonView.RPC(nameof(RPC_SetValuesToDefault), RpcTarget.All);
+
+        if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToGraveyard), RpcTarget.Others);
+        else
+        {
+            Target = player.GraveyardObj.transform.position;
+            StartCoroutine(TranslateCard());
+        }
+    }
+    [PunRPC]
+    public void RPC_SendToGraveyard()
+    {
+        if (this.GetType().ToString() == nameof(MonsterCard).ToString())
+            if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
+        MoveTowardsTarget(player.GraveyardObj.transform.position);
+        StartCoroutine(TranslateCard());
+    }
+    [PunRPC]
+    public void RPC_SetValuesToDefault()
+    {
+        ((MonsterCardStats)cardStats).SetValuesToDefault();
+    }
+    protected void Local_RemoveFromCurrentLists()
+    {
+        if(this.GetType().ToString() == nameof(MonsterCard).ToString())
+            if (player.Field.Contains((MonsterCard)this)) photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+
+        if (player.Hand.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
+        if (player.Deck.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
+        if (player.Graveyard.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromGraveyard), RpcTarget.All);
+    }
+    [PunRPC]
+    public void RPC_RemoveFromField()
+    {
+        if (photonView.IsMine) player.Field.Remove((MonsterCard)this);
+        else gameManager.Enemy.Field.Remove((MonsterCard)this);
+        ((MonsterCardStats)CardStats).Attack -= player.AttackBoost;
+        ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)CardStats).Attack.ToString();
+        ((MonsterCardStats)CardStats).Defense -= player.DefenseBoost;
+        ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)CardStats).Defense.ToString();
+    }
+    public virtual void Call_AddEvent(CardEvent cardEvent, MouseEvent mouseEvent, NetworkTarget target) { }
+    public void ClearEvents()
+    {
+        OnMouseDownEvent = null;
+        OnMouseDragEvent = null;
+        OnMouseUpEvent = null;
+    }
+    protected void AssignEvent(UnityAction action, MouseEvent mouseEvent)
+    {
+        if (mouseEvent == MouseEvent.Down) OnMouseDownEvent = action;
+        else if (mouseEvent == MouseEvent.Drag) OnMouseDragEvent = action;
+        else if (mouseEvent == MouseEvent.Up) OnMouseUpEvent = action;
     }
 }
 

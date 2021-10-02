@@ -178,7 +178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   duelistType: 0
-  amount: 2
+  amount: 1
 --- !u!1 &2931643549446475996
 GameObject:
   m_ObjectHideFlags: 0

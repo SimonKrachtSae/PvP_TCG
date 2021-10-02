@@ -80,12 +80,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             return;
         }
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others);
-        else Deck[index].DrawThisCard();
+        else Deck[index].Local_DrawCard();
     }
     [PunRPC]
     public void RPC_DrawCard(int index)
     {
-        Deck[index].DrawThisCard();
+        Deck[index].Local_DrawCard();
     }
     public void RedrawHandCards()
     {
@@ -150,93 +150,116 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         GameUIManager.Instance.SetGameState(GameState.GameOver);
     }
-    public void SendToDeckSelected(MonsterCardLocation targetLocation)
+    public void Call_AddRecallEvents(MonsterCardLocation targetLocation, NetworkTarget selector)
     {
-        if (photonView.IsMine) SendToDeck(targetLocation);
-        else photonView.RPC(nameof(RPC_SendToDeckSelected), RpcTarget.Others, targetLocation);
+        if (selector == NetworkTarget.Local) AddRecallEvents(targetLocation);
+        else if (selector == NetworkTarget.Other) photonView.RPC(nameof(RPC_AddRecallEvents), RpcTarget.Others, targetLocation);
     }
     [PunRPC]
-    public void RPC_SendToDeckSelected(MonsterCardLocation targetLocation)
+    public void RPC_AddRecallEvents(MonsterCardLocation targetLocation)
     {
-        SendToDeck(targetLocation);
+        AddRecallEvents(targetLocation);
     }
-    public void SendToDeck(MonsterCardLocation targetLocation)
+    public void AddRecallEvents(MonsterCardLocation targetLocation)
     {
-        //if(Field.Count < 1)
-        //{
-        //    Board.Instance.PlayerInfoText.text = "No Card To Send To Graveyard";
-        //    return;
-        //}
-        gameManager.PrevState = gameManager.State;
-        if (targetLocation == MonsterCardLocation.OnField)
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        if (Field.Count < 1)
         {
-            gameManager.State = GameManagerStates.Busy;
-            gameManager.SetStateLocally(GameManagerStates.SelectingCardFromFieldToSendToDeck);
-            Board.Instance.PlayerInfoText.text = "Select Card From Field To Send To Deck";
+            Board.Instance.PlayerInfoText.text = "No Card To Send To Graveyard";
+            return;
         }
+        if(targetLocation == MonsterCardLocation.OnField)
+            foreach (MonsterCard c in Field) { c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local); }
         else if (targetLocation == MonsterCardLocation.InHand)
-        {
-            gameManager.State = GameManagerStates.Busy;
-            gameManager.SetStateLocally(GameManagerStates.SelectingCardFromHandToSendToDeck);
-            Board.Instance.PlayerInfoText.text = "Select Card From Hand To Send To Deck";
-            RedrawHandCards();
-        }
+            foreach (Card c in Hand) { c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local); }
     }
-    public void Call_Discard(int amount)
+    public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
-        if (photonView.IsMine)
-        {
-            DiscardCounter = amount;
-            StartCoroutine(Discard());
-        }
-        else photonView.RPC(nameof(RPC_Discard), RpcTarget.Others, amount);
+        if (selector == NetworkTarget.Local) { DestroyCounter = amount; StartCoroutine(AddDiscardEffects()); }
+        else if (selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDiscardEffects), RpcTarget.Others, amount); }
     }
     [PunRPC]
-    public void RPC_Discard(int amount)
+    public void RPC_AddDiscardEffects(int amount)
     {
         DiscardCounter = amount;
-        StartCoroutine(Discard());
+        StartCoroutine(AddDiscardEffects());
     }
-    public IEnumerator Discard()
+    public IEnumerator AddDiscardEffects()
     {
-        gameManager.PrevState = gameManager.State;
-        gameManager.State = GameManagerStates.Busy;
-        gameManager.SetStateLocally(GameManagerStates.Discarding);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
         while(DiscardCounter != 0)
         {
             yield return new WaitForFixedUpdate();
             Board.Instance.PlayerInfoText.text = "Cards to Discard: " + DiscardCounter.ToString();
-            if (Hand.Count == 0) break;
+            if (Hand.Count == 0 || DiscardCounter == 0) break;
         }
-        gameManager.State = gameManager.PrevState;
+        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
-    public void Call_Destroy(int amount)
+    public void Call_AddDestroyEffects(int amount, NetworkTarget selector)
     {
-        if (photonView.IsMine)
-        {
-            DestroyCounter = amount;
-            StartCoroutine(Destroy());
-        }
-        else photonView.RPC(nameof(RPC_Destroy), RpcTarget.Others, amount);
+        if(selector == NetworkTarget.Local) {DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
+        else if(selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDestroyEvents), RpcTarget.Others, amount); }
     }
     [PunRPC]
-    public void RPC_Destroy(int amount)
+    public void RPC_AddDestroyEvents(int amount)
     {
         DestroyCounter = amount;
-        StartCoroutine(Destroy());
+        StartCoroutine(AddDestroyEvents());
     }
-    public IEnumerator Destroy()
+    public IEnumerator AddDestroyEvents()
     {
-        gameManager.PrevState = gameManager.State;
-        gameManager.State = GameManagerStates.Busy;
-        gameManager.SetStateLocally(GameManagerStates.Destroying);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
         while (DestroyCounter != 0)
         {
-            if (Field.Count == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
+            if (Field.Count == 0 || DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
             Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + DestroyCounter.ToString();
             yield return new WaitForFixedUpdate();
         }
-        gameManager.State = gameManager.PrevState;
+        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+    }
+    public void Call_ClearCardEvents(NetworkTarget networkTarget, List<MonsterCardLocation> locations)
+    {
+        List<MyPlayer> targetPlayers = new List<MyPlayer>();
+        if (networkTarget == NetworkTarget.Local)
+        {
+            ClearCardEvents(locations);
+        }
+        else if(networkTarget == NetworkTarget.Other)
+        {
+            photonView.RPC(nameof(RPC_ClearCardEvents), RpcTarget.Others, locations);
+        }
+        else if (networkTarget == NetworkTarget.All)
+        {
+            photonView.RPC(nameof(RPC_ClearCardEvents), RpcTarget.All, locations);
+        }
+    }
+    public void ClearCardEvents(List<MonsterCardLocation> locations)
+    {
+        foreach (MonsterCardLocation location in locations)
+        {
+            switch (location)
+            {
+                case MonsterCardLocation.InHand:
+                    foreach (Card c in Hand) c.ClearEvents();
+                    break;
+                case MonsterCardLocation.OnField:
+                    foreach (MonsterCard c in Field) c.ClearEvents();
+                    break;
+                case MonsterCardLocation.InDeck:
+                    foreach (Card c in Deck) c.ClearEvents();
+                    break;
+                case MonsterCardLocation.InGraveyard:
+                    foreach (Card c in Graveyard) c.ClearEvents();
+                    break;
+            }
+        }
+    }
+    [PunRPC]
+    public void RPC_ClearCardEvents(List<MonsterCardLocation> locations)
+    {
+        ClearCardEvents(locations);
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
