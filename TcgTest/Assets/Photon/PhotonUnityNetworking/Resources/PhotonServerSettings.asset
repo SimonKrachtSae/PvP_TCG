@@ -65,6 +65,47 @@ MonoBehaviour:
   - RPC_Summon
   - RPC_UpdateMonsterFields
   - RPC_UpdateDeckCardCount
+  - RPC_DestroyMonster
+  - RPC_ShowBlockRequest
+  - RPC_UpdateBlockingMonsterIndex
+  - RPC_UpdateSummonPowerBoost
+  - RPC_UpdatePosition
+  - RPC_UpdateCurrentDuelist
+  - RPC_UpdateRound
+  - RPC_UpdateMana
+  - RPC_UpdateStats
+  - RPC_AddToFields
+  - RPC_SeetMainPhaseState
+  - RPC_AddToField
+  - RPC_RemoveFromField
+  - RPC_UpdateSumonPowerBoost
+  - RPC_ThisEnemySendToGraveyard
+  - RPC_SendToGraveyard
+  - RPC_GameOver
+  - RPC_UpdateAttackBoost
+  - RPC_UpdateDefenseBoost
+  - RPC_SendToDeck
+  - RPC_SendToDeckSelected
+  - RPC_Discard
+  - RPC_Destroy
+  - RPC_DrawLine
+  - RPC_UpdateRotation
+  - RPC_AddEvent
+  - RPC_AddToDeck
+  - RPC_AddToGraveyard
+  - RPC_AddToHand
+  - RPC_ClearCardEvents
+  - RPC_RemoveFromDeck
+  - RPC_RemoveFromGraveyard
+  - RPC_RemoveFromHand
+  - RPC_SetValuesToDefault
+  - RPC_AddDestroyEvents
+  - RPC_AddDiscardEffects
+  - RPC_AddRecallEvents
+  - RPC_SetMainPhaseStateToPrevious
+  - RPC_RotateToBack
+  - RPC_RotateToFront
+  - SetRotation
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
