@@ -103,6 +103,9 @@ MonoBehaviour:
   - RPC_AddDiscardEffects
   - RPC_AddRecallEvents
   - RPC_SetMainPhaseStateToPrevious
+  - RPC_RotateToBack
+  - RPC_RotateToFront
+  - SetRotation
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

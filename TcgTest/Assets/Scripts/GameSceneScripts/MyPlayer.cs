@@ -162,12 +162,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void AddRecallEvents(MonsterCardLocation targetLocation)
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         if (Field.Count < 1)
         {
             Board.Instance.PlayerInfoText.text = "No Card To Send To Graveyard";
             return;
         }
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
             foreach (MonsterCard c in Field) { c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local); }
         else if (targetLocation == MonsterCardLocation.InHand)

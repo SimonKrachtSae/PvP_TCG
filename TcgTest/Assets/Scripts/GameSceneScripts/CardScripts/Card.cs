@@ -60,7 +60,38 @@ public abstract class Card : MonoBehaviourPunCallbacks
         photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
         MoveTowardsHand(player.HandParent.transform.position);
+        Call_RotateToFront(NetworkTarget.Local);
         if (gameManager.State == GameManagerStates.StartPhase) AssignHandEvents(NetworkTarget.Local);
+    }
+    public void Call_RotateToFront(NetworkTarget target)
+    {
+        if (target == NetworkTarget.Local) Local_RotateToFront();
+        else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_RotateToFront), RpcTarget.Others);
+        else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_RotateToFront), RpcTarget.All);
+    }
+    [PunRPC]
+    public void RPC_RotateToFront(NetworkTarget target)
+    {
+        Local_RotateToFront();
+    }
+    private void Local_RotateToFront()
+    {
+        StartCoroutine(RotateToFront());
+    }
+    public void Call_RotateToBack(NetworkTarget target)
+    {
+        if (target == NetworkTarget.Local) Local_RotateToBack();
+        else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_RotateToBack), RpcTarget.Others);
+        else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_RotateToBack), RpcTarget.All);
+    }
+    [PunRPC]
+    public void RPC_RotateToBack(NetworkTarget target)
+    {
+        Local_RotateToBack();
+    }
+    private void Local_RotateToBack()
+    {
+        StartCoroutine(RotateToBack());
     }
     public void AssignHandEvents(NetworkTarget networkTarget)
     {
@@ -93,30 +124,37 @@ public abstract class Card : MonoBehaviourPunCallbacks
     }
     public IEnumerator RotateToBack()
     {
+        float value = 0;
         while (true)
         {
             yield return new WaitForFixedUpdate();
-            transform.rotation = Quaternion.Euler(0, transform.rotation.y + 2, 0);
-            if(transform.rotation.y > 175 && transform.rotation.y < 185)
+            if (value > 175)
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
                 break;
+            }
+            else
+            {
+                value += 2;
+                transform.rotation = Quaternion.Euler(0, value, 0);
             }
         }
     }
     public IEnumerator RotateToFront()
     {
+        float value = 180;
         while (true)
         {
             yield return new WaitForFixedUpdate();
-            if ((transform.rotation.y > 350 && (transform.rotation.y < 359) || (transform.rotation.y < 10 && transform.rotation.y >= 0)))
+            if (value < 5)
             {
                 transform.rotation = Quaternion.Euler(0, 0, 0);
                 break;
             }
             else
             {
-                transform.Rotate(new Vector3(0,1,0));
+                value -= 2;
+                transform.rotation = Quaternion.Euler(0, value, 0);
             }
         }
     }
@@ -218,6 +256,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void Event_Recall()
     {
         Call_SendToDeck();
+        Call_RotateToBack(NetworkTarget.All);
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
     public void Call_SendToDeck()
@@ -231,15 +270,18 @@ public abstract class Card : MonoBehaviourPunCallbacks
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToDeck), RpcTarget.Others);
         else
         {
-            Target = player.DeckField.transform.position;
-            StartCoroutine(TranslateCard());
+            Local_SendToDeck();
         }
     }
     [PunRPC]
     public void RPC_SendToDeck()
     {
+        Local_SendToDeck();
+    }
+    public void Local_SendToDeck()
+    {
         MoveTowardsTarget(player.DeckField.transform.position);
-        StartCoroutine(TranslateCard());
+        RotateToBack();
     }
     public void Call_SendToGraveyard()
     {
