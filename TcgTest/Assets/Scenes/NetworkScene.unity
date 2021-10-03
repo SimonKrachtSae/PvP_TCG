@@ -123,6 +123,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &1232031011 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+  m_PrefabInstance: {fileID: 3789815816663086868}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2052074290298572468
 GameObject:
   m_ObjectHideFlags: 0
@@ -139,6 +144,71 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1001 &3789815816663086868
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 6483679047889465969}
+    m_Modifications:
+    - target: {fileID: 1101612499574305865, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_Name
+      value: ParticleBomb
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_RootOrder
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2580097046311949147, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: maxVelocity
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2580097046311949147, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
+      propertyPath: minVelocity
+      value: 0.1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
 --- !u!222 &4647406576393033344
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -321,7 +391,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4647406576437189343
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5709,12 +5779,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 2000, y: 750}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -6322,6 +6392,7 @@ Transform:
   - {fileID: 4647406577436712180}
   - {fileID: 4647406577239993628}
   - {fileID: 4647406577116091545}
+  - {fileID: 1232031011}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
