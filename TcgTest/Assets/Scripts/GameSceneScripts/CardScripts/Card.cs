@@ -251,13 +251,12 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
-        player.DestroyCounter--;
     }
     public void Event_Recall()
     {
         Call_SendToDeck();
         Call_RotateToBack(NetworkTarget.All);
-        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+        player.OnRecall();
     }
     public void Call_SendToDeck()
     {
