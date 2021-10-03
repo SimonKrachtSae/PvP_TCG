@@ -95,3 +95,10 @@ public enum MonsterCardLocation
     InGraveyard,
     InHand
 }
+public enum CardName()
+{
+  Cheese,
+  Tomato,
+  Testeffect1,
+  Testeffect2
+}

@@ -50,6 +50,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 
     private int recallCounter = 0;
     private MonsterCardLocation recallArea;
+    [SerializeField] private List<CardName> CardNameList;
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
@@ -74,6 +75,17 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
+        SpawnDeck();
+    }
+    public void SpawnDeck()
+    {
+      foreach (CardName cardName in CardNameList)
+      {
+        GameObject card = PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position,Quaternion.identity);
+        
+        card.transform.parent = this;
+        card.GetComponent<Card>().SetActive(true);
+      }
     }
     public void DrawCard(int index)
     {

@@ -31,7 +31,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public UnityAction OnMouseUpEvent { get; set; }
     public Vector3 Target { get; set; }
     protected Vector3 mousePos;
-    protected void Awake()
+    protected void Start()
     {
         gameManager = Game_Manager.Instance;
         if (photonView.IsMine)
