@@ -11,6 +11,7 @@ public class MonsterCard : Card, IPunObservable
     private Card attackTarget;
     public bool HasAttacked { get; set; }
     public bool HasBlocked { get; set; }
+    [SerializeField] private GameObject swordIcon;
     private void Start()
     {
         try
@@ -48,6 +49,7 @@ public class MonsterCard : Card, IPunObservable
 
     private void OnMouseDown()
     {
+        GameUIManager.Instance.CardInfo.AssignCard(this);
         mouseDownPos = transform.position;
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
 
@@ -63,6 +65,10 @@ public class MonsterCard : Card, IPunObservable
     private void OnMouseUp()
     {
         OnMouseUpEvent?.Invoke();
+    }
+    public void Event_DrawLine_MouseDown()
+    {
+        photonView.RPC(nameof(RPC_UpdateSwordIcon), RpcTarget.All, true);
     }
     public void Event_DrawLine_MouseDrag()
     {
@@ -103,6 +109,8 @@ public class MonsterCard : Card, IPunObservable
     {
         if (attackTarget != null)
         {
+            photonView.RPC(nameof(RPC_UpdateSwordIcon), RpcTarget.All, false);
+
             if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
             if (((MonsterCardStats)attackTarget.CardStats).Effect != null) ((MonsterCardStats)attackTarget.CardStats).Effect.OnBlock?.Invoke();
             if (((MonsterCardStats)attackTarget.CardStats).Defense < ((MonsterCardStats)cardStats).Attack)
@@ -122,6 +130,7 @@ public class MonsterCard : Card, IPunObservable
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDirectAttackSucceeds?.Invoke();
                 player.DrawCard(0);
+                photonView.RPC(nameof(RPC_UpdateSwordIcon), RpcTarget.All, false);
             }
             else
             {
@@ -233,6 +242,7 @@ public class MonsterCard : Card, IPunObservable
     }
     public void AddEvent(CardEvent cardEvent, MouseEvent mouseEvent)
     {
+        border.color = Color.yellow;
         switch (cardEvent)
         {
             case CardEvent.FollowMouse_MouseDown:
@@ -243,6 +253,9 @@ public class MonsterCard : Card, IPunObservable
                 break;
             case CardEvent.DrawLine_MouseDrag:
                 AssignEvent(Event_DrawLine_MouseDrag, mouseEvent);
+                break;
+            case CardEvent.DrawLine_MouseDown:
+                AssignEvent(Event_DrawLine_MouseDown, mouseEvent);
                 break;
             case CardEvent.Summon:
                 AssignEvent(Event_Summon, mouseEvent);
@@ -266,6 +279,15 @@ public class MonsterCard : Card, IPunObservable
                 AssignEvent(Event_Recall, mouseEvent);
                 break;
         }
+    }
+    public void Call_UpdateSwordIcon(bool value)
+    {
+        photonView.RPC(nameof(RPC_UpdateSwordIcon), RpcTarget.All, true);
+    }
+    [PunRPC]
+    public void RPC_UpdateSwordIcon(bool value)
+    {
+        swordIcon.SetActive(value);
     }
     private void OnDestroy()
     {

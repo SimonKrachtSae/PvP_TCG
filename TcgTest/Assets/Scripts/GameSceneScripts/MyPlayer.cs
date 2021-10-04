@@ -75,7 +75,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
-        SpawnDeck();
+        //SpawnDeck();
     }
     public void SpawnDeck()
     {
@@ -83,8 +83,9 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
       {
         GameObject card = PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position,Quaternion.identity);
         
-        card.transform.parent = this;
-        card.GetComponent<Card>().SetActive(true);
+        card.transform.parent = this.transform;
+        
+        card.GetComponent<Card>().enabled = true;
       }
     }
     public void DrawCard(int index)

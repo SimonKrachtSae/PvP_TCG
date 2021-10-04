@@ -95,7 +95,7 @@ public enum MonsterCardLocation
     InGraveyard,
     InHand
 }
-public enum CardName()
+public enum CardName
 {
   Cheese,
   Tomato,

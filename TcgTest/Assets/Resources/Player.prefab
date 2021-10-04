@@ -70,6 +70,7 @@ MonoBehaviour:
   - {fileID: 8898242720325894475}
   - {fileID: 8374711753412394287}
   - {fileID: 6954672853885817039}
+  CardNameList: 
 --- !u!114 &1491771139646323026
 MonoBehaviour:
   m_ObjectHideFlags: 0

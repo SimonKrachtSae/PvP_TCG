@@ -31,7 +31,8 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public UnityAction OnMouseUpEvent { get; set; }
     public Vector3 Target { get; set; }
     protected Vector3 mousePos;
-    protected void Start()
+    [SerializeField] protected SpriteRenderer border;
+    protected void Awake()
     {
         gameManager = Game_Manager.Instance;
         if (photonView.IsMine)
@@ -332,6 +333,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public virtual void Call_AddEvent(CardEvent cardEvent, MouseEvent mouseEvent, NetworkTarget target) { }
     public void ClearEvents()
     {
+        border.color = Color.black;
         OnMouseDownEvent = null;
         OnMouseDragEvent = null;
         OnMouseUpEvent = null;
