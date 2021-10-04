@@ -21,7 +21,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 
     [SerializeField] private GameObject BoardCanvas;
     [SerializeField] private CardInfo cardInfo;
-    public CardInfo CardInfo { get => cardInfo; set => cardInfo = value; }
+    public CardInfo CardInfo { get => cardInfo; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
