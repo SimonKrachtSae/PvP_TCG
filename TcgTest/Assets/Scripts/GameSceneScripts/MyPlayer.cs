@@ -47,6 +47,10 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 
     private int destroyCounter = 0;
     public int DestroyCounter { get => destroyCounter; set => destroyCounter = value; }
+
+    private int recallCounter = 0;
+    private MonsterCardLocation recallArea;
+    [SerializeField] private List<CardName> CardNameList;
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
@@ -71,6 +75,18 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
+        //SpawnDeck();
+    }
+    public void SpawnDeck()
+    {
+      foreach (CardName cardName in CardNameList)
+      {
+        GameObject card = PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position,Quaternion.identity);
+        
+        card.transform.parent = this.transform;
+        
+        card.GetComponent<Card>().enabled = true;
+      }
     }
     public void DrawCard(int index)
     {
@@ -150,29 +166,54 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         GameUIManager.Instance.SetGameState(GameState.GameOver);
     }
-    public void Call_AddRecallEvents(MonsterCardLocation targetLocation, NetworkTarget selector)
+    public void Call_AddRecallEvents(MonsterCardLocation targetLocation, NetworkTarget selector, int amount)
     {
-        if (selector == NetworkTarget.Local) AddRecallEvents(targetLocation);
-        else if (selector == NetworkTarget.Other) photonView.RPC(nameof(RPC_AddRecallEvents), RpcTarget.Others, targetLocation);
+        Board.Instance.PlayerInfoText.text = "Recall: " + amount;
+        if (selector == NetworkTarget.Local) AddRecallEvents(targetLocation, amount);
+        else if (selector == NetworkTarget.Other) photonView.RPC(nameof(RPC_AddRecallEvents), RpcTarget.Others, targetLocation, amount);
     }
     [PunRPC]
-    public void RPC_AddRecallEvents(MonsterCardLocation targetLocation)
+    public void RPC_AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
-        AddRecallEvents(targetLocation);
+        AddRecallEvents(targetLocation, amount);
     }
-    public void AddRecallEvents(MonsterCardLocation targetLocation)
+    public void AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
         if (Field.Count < 1)
         {
             Board.Instance.PlayerInfoText.text = "No Card To Send To Graveyard";
             return;
         }
+        recallCounter = amount;
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
-            foreach (MonsterCard c in Field) { c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local); }
+            foreach (MonsterCard c in Field) 
+            { 
+                c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
+                recallArea = MonsterCardLocation.OnField;
+            }
         else if (targetLocation == MonsterCardLocation.InHand)
-            foreach (Card c in Hand) { c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local); }
+            foreach (Card c in Hand) 
+            {
+                c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
+                recallArea = MonsterCardLocation.InHand;
+            }
     }
+    public void OnRecall()
+    {
+        recallCounter--;
+        Board.Instance.PlayerInfoText.text = "Recall: " + recallCounter;
+        if(recallCounter == 0) Board.Instance.PlayerInfoText.text = "";
+        if (recallArea == MonsterCardLocation.OnField)
+        {
+            if (recallCounter == 0 || Field.Count == 0) gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+        }
+        else if(recallArea == MonsterCardLocation.InHand)
+        {
+            if(recallCounter == 0 || Hand.Count == 0) gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+        }
+    }
+ 
     public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
         if (selector == NetworkTarget.Local) { DestroyCounter = amount; StartCoroutine(AddDiscardEffects()); }

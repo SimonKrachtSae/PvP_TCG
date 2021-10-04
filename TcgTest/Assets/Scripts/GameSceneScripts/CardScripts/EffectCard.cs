@@ -41,6 +41,7 @@ public class EffectCard : Card,IPunObservable
     }
     private void OnMouseDown()
     {
+        GameUIManager.Instance.CardInfo.AssignCard(this);
         mouseDownPos = transform.position;
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
         OnMouseDownEvent?.Invoke();
@@ -113,7 +114,8 @@ public class EffectCard : Card,IPunObservable
     }
     public void AddEvent(CardEvent cardEvent, MouseEvent mouseEvent)
     {
-        switch(cardEvent)
+        border.color = Color.yellow;
+        switch (cardEvent)
         {
             case CardEvent.FollowMouse_MouseDown:
                 AssignEvent(Event_FollowMouseDown, mouseEvent);

@@ -31,6 +31,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public UnityAction OnMouseUpEvent { get; set; }
     public Vector3 Target { get; set; }
     protected Vector3 mousePos;
+    [SerializeField] protected SpriteRenderer border;
     protected void Awake()
     {
         gameManager = Game_Manager.Instance;
@@ -251,13 +252,12 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
-        player.DestroyCounter--;
     }
     public void Event_Recall()
     {
         Call_SendToDeck();
         Call_RotateToBack(NetworkTarget.All);
-        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+        player.OnRecall();
     }
     public void Call_SendToDeck()
     {
@@ -333,6 +333,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public virtual void Call_AddEvent(CardEvent cardEvent, MouseEvent mouseEvent, NetworkTarget target) { }
     public void ClearEvents()
     {
+        border.color = Color.black;
         OnMouseDownEvent = null;
         OnMouseDragEvent = null;
         OnMouseUpEvent = null;

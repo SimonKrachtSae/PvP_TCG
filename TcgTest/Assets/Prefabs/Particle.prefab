@@ -179,6 +179,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   text: {fileID: 1350233187231098870}
+  minLifeSpan: 1
+  maxLifeSpan: 2
 --- !u!1 &1350233188194659023
 GameObject:
   m_ObjectHideFlags: 0

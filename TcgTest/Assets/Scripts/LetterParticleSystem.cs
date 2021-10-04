@@ -6,7 +6,6 @@ public class LetterParticleSystem : MonoBehaviour
 {
     [SerializeField] private float frequency;
     [SerializeField] private float duration;
-    [SerializeField] private float particleLifetime;
     [SerializeField]private bool play;
     [SerializeField] private GameObject particle;
     private void Update()
@@ -31,7 +30,7 @@ public class LetterParticleSystem : MonoBehaviour
             timePassed -= Time.fixedDeltaTime;
             GameObject newParticle = Instantiate(particle, transform.position, Quaternion.identity);
             CustomParticle particleScript = newParticle.GetComponent<CustomParticle>();
-            particleScript.Initiate("10", Color.red,5,new Vector3((float)Random.Range(-0.5f,0.5f), (float)Random.Range(-0.5f, 0.5f),0));
+            particleScript.Initiate("10", Color.red,new Vector3((float)Random.Range(-0.5f,0.5f), (float)Random.Range(-0.5f, 0.5f),0));
         }
     }
 }

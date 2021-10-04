@@ -82,6 +82,8 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RPC_UpdateBlockingMonsterIndex(int index)
     {
+        ((MonsterCard)AttackingMonster).Call_UpdateSwordIcon(false);
+
         if (index == 6)
         {
             if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnDirectAttackSucceeds?.Invoke();

@@ -5,24 +5,25 @@ using TMPro;
 public class CustomParticle : MonoBehaviour
 {
     [SerializeField] private TMP_Text text;
-    private float lifeTime;
+    [SerializeField] private float minLifeSpan;
+    [SerializeField] private float maxLifeSpan;
+    private float lifeSpan;
     private Vector3 direction;
 
-    public void Initiate(string _text, Color _color, float _lifeTime, Vector3 _direction)
+    public void Initiate(string _text, Color _color, Vector3 _direction)
     {
         text.text = _text;
         text.color = _color;
-        lifeTime = _lifeTime;
         direction = _direction;
         StartCoroutine(SelfDestruct());
     }
     private IEnumerator SelfDestruct()
     {
-        float timePassed = lifeTime;
-        while (timePassed > 0)
+        lifeSpan = Random.Range(minLifeSpan, maxLifeSpan);
+        while (lifeSpan > 0)
         {
             yield return new WaitForFixedUpdate();
-            timePassed -= Time.fixedDeltaTime;
+            lifeSpan -= Time.fixedDeltaTime;
             transform.position += direction;
         }
         Destroy(this.gameObject);
