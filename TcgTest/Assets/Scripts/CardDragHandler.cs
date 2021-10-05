@@ -5,8 +5,6 @@ using UnityEngine.EventSystems;
 
 public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDragHandler
 {
-	[SerializeField] private GameObject deckbuilderPanel;
-
 	public GameObject deckViewForm;
 	public GameObject collectionViewForm;
 
@@ -17,6 +15,12 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 	private RectTransform deckScrollField;
 	private RectTransform collectionScrollField;
 	private GameObject previousParent;
+	private GameObject deckbuilderPanel;
+
+	private void Start()
+	{
+		deckbuilderPanel = NetworkUIManager.Instance.deckBuilderUI;
+	}
 
 	public void OnBeginDrag(PointerEventData eventData)
 	{
@@ -38,9 +42,13 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 		if (!inDeck)
 		{
 			deckScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().deckScroll.transform as RectTransform;
+			collectionScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().collectionScroll.transform as RectTransform;
 
 			if (RectTransformUtility.RectangleContainsScreenPoint(deckScrollField, Input.mousePosition))
 			{
+				GameObject addedCard = Instantiate(gameObject);
+				addedCard.transform.SetParent(collectionScrollField.GetChild(0));
+				addedCard.transform.localScale = Vector3.one;
 				inDeck = true;
 				collectionViewForm.SetActive(false);
 				deckViewForm.SetActive(true);
@@ -59,10 +67,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 
 			if(RectTransformUtility.RectangleContainsScreenPoint(collectionScrollField, Input.mousePosition))
 			{
-				inDeck = false;
-				deckViewForm.SetActive(false);
-				collectionViewForm.SetActive(true);
-				transform.SetParent(collectionScrollField.GetChild(0));
+				Destroy(gameObject);
 			}
 			else
 			{

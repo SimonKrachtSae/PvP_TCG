@@ -18,7 +18,7 @@ public class NetworkUIManager : MonoBehaviour
 
     private List<GameObject> panels;
 
-	[SerializeField] private GameObject deckBuilderUI;
+	public GameObject deckBuilderUI;
 
     [Header("Connection Failed UIs")]
     [SerializeField] private GameObject connectFailedPanel;
