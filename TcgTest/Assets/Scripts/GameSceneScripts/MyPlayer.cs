@@ -73,7 +73,6 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-        deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
