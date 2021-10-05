@@ -56,9 +56,4 @@ public class DeckbuilderUI : MonoBehaviour
 		cardViewForm.transform.parent.localScale *= 2;
 		cardViewForm.GetComponent<Button>().enabled = false;
 	}
-
-	private void OnEnable()
-	{
-
-	}
 }

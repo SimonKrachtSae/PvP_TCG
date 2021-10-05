@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class DeckUIManager : MonoBehaviour
 {
-	[SerializeField] private GameObject deckbuilderPanel;
+	[SerializeField] private GameObject deckCardsParent;
 	[SerializeField] private List<CardLayout> cards;
 	[SerializeField] private GameObject cardPreview;
 	[SerializeField] private Transform parent;
@@ -15,6 +15,15 @@ public class DeckUIManager : MonoBehaviour
 		{
 			Instantiate(cardPreview, parent);
 			cardPreview.GetComponent<CardInfo>().AssignCard(layout);
+			cardPreview.gameObject.name = layout.NameTextUI.text;
+		}
+	}
+
+	public void Spawn()
+	{
+		foreach(CardDragHandler dragHandler in deckCardsParent.GetComponentsInChildren<CardDragHandler>())
+		{
+			dragHandler.AssignToDeck();
 		}
 	}
 }

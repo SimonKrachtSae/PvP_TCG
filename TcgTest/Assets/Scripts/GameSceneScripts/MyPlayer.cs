@@ -56,7 +56,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
-        Deck = Deck.Instance;
+        
         if (photonView.IsMine)
         {
             gameManager.Player = this;
@@ -73,15 +73,20 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-        deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
-        deck.Load();
-        if(photonView.IsMine) SpawnDeck();
     }
-    public void SpawnDeck()
+
+	private void Start()
+	{
+		deck = Deck.Instance;
+		deck.Load();
+		if (photonView.IsMine) SpawnDeck();
+	}
+
+	public void SpawnDeck()
     {
         foreach (CardName cardName in deck.DeckData.CardNames)
         {

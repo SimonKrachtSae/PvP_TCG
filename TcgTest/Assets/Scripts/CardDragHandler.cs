@@ -19,7 +19,13 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 
 	private void Start()
 	{
+		Deck.Instance.Subscribe(this.gameObject.name);
 		deckbuilderPanel = NetworkUIManager.Instance.deckBuilderUI;
+	}
+
+	private void OnDestroy()
+	{
+		Deck.Instance.Unsubscribe(this.gameObject.name);
 	}
 
 	public void OnBeginDrag(PointerEventData eventData)
@@ -36,6 +42,27 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 		transform.position = Input.mousePosition;
 	}
 
+	public void DuplicateCard()
+	{
+		GameObject collectionCard = Instantiate(gameObject);
+		collectionCard.transform.SetParent(collectionScrollField.GetChild(0));
+		collectionCard.transform.localScale = Vector3.one;
+		inDeck = true;
+		collectionViewForm.SetActive(false);
+		deckViewForm.SetActive(true);
+		transform.SetParent(deckScrollField.GetChild(0));
+	}
+
+	public void AssignToDeck()
+	{
+		transform.SetParent(collectionScrollField.GetChild(0));
+		transform.localScale = Vector3.one;
+		inDeck = true;
+		collectionViewForm.SetActive(false);
+		deckViewForm.SetActive(true);
+		transform.SetParent(deckScrollField.GetChild(0));
+	}
+
 	public void OnEndDrag(PointerEventData eventData)
 	{
 		if (!draggable) return;
@@ -46,13 +73,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 
 			if (RectTransformUtility.RectangleContainsScreenPoint(deckScrollField, Input.mousePosition))
 			{
-				GameObject addedCard = Instantiate(gameObject);
-				addedCard.transform.SetParent(collectionScrollField.GetChild(0));
-				addedCard.transform.localScale = Vector3.one;
-				inDeck = true;
-				collectionViewForm.SetActive(false);
-				deckViewForm.SetActive(true);
-				transform.SetParent(deckScrollField.GetChild(0));
+				DuplicateCard();
 			}
 			else
 			{
