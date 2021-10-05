@@ -2826,7 +2826,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &703250307
 GameObject:
@@ -5055,7 +5055,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1246716505
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5614,7 +5614,7 @@ Transform:
   - {fileID: 142010138}
   - {fileID: 1285664209}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1301901500
 MonoBehaviour:
@@ -5637,6 +5637,7 @@ MonoBehaviour:
   endTurnButton: {fileID: 1807528431}
   BoardCanvas: {fileID: 2061302015}
   cardInfo: {fileID: 722847686}
+  attackButton: {fileID: 1246716504}
 --- !u!114 &1301901501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5715,8 +5716,8 @@ MonoBehaviour:
   enemySummonPowerText: {fileID: 1191814364}
   playerInfoText: {fileID: 1096376017}
   blockRequest: {fileID: 324100174}
-  playerDeckFieldObj: {fileID: 228244105}
-  enemyDeckFieldObj: {fileID: 2086349478}
+  playerDeckFieldObj: {fileID: 1499494663}
+  enemyDeckFieldObj: {fileID: 1562604638}
   playerGraveyard: {fileID: 186966304}
   enemyGraveyard: {fileID: 2086349478}
   burnField: {fileID: 223974226}
@@ -6011,26 +6012,51 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &1494615210
-RectTransform:
+--- !u!4 &1494615210
+Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1494615209}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 110, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 228244106}
   m_Father: {fileID: 1453608135}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 110, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1499494663
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1499494664}
+  m_Layer: 5
+  m_Name: PlayerDeckPosRef
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1499494664
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1499494663}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 33.878986, y: -10.292995, z: 90}
+  m_LocalScale: {x: 0.3079908, y: 0.3079908, z: 0.1026636}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1504913254
 GameObject:
   m_ObjectHideFlags: 0
@@ -6323,6 +6349,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1551666271}
   m_CullTransparentMesh: 1
+--- !u!1 &1562604638
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1562604639}
+  m_Layer: 5
+  m_Name: 'EnemyDeckPosRef '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1562604639
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562604638}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 33.878986, y: 11.26636, z: 90}
+  m_LocalScale: {x: 0.3079908, y: 0.3079908, z: 0.1026636}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1581963114
 GameObject:
   m_ObjectHideFlags: 0

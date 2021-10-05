@@ -7,7 +7,7 @@ public class Effect : MonoBehaviour
 {
     protected MyPlayer player;
     public MyPlayer Player { get => player; set => player = value; }
-    void Awake()
+    void Start()
     {
         player = transform.parent.gameObject.GetComponent<MyPlayer>();
     }

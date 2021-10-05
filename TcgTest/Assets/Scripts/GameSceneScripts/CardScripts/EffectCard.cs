@@ -5,12 +5,11 @@ using Photon.Pun;
 using UnityEngine.Events;
 public class EffectCard : Card,IPunObservable
 {
-    public int CardStatsIndex { get => 0; set => photonView.RPC(nameof(RPC_UpdateStats), RpcTarget.All, value); }
     private void Start()
     {
         try
         { 
-            Layout = cardObj.gameObject.GetComponent<EffectCard_Layout>();
+            Layout = GetComponent<EffectCard_Layout>();
             gameManager = Game_Manager.Instance;
         }
         catch 
@@ -22,22 +21,6 @@ public class EffectCard : Card,IPunObservable
 
         player.Subscribe(this);
         Type = CardType.Effect;
-    }
-    private void OnValidate()
-    {
-        if (cardStats == null) return;
-        DrawValues();
-    }
-    public void DrawValues()
-    {
-        Layout = cardObj.GetComponent<EffectCard_Layout>();
-        ((EffectCard_Layout)Layout).NameTextUI.text = cardStats.CardName.ToString();
-        ((EffectCard_Layout)Layout).PlayCostTextUI.text = cardStats.PlayCost.ToString();
-    }
-    [PunRPC]
-    public void RPC_UpdateStats(int index)
-    {
-        base.CardStats = player.StartingDeck[index].gameObject.GetComponent<EffectCardStats>();
     }
     private void OnMouseDown()
     {
@@ -77,6 +60,7 @@ public class EffectCard : Card,IPunObservable
                 transform.position += direction.normalized * Time.fixedDeltaTime * 25;
                 if (direction.magnitude < 0.3f) break;
             }
+            ClearEvents();
         }
         else transform.position = mouseDownPos;
     }

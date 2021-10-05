@@ -7,7 +7,6 @@ using Photon.Pun;
 
 public abstract class Card : MonoBehaviourPunCallbacks
 {
-    [SerializeField] protected GameObject cardObj;
     protected CardLayout layout;
     public CardLayout Layout { get => layout; set => layout = value; }
     public CardType Type { get; protected set; }
@@ -46,6 +45,8 @@ public abstract class Card : MonoBehaviourPunCallbacks
             player = gameManager.Enemy;
         }
         prevPos = transform.position;
+        transform.position = player.DeckField.transform.position;
+        transform.parent = player.transform;
     }
     protected void Update()
     {
@@ -71,7 +72,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_RotateToFront), RpcTarget.All);
     }
     [PunRPC]
-    public void RPC_RotateToFront(NetworkTarget target)
+    public void RPC_RotateToFront()
     {
         Local_RotateToFront();
     }
@@ -86,7 +87,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_RotateToBack), RpcTarget.All);
     }
     [PunRPC]
-    public void RPC_RotateToBack(NetworkTarget target)
+    public void RPC_RotateToBack()
     {
         Local_RotateToBack();
     }
@@ -215,14 +216,14 @@ public abstract class Card : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RPC_AddToDeck()
     {
-        if (photonView.IsMine) player.Deck.Add(this);
-        else gameManager.Enemy.Deck.Add(this);
+        if (photonView.IsMine) player.DeckList.Add(this);
+        else gameManager.Enemy.DeckList.Add(this);
     }
     [PunRPC]
     public void RPC_RemoveFromDeck()
     {
-        if (photonView.IsMine) player.Deck.Remove(this);
-        else gameManager.Enemy.Deck.Remove(this);
+        if (photonView.IsMine) player.DeckList.Remove(this);
+        else gameManager.Enemy.DeckList.Remove(this);
     }
     [PunRPC]
     public void RPC_AddToGraveyard()
@@ -317,7 +318,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
             if (player.Field.Contains((MonsterCard)this)) photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
 
         if (player.Hand.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
-        if (player.Deck.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
+        if (player.DeckList.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
         if (player.Graveyard.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromGraveyard), RpcTarget.All);
     }
     [PunRPC]
