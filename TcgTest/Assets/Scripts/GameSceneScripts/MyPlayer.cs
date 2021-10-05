@@ -77,13 +77,14 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
-    }
-
-	private void Start()
-	{
 		deck = Deck.Instance;
 		deck.Load();
 		if (photonView.IsMine) SpawnDeck();
+	}
+
+	private void Start()
+	{
+		
 	}
 
 	public void SpawnDeck()

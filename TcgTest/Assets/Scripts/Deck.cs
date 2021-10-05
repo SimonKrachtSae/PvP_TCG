@@ -16,6 +16,7 @@ public class Deck: MonoBehaviour
     {
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
+		cardNames = new List<CardName>();
     }
     public void Save()
     {
@@ -23,7 +24,6 @@ public class Deck: MonoBehaviour
         string path = Application.persistentDataPath + "/Deck.fun";
         FileStream stream = new FileStream(path, FileMode.Create);
         DeckData data = new DeckData(cardNames);
-		data.CardNames = cardNames;
         formatter.Serialize(stream, data);
         stream.Close();
     }
@@ -57,7 +57,6 @@ public class Deck: MonoBehaviour
 		if (deckData == null)
 		{
 			deckData = new DeckData(cardNames);
-			deckData.CardNames = new List<CardName>();
 		}
 
 		CardName cardName = GetCardName(s);
