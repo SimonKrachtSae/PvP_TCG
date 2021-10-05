@@ -7,11 +7,15 @@ public abstract class CardStats : MonoBehaviour
     public int Index { get; set; }
 
     [SerializeField]
-    private string cardName;
+    protected string cardName;
     public string CardName { get => cardName; set => cardName = value; }
 
     [SerializeField]
-    private int playCost;
+    protected int playCost;
     public int PlayCost { get => playCost; set => playCost = value; }
+
+    [SerializeField]
+    protected string effectText;
+    public string EffectText { get => effectText; set => effectText = value; }
 }
 

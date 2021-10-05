@@ -99,6 +99,7 @@ public enum CardName
 {
   Cheese,
   Tomato,
-  Testeffect1,
-  Testeffect2
+  Recall,
+  Discard,
+  Destroy
 }

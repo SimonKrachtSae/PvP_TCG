@@ -149,7 +149,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'While this card is on the field: All of your monsters => Attack + 2'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -451,6 +451,7 @@ GameObject:
   - component: {fileID: 6088869572485312536}
   - component: {fileID: 4866875857951301557}
   - component: {fileID: 2415007298052195429}
+  - component: {fileID: 4334390189096286315}
   m_Layer: 0
   m_Name: Cheese
   m_TagString: Untagged
@@ -487,7 +488,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece551630b83c964f9877df0c280539c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardObj: {fileID: 5911625940153554774}
   cardStats: {fileID: 1643234160193158732}
   IsMoving: 0
   border: {fileID: 221630056263532930}
@@ -589,6 +589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardName: Cheese
   playCost: 1
+  effectText: 
   attack: 10
   defense: 5
   effect: {fileID: 6088869572485312536}
@@ -639,6 +640,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   duelistType: 0
   amount: -2
+--- !u!114 &4334390189096286315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3236164532664745201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f540859ea0d2d2a45a87b85961c14b24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nameTextUI: {fileID: 6772380575484651933}
+  effectTextUI: {fileID: 5225203639891757630}
+  playCostTextUI: {fileID: 1198590653628188359}
+  attackTextUI: {fileID: 3552309330528927983}
+  defenseTextUI: {fileID: 556873721084518649}
 --- !u!1 &3840553871008777357
 GameObject:
   m_ObjectHideFlags: 0
@@ -999,7 +1017,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6261377352609287881}
   - component: {fileID: 3060990340577844353}
-  - component: {fileID: 1024214472575948721}
   - component: {fileID: 3939202041790170092}
   m_Layer: 5
   m_Name: MonsterCardLayout
@@ -1036,23 +1053,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5911625940153554774}
   m_CullTransparentMesh: 1
---- !u!114 &1024214472575948721
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5911625940153554774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f540859ea0d2d2a45a87b85961c14b24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nameTextUI: {fileID: 6772380575484651933}
-  effectTextUI: {fileID: 5225203639891757630}
-  playCostTextUI: {fileID: 1198590653628188359}
-  attackTextUI: {fileID: 3552309330528927983}
-  defenseTextUI: {fileID: 556873721084518649}
 --- !u!223 &3939202041790170092
 Canvas:
   m_ObjectHideFlags: 0

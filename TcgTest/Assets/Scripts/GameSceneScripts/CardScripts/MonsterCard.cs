@@ -7,7 +7,6 @@ using UnityEngine.Events;
 using TMPro;
 public class MonsterCard : Card, IPunObservable
 {
-    public int CardStatsIndex { get => 0; set => photonView.RPC(nameof(RPC_UpdateStats), RpcTarget.All, value); }
     private Card attackTarget;
     public bool HasAttacked { get; set; }
     public bool HasBlocked { get; set; }
@@ -16,7 +15,7 @@ public class MonsterCard : Card, IPunObservable
     {
         try
         {
-            Layout = cardObj.gameObject.GetComponent<MonsterCard_Layout>();
+            Layout = GetComponent<MonsterCard_Layout>();
             gameManager = Game_Manager.Instance;
         }
         catch
@@ -27,24 +26,6 @@ public class MonsterCard : Card, IPunObservable
         
         player.Subscribe(this);
         Type = CardType.Monster;
-    }
-    private void OnValidate()
-    {
-        if (cardStats == null) return;
-       // DrawValues();
-    }
-    [PunRPC]
-    public void RPC_UpdateStats(int index)
-    {
-        base.CardStats = player.StartingDeck[index].gameObject.GetComponent<MonsterCardStats>();
-    }
-    public void DrawValues()
-    {
-        Layout = cardObj.GetComponent<MonsterCard_Layout>();
-        ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)cardStats).Attack.ToString();
-        ((MonsterCard_Layout)Layout).NameTextUI.text = ((MonsterCardStats)cardStats).CardName.ToString();
-        ((MonsterCard_Layout)Layout).PlayCostTextUI.text = ((MonsterCardStats)cardStats).PlayCost.ToString();
-        ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)cardStats).Defense.ToString();
     }
 
     private void OnMouseDown()
@@ -121,7 +102,7 @@ public class MonsterCard : Card, IPunObservable
             {
                 Call_SendToGraveyard();
             }
-            HasAttacked = true;
+            ClearEvents();
         }
         else if (l.GetPosition(1) == Board.Instance.EnemyHandParent.transform.position)
         {
@@ -138,7 +119,7 @@ public class MonsterCard : Card, IPunObservable
                 gameManager.AttackingMonster = this;
                 gameManager.Enemy.ShowBlockRequest();
             }
-            HasAttacked = true;
+            ClearEvents();
         }
         Destroy(l);
         l = null;
@@ -211,9 +192,9 @@ public class MonsterCard : Card, IPunObservable
         if (photonView.IsMine) player.Field.Add(this);
         else gameManager.Enemy.Field.Add(this);
         ((MonsterCardStats)CardStats).Attack += player.AttackBoost;
-        ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)CardStats).Attack.ToString();
+        ((MonsterCard_Layout)layout).AttackTextUI.text = ((MonsterCardStats)CardStats).Attack.ToString();
         ((MonsterCardStats)CardStats).Defense += player.DefenseBoost;
-        ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)CardStats).Defense.ToString();
+        ((MonsterCard_Layout)layout).DefenseTextUI.text = ((MonsterCardStats)CardStats).Defense.ToString();
     }
     public void Assign_BurnEvents(NetworkTarget networkTarget)
     {

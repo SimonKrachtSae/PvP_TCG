@@ -21,7 +21,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 
     [SerializeField] private GameObject BoardCanvas;
     [SerializeField] private CardInfo cardInfo;
+    [SerializeField] private GameObject attackButton;
+    public GameObject AttackButton { get => attackButton; set => attackButton = value; }
+    
     public CardInfo CardInfo { get => cardInfo; }
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -55,10 +59,9 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
             case GameState.GameOver:
                 GameOverCanvas.SetActive(true);
-                if (Game_Manager.Instance.Player.Deck.Count == 1) winText.text = "You Win!!!";
+                if (Game_Manager.Instance.Player.DeckList.Count == 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
-                foreach (GameObject gameObject in Game_Manager.Instance.Player.StartingDeck) Destroy(gameObject);
-                foreach (GameObject gameObject in Game_Manager.Instance.Enemy.StartingDeck) Destroy(gameObject);
+                foreach (GameObject gameObject in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<GameObject>()) PhotonNetwork.Destroy(gameObject);
                 break;
         }
     }
@@ -89,8 +92,17 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void EndTurn()
     {
+        int amount = Game_Manager.Instance.Player.Hand.Count;
+        if (amount > 7)
+        {
+            Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 5, NetworkTarget.Local);
+            return;
+        }
         if (Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
             { Debug.Log(Game_Manager.Instance.State.ToString()); return; }
+
+        AttackButton.SetActive(false);
+
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;

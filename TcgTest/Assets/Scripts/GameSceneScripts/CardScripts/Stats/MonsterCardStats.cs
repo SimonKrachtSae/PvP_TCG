@@ -27,10 +27,17 @@ public class MonsterCardStats : CardStats
     }
     private void OnValidate()
     {
-        if (attack > 10) attack = 10;
-        else if (attack < 0) attack = 0;
-        if (defense > 10) defense = 10;
-        else if (defense < 0) defense = 0;
+         MonsterCard_Layout layout = GetComponent<MonsterCard_Layout>(); 
+        if(layout ==null)
+        {
+            Debug.Log("Missing Card Layout!");
+            return;
+        }
+        layout.AttackTextUI.text = attack.ToString();
+        layout.DefenseTextUI.text = defense.ToString();
+        layout.PlayCostTextUI.text = playCost.ToString();
+        layout.EffectTextUI.text = effectText.ToString();
+        layout.NameTextUI.text = cardName.ToString();
     }
     public void SetValuesToDefault()
     {

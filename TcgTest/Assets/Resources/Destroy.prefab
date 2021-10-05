@@ -97,9 +97,10 @@ GameObject:
   - component: {fileID: 3805466434214479529}
   - component: {fileID: 2684722469389334633}
   - component: {fileID: 2240645870573279155}
-  - component: {fileID: 482858559756155525}
+  - component: {fileID: 4828282084330699609}
+  - component: {fileID: 1535355696992616653}
   m_Layer: 0
-  m_Name: EffectCard
+  m_Name: Destroy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -134,7 +135,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66bf2a6d69e348f47b3ece9409ef29f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardObj: {fileID: 2931643549446475996}
   cardStats: {fileID: 2684722469389334633}
   IsMoving: 0
   border: {fileID: 8049233415944077032}
@@ -233,8 +233,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88edcd61078f2174fb851aa65cafdff0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardName: Magic
+  cardName: Destroy
   playCost: 1
+  effectText: Destroy 1 monster from your opponents field
   effect: {fileID: 2240645870573279155}
 --- !u!114 &2240645870573279155
 MonoBehaviour:
@@ -249,8 +250,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   effects:
-  - {fileID: 482858559756155525}
---- !u!114 &482858559756155525
+  - {fileID: 4828282084330699609}
+--- !u!114 &4828282084330699609
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -259,11 +260,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 215799430163418396}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b93bb50c13bfecb4bbbaeb35dfa7d446, type: 3}
+  m_Script: {fileID: 11500000, guid: a569d97f5d13f3c4398bca6c31e0f728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duelistType: 0
+  target: 1
+  selector: 0
   amount: 1
+--- !u!114 &1535355696992616653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 215799430163418396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 544ad0b8108b1f04e947fa0819f1d590, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nameTextUI: {fileID: 2931643550317777865}
+  effectTextUI: {fileID: 2931643550314520332}
+  playCostTextUI: {fileID: 2931643550964410070}
 --- !u!1 &2931643549446475996
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,7 +291,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2931643549446475997}
   - component: {fileID: 2931643549446475986}
-  - component: {fileID: 6806175279333638253}
   - component: {fileID: 212204300239989179}
   m_Layer: 5
   m_Name: EffectCardLayout
@@ -311,21 +327,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2931643549446475996}
   m_CullTransparentMesh: 1
---- !u!114 &6806175279333638253
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2931643549446475996}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 544ad0b8108b1f04e947fa0819f1d590, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nameTextUI: {fileID: 2931643550317777865}
-  effectTextUI: {fileID: 2931643550314520332}
-  playCostTextUI: {fileID: 2931643550964410070}
 --- !u!223 &212204300239989179
 Canvas:
   m_ObjectHideFlags: 0
@@ -450,7 +451,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Draw 1 Card
+  m_text: Destroy 1 monster from your opponents field
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -584,7 +585,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Magic
+  m_text: Destroy
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

@@ -4,16 +4,16 @@ using UnityEngine;
 using Photon.Pun;
 public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 {
-    [SerializeField] private List<GameObject> startingDeck;
-    public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
-    private List<Card> deck;
-    public List<Card> Deck
+    //[SerializeField] private List<GameObject> startingDeck;
+    //public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
+    private List<Card> deckList;
+    public List<Card> DeckList
     {
-        get => deck;
+        get => deckList;
         set
         {
-            deck = value;
-            if (deck.Count == 1 && gameManager.Turn > 1)
+            deckList = value;
+            if (deckList.Count == 1 && gameManager.Turn > 1)
             {
                 photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
             }
@@ -51,10 +51,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     private int recallCounter = 0;
     private MonsterCardLocation recallArea;
     [SerializeField] private List<CardName> CardNameList;
+    private Deck deck;
+    public Deck Deck { get => deck; set => deck = value; }
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
-
+        Deck = Deck.Instance;
         if (photonView.IsMine)
         {
             gameManager.Player = this;
@@ -71,37 +73,35 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-        Deck = new List<Card>();
+        deck.Save();
+        DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
-        //SpawnDeck();
+        deck.Load();
+        if(photonView.IsMine) SpawnDeck();
     }
     public void SpawnDeck()
     {
-      foreach (CardName cardName in CardNameList)
-      {
-        GameObject card = PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position,Quaternion.identity);
-        
-        card.transform.parent = this.transform;
-        
-        card.GetComponent<Card>().enabled = true;
-      }
+        foreach (CardName cardName in deck.DeckData.CardNames)
+        {
+            PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position, new Quaternion(0,0.5f,0,0));
+        }
     }
     public void DrawCard(int index)
     {
-        if (deck.Count == 1 && gameManager.Turn > 1)
+        if (deckList.Count == 1 && gameManager.Turn > 1)
         {
             photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
             return;
         }
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_DrawCard), RpcTarget.Others);
-        else Deck[index].Local_DrawCard();
+        else DeckList[index].Local_DrawCard();
     }
     [PunRPC]
     public void RPC_DrawCard(int index)
     {
-        Deck[index].Local_DrawCard();
+        DeckList[index].Local_DrawCard();
     }
     public void RedrawHandCards()
     {
@@ -115,9 +115,9 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void Subscribe(Card card)
     {
-        Deck.Add(card);
+        DeckList.Add(card);
         card.Location = CardLocation.Deck;
-        card.gameObject.transform.position = DeckField.transform.position;
+       // card.gameObject.transform.localPosition = new Vector3(DeckField.transform.position.x, DeckField.transform.position.y, 0);
     }
     [PunRPC]
     public void RPC_UpdateMana(int value)
@@ -179,25 +179,34 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
-        if (Field.Count < 1)
-        {
-            Board.Instance.PlayerInfoText.text = "No Card To Send To Graveyard";
-            return;
-        }
         recallCounter = amount;
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
+        {
+            if (Field.Count < 1)
+            {
+                Board.Instance.PlayerInfoText.text = "No Card To Send To Deck";
+                return;
+            }
             foreach (MonsterCard c in Field) 
             { 
                 c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
                 recallArea = MonsterCardLocation.OnField;
             }
+        }
         else if (targetLocation == MonsterCardLocation.InHand)
+        {
+            if (Hand.Count < 1)
+            {
+                Board.Instance.PlayerInfoText.text = "No Card To Send To Deck";
+                return;
+            }
             foreach (Card c in Hand) 
             {
                 c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
                 recallArea = MonsterCardLocation.InHand;
             }
+        }
     }
     public void OnRecall()
     {
@@ -216,7 +225,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
  
     public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
-        if (selector == NetworkTarget.Local) { DestroyCounter = amount; StartCoroutine(AddDiscardEffects()); }
+        if (selector == NetworkTarget.Local) { DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
         else if (selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDiscardEffects), RpcTarget.Others, amount); }
     }
     [PunRPC]
@@ -289,7 +298,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
                     foreach (MonsterCard c in Field) c.ClearEvents();
                     break;
                 case MonsterCardLocation.InDeck:
-                    foreach (Card c in Deck) c.ClearEvents();
+                    foreach (Card c in DeckList) c.ClearEvents();
                     break;
                 case MonsterCardLocation.InGraveyard:
                     foreach (Card c in Graveyard) c.ClearEvents();

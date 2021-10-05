@@ -3,15 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Photon.Pun;
+
+// Game_Manager: Manages players and assigns cardevents
 public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static Game_Manager Instance;
-    public MyPlayer Player { get; set; }
-    public MyPlayer Enemy { get; set; }
     private int round = 0;
     private int turn = 1;
-    public int Turn { get => turn; }
     public int Round { get => round; set => photonView.RPC(nameof(RPC_UpdateRound), RpcTarget.All, value); }
+    public int Turn { get => turn; }
+    private Card blockingMonster;
+    /// <summary> BlockingMonsterIndex
+    /// <see cref="BlockingMonsterIndex"/>
+    /// </summary>
+    /// <remarks>
+    /// Used by other client to set or to not set a blocking monster.
+    /// <see cref="RPC_UpdateBlockingMonsterIndex"/>
+    /// </remarks>
+    public int BlockingMonsterIndex 
+    { 
+        get => 0; 
+        set => photonView.RPC(nameof(RPC_UpdateBlockingMonsterIndex), RpcTarget.Others, value);
+    }
+    public MyPlayer Player { get; set; }
+    public MyPlayer Enemy { get; set; }
     private DuelistType currentDuelist;
     public DuelistType CurrentDuelist 
     {
@@ -26,12 +41,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     private GameManagerStates state;
     public GameManagerStates State  { get => state; }
     public GameManagerStates PrevState { get; set; }
-    private Card blockingMonster;
-    public int BlockingMonsterIndex 
-    { 
-        get => 0; 
-        set => photonView.RPC(nameof(RPC_UpdateBlockingMonsterIndex), RpcTarget.Others, value);
-    }
     public Card AttackingMonster { get; set; }
     private void Awake()
     {
@@ -42,6 +51,12 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
     }
+    /// <summary> 
+    /// <see cref="StartGame"/>
+    /// </summary>
+    /// <remarks>
+    /// Sets starting player
+    /// </remarks>
     public void StartGame()
     {
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
@@ -53,6 +68,12 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         }
         StartCoroutine(DrawHandCards());
     }
+    /// <summary> 
+    /// <see cref="DrawHandCards"/>
+    /// </summary>
+    /// <remarks>
+    /// Draw starting cards in time intervalls
+    /// </remarks>
     private IEnumerator DrawHandCards()
     {
         for(int i = 0; i < 5; i++)
@@ -61,6 +82,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
             yield return new WaitForSecondsRealtime(1);
         }
     }
+    /// <summary> 
+    /// <see cref="RPC_UpdateCurrentDuelist"/>
+    /// </summary>
+    /// <param name="type"> Enum describes duelist type </param>
+    /// <remarks>
+    /// Draw starting cards in time intervalls
+    /// </remarks>
     [PunRPC]
     public void RPC_UpdateCurrentDuelist(DuelistType type)
     {
@@ -68,6 +96,10 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         else if (type == DuelistType.Enemy) currentDuelist = DuelistType.Player;
 
     }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="value"></param>
     [PunRPC]
     public void RPC_UpdateRound(int value)
     {
@@ -129,7 +161,11 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         else if (networkTarget == NetworkTarget.All) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
 
     }
-
+    /// <summary>
+    /// Asdf
+    /// <see cref="Call_SetMainPhaseState"> This is where this gets called usually</see>
+    /// </summary>
+    /// <param name="value"></param>
     [PunRPC]
     public void RPC_SetMainPhaseState(GameManagerStates value)
     {
@@ -139,9 +175,15 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     {
         PrevState = state;
         state = value;
-        switch(state)
+        Board.Instance.PlayerInfoText.text = value.ToString();
+        if(state!= GameManagerStates.StartPhase) GameUIManager.Instance.AttackButton.SetActive(false);
+        else GameUIManager.Instance.AttackButton.SetActive(true);
+        if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
+        else GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+        switch (state)
         {
             case GameManagerStates.StartPhase:
+                GameUIManager.Instance.AttackButton.SetActive(true);
                 foreach (Card c in Player.Hand)
                 {
                     c.ClearEvents();
@@ -155,6 +197,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
                 }
                 break;
             case GameManagerStates.AttackPhase:
+                GameUIManager.Instance.AttackButton.SetActive(false);
                 foreach (Card c in Player.Hand) c.ClearEvents();
                 foreach (MonsterCard c in Player.Field)
                 {
@@ -179,6 +222,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
         }
     }
+
     public void Call_SetMainPhaseStateToPrevious(NetworkTarget networkTarget)
     {
         if (networkTarget == NetworkTarget.Local) SetMainPhaseStateToPrevious();

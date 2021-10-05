@@ -132,7 +132,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7065995615449672108}
   - component: {fileID: 7065995615449672099}
-  - component: {fileID: 4185717032535604693}
   - component: {fileID: 6637684156858888377}
   m_Layer: 5
   m_Name: MonsterCardLayout
@@ -169,23 +168,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7065995615449672109}
   m_CullTransparentMesh: 1
---- !u!114 &4185717032535604693
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7065995615449672109}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f540859ea0d2d2a45a87b85961c14b24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nameTextUI: {fileID: 7065995616455453368}
-  effectTextUI: {fileID: 7065995616450848381}
-  playCostTextUI: {fileID: 7065995615809216423}
-  attackTextUI: {fileID: 7065995615667715969}
-  defenseTextUI: {fileID: 7065995616315248580}
 --- !u!223 &6637684156858888377
 Canvas:
   m_ObjectHideFlags: 0
@@ -674,7 +656,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'While this Card is on the Field: SummonPower +2'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1058,6 +1040,7 @@ GameObject:
   - component: {fileID: 5497562137710980484}
   - component: {fileID: 8990775859445571193}
   - component: {fileID: 8575842117332852011}
+  - component: {fileID: 9012126875984645186}
   m_Layer: 0
   m_Name: Tomato
   m_TagString: Untagged
@@ -1094,7 +1077,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece551630b83c964f9877df0c280539c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardObj: {fileID: 7065995615449672109}
   cardStats: {fileID: 6490949842211856397}
   IsMoving: 0
   border: {fileID: 2428824218191151890}
@@ -1196,6 +1178,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardName: Tomato
   playCost: 1
+  effectText: 
   attack: 5
   defense: 3
   effect: {fileID: 5497562137710980484}
@@ -1246,6 +1229,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetDuelist: 0
   amount: -2
+--- !u!114 &9012126875984645186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8938228953342226537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f540859ea0d2d2a45a87b85961c14b24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nameTextUI: {fileID: 7065995616455453368}
+  effectTextUI: {fileID: 7065995616450848381}
+  playCostTextUI: {fileID: 7065995615809216423}
+  attackTextUI: {fileID: 7065995615667715969}
+  defenseTextUI: {fileID: 7065995616315248580}
 --- !u!1 &9018847324542569971
 GameObject:
   m_ObjectHideFlags: 0
