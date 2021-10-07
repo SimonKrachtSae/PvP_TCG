@@ -17,15 +17,20 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 	private GameObject previousParent;
 	private GameObject deckbuilderPanel;
 
-	private void Start()
-	{
-		Deck.Instance.Subscribe(this.gameObject.name);
+    private void Start()
+    {
 		deckbuilderPanel = NetworkUIManager.Instance.deckBuilderUI;
+		collectionScrollField = DeckbuilderUI.Instance.collectionScroll.gameObject.transform as RectTransform;
+		deckScrollField = DeckbuilderUI.Instance.deckScroll.gameObject.transform as RectTransform;
+    }
+    public void StartCard()
+	{
+		Deck.Instance.Subscribe(this.gameObject);
 	}
 
 	private void OnDestroy()
 	{
-		Deck.Instance.Unsubscribe(this.gameObject.name);
+		Deck.Instance.Unsubscribe(this.gameObject);
 	}
 
 	public void OnBeginDrag(PointerEventData eventData)
@@ -45,21 +50,14 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 	public void DuplicateCard()
 	{
 		GameObject collectionCard = Instantiate(gameObject);
+		collectionCard.name = this.name;
 		collectionCard.transform.SetParent(collectionScrollField.GetChild(0));
 		collectionCard.transform.localScale = Vector3.one;
+		collectionCard.GetComponent<CardDragHandler>().StartCard();
 		inDeck = true;
 		collectionViewForm.SetActive(false);
 		deckViewForm.SetActive(true);
-		transform.SetParent(deckScrollField.GetChild(0));
-	}
-
-	public void AssignToDeck()
-	{
-		transform.SetParent(collectionScrollField.GetChild(0));
-		transform.localScale = Vector3.one;
-		inDeck = true;
-		collectionViewForm.SetActive(false);
-		deckViewForm.SetActive(true);
+		deckViewForm.GetComponentInChildren<UnityEngine.UI.Text>().text = name;
 		transform.SetParent(deckScrollField.GetChild(0));
 	}
 
@@ -69,7 +67,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 		if (!inDeck)
 		{
 			deckScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().deckScroll.transform as RectTransform;
-			collectionScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().collectionScroll.transform as RectTransform;
 
 			if (RectTransformUtility.RectangleContainsScreenPoint(deckScrollField, Input.mousePosition))
 			{

@@ -5,16 +5,23 @@ using UnityEngine.UI;
 
 public class DeckbuilderUI : MonoBehaviour
 {
+	public static DeckbuilderUI Instance;
     [SerializeField] private GameObject lobbyUI;
     [SerializeField] private GameObject detailedCardViewPanel;
 
     public GameObject deckScroll;
     public GameObject collectionScroll;
-
+	private void Awake()
+	{
+		if (Instance != null) Destroy(this.gameObject);
+		else { Instance = this; }
+	}
 	public void BackToLobbyUI()
 	{
 		lobbyUI.SetActive(true);
 		this.gameObject.SetActive(false);
+		Deck.Instance.Save();
+
 	}
 
 	public void BackToDeckBuilderUI()
