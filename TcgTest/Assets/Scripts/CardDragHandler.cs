@@ -49,16 +49,16 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 
 	public void DuplicateCard()
 	{
-		GameObject collectionCard = Instantiate(gameObject);
-		collectionCard.name = this.name;
-		collectionCard.transform.SetParent(collectionScrollField.GetChild(0));
-		collectionCard.transform.localScale = Vector3.one;
-		collectionCard.GetComponent<CardDragHandler>().StartCard();
-		inDeck = true;
-		collectionViewForm.SetActive(false);
-		deckViewForm.SetActive(true);
-		deckViewForm.GetComponentInChildren<UnityEngine.UI.Text>().text = name;
-		transform.SetParent(deckScrollField.GetChild(0));
+		GameObject deckCard = Instantiate(gameObject);
+		deckCard.name = this.name;
+		deckCard.transform.SetParent(deckScrollField.GetChild(0));
+		deckCard.transform.localScale = Vector3.one;
+		deckCard.GetComponent<CardDragHandler>().StartCard();
+		deckCard.GetComponent<CardDragHandler>().inDeck = true;
+		deckCard.GetComponent<CardDragHandler>().collectionViewForm.SetActive(false);
+		deckCard.GetComponent<CardDragHandler>().deckViewForm.SetActive(true);
+		deckCard.GetComponent<CardDragHandler>().deckViewForm.GetComponentInChildren<UnityEngine.UI.Text>().text = name;
+		transform.SetParent(collectionScrollField.GetChild(0));
 	}
 
 	public void OnEndDrag(PointerEventData eventData)
