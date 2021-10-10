@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Photon.Pun;
-
 public abstract class Card : MonoBehaviourPunCallbacks
 {
     protected CardLayout layout;
@@ -15,8 +14,8 @@ public abstract class Card : MonoBehaviourPunCallbacks
 
     public CardLocation Location { get; set; }
 
-    [SerializeField]protected CardStats cardStats;
-    public CardStats CardStats { get => cardStats; set => cardStats = value; }
+    [SerializeField]protected CardStat cardStats;
+    public CardStat CardStats { get => cardStats; set => cardStats = value; }
     protected Game_Manager gameManager;
     protected RectTransform targetTransform;
     private Vector3 thisTransform { get => new Vector3(transform.position.x, transform.position.y, transform.position.z); }
@@ -29,8 +28,12 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public UnityAction OnMouseDragEvent { get; set; }
     public UnityAction OnMouseUpEvent { get; set; }
     public Vector3 Target { get; set; }
+
     protected Vector3 mousePos;
-    [SerializeField] protected SpriteRenderer border;
+    [SerializeField] protected Image border;
+
+    [SerializeField] protected ParticleBomb particleBomb;
+    public ParticleBomb ParticleBomb { get => particleBomb; set => particleBomb = value; }
     protected void Awake()
     {
         gameManager = Game_Manager.Instance;
@@ -43,6 +46,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         {
             DuelistType = DuelistType.Enemy;
             player = gameManager.Enemy;
+            transform.rotation = new Quaternion(0.5f, 0, 0, 0);
         }
         prevPos = transform.position;
         transform.position = player.DeckField.transform.position;
@@ -56,6 +60,18 @@ public abstract class Card : MonoBehaviourPunCallbacks
             photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
         }
         prevPos = transform.position;
+    }
+    public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
+    {
+        if (target == NetworkTarget.Local) particleBomb.Explode(s, color);
+        else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_ParticleBomb), RpcTarget.Others, s, new byte[3] { (byte)color.r, (byte)color.g, (byte)color.b });
+        else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_ParticleBomb), RpcTarget.All, s, new byte[3] { (byte)color.r, (byte)color.g, (byte)color.b });
+    }
+    [PunRPC]
+    public void RPC_ParticleBomb(string s, byte[] colorVals)
+    {
+        Color color = new Color(colorVals[0], colorVals[1], colorVals[2]);
+        particleBomb.Explode(s, color);
     }
     public void Local_DrawCard()
     {
@@ -295,8 +311,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToGraveyard), RpcTarget.Others);
         else
         {
-            Target = player.GraveyardObj.transform.position;
-            StartCoroutine(TranslateCard());
+            MoveTowardsTarget(player.GraveyardObj.transform.position);
         }
     }
     [PunRPC]
@@ -305,7 +320,8 @@ public abstract class Card : MonoBehaviourPunCallbacks
         if (this.GetType().ToString() == nameof(MonsterCard).ToString())
             if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         MoveTowardsTarget(player.GraveyardObj.transform.position);
-        StartCoroutine(TranslateCard());
+        ClearEvents();
+        Local_RemoveFromCurrentLists();
     }
     [PunRPC]
     public void RPC_SetValuesToDefault()

@@ -50,6 +50,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     public void Start()
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
+
     }
     /// <summary> 
     /// <see cref="StartGame"/>
@@ -120,17 +121,23 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnDirectAttackSucceeds?.Invoke();
             Player.DrawCard(0);
+            AttackingMonster.ClearEvents();
             return;
         }
         blockingMonster = Enemy.Field[index];
         if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnAttack?.Invoke();
         if (((MonsterCardStats)blockingMonster.CardStats).Effect != null) ((MonsterCardStats)blockingMonster.CardStats).Effect.OnBlock?.Invoke();
-        if (((MonsterCardStats)blockingMonster.CardStats).Defense < ((MonsterCardStats)AttackingMonster.CardStats).Attack)
+        int value =((MonsterCardStats)AttackingMonster.CardStats).Attack - ((MonsterCardStats)blockingMonster.CardStats).Defense;
+        if (value > 0)
         {
+            blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
+            AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             blockingMonster.Call_SendToGraveyard();
         }
-        else if (((MonsterCardStats)blockingMonster.CardStats).Defense > ((MonsterCardStats)AttackingMonster.CardStats).Attack)
+        else if (value < 0)
         {
+            blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
+            AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             AttackingMonster.Call_SendToGraveyard();
         }
         Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
@@ -142,7 +149,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         CurrentDuelist = DuelistType.Player;
         Player.Mana = turn + Player.ManaBoost;
-        Player.DrawCard(0);
+        if(!(round == 0 && turn == 1))Player.DrawCard(0);
         for(int i = 0; i < Player.Field.Count; i++)
         {
             Player.Field[i].HasAttacked = false;
@@ -159,7 +166,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         if (networkTarget == NetworkTarget.Local) SetMainPhaseState(value);
         else if (networkTarget == NetworkTarget.Other) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.Others, value);
         else if (networkTarget == NetworkTarget.All) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
-
     }
     /// <summary>
     /// Asdf
@@ -176,7 +182,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         PrevState = state;
         state = value;
         Board.Instance.PlayerInfoText.text = value.ToString();
-        if(state!= GameManagerStates.StartPhase) GameUIManager.Instance.AttackButton.SetActive(false);
+        if(state!= GameManagerStates.StartPhase && !(round == 0 && turn == 1)) GameUIManager.Instance.AttackButton.SetActive(false);
         else GameUIManager.Instance.AttackButton.SetActive(true);
         if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         else GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);

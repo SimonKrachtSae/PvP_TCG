@@ -107,6 +107,7 @@ MonoBehaviour:
   - RPC_RotateToFront
   - SetRotation
   - RPC_UpdateSwordIcon
+  - RPC_ParticleBomb
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

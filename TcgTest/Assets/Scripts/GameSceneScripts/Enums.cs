@@ -90,16 +90,23 @@ public enum GameManagerStates
 }
 public enum MonsterCardLocation
 {
-    InDeck,
+    Deck,
     OnField,
     InGraveyard,
     InHand
 }
 public enum CardName
 {
-  Cheese,
-  Tomato,
-  Recall,
-  Discard,
-  Destroy
+  Monster1,
+  Monster2,
+  Monster3,
+  Monster4,
+  Monster5,
+  Monster6,
+  Magic1,
+  Magic2,
+  Magic3,
+  Magic4,
+  Magic5,
+  Magic6,
 }

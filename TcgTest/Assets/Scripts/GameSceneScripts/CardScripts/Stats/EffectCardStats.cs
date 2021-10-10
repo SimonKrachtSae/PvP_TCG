@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EffectCardStats : CardStats
+public class EffectCardStats : CardStat
 {
     [SerializeField]
     private EffectCardEffect effect;

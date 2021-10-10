@@ -8,17 +8,7 @@ public class ParticleBomb : MonoBehaviour
     [SerializeField] private int amount;
     [SerializeField] private float maxVelocity;
     [SerializeField] private float minVelocity;
-    [SerializeField] private bool explode;
-    private void Start()
-    {
-        Explode();
-    }
-    private void Update()
-    {
-        if (explode) { Explode(); explode = false; }
-
-    }
-    public void Explode()
+    public void Explode(string s, Color color)
     {
         for (int i = 0; i < amount; i++)
         {
@@ -27,7 +17,7 @@ public class ParticleBomb : MonoBehaviour
             Vector3 direction = new Vector3((float)Random.Range(-1, 2), (float)Random.Range(-1, 2), 0);
             if (direction.x == 0 && direction.y == 0) direction = Vector3.up;
             direction.Normalize();
-            particleScript.Initiate("10", Color.red, direction * Random.Range(minVelocity,maxVelocity));
+            particleScript.Initiate(s, color, direction * Random.Range(minVelocity,maxVelocity));
         }
     }
 

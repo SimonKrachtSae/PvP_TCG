@@ -133,6 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 153954911}
   - component: {fileID: 153954910}
+  - component: {fileID: 153954912}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -152,7 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a6bbc0a476745d4285accc51f4913fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardNames: 00000000010000000200000003000000040000000000000000000000000000000000000000000000
+  cardNames: 0000000006000000010000000700000002000000080000000300000009000000040000000a000000050000000b000000000000000000000000000000
 --- !u!4 &153954911
 Transform:
   m_ObjectHideFlags: 0
@@ -167,6 +168,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &153954912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 153954909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88423da28061ee4fb67d581ed6d509c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  events: []
 --- !u!4 &1232031011 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}

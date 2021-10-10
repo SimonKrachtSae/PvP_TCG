@@ -85,6 +85,7 @@ public class MonsterCard : Card, IPunObservable
         l.endWidth = 1f;
         l.SetPositions(pos.ToArray());
         l.useWorldSpace = true;
+        l.sortingOrder = 4;
     }
     public void Event_Attack()
     {
@@ -94,12 +95,17 @@ public class MonsterCard : Card, IPunObservable
 
             if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
             if (((MonsterCardStats)attackTarget.CardStats).Effect != null) ((MonsterCardStats)attackTarget.CardStats).Effect.OnBlock?.Invoke();
-            if (((MonsterCardStats)attackTarget.CardStats).Defense < ((MonsterCardStats)cardStats).Attack)
+            int value = ((MonsterCardStats)cardStats).Attack - ((MonsterCardStats)attackTarget.CardStats).Defense;
+            if (value > 0)
             {
-                ((MonsterCard)attackTarget).Call_SendToGraveyard();
+                attackTarget.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
+                Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
+               ((MonsterCard)attackTarget).Call_SendToGraveyard();
             }
-            else if (((MonsterCardStats)attackTarget.CardStats).Defense > ((MonsterCardStats)cardStats).Attack)
+            else if (value < 0)
             {
+                Call_ParticleBomb(value.ToString(), Color.red, NetworkTarget.All);
+                attackTarget.Call_ParticleBomb(Mathf.Abs(value).ToString(), Color.green,NetworkTarget.All);
                 Call_SendToGraveyard();
             }
             ClearEvents();
@@ -140,7 +146,8 @@ public class MonsterCard : Card, IPunObservable
                     photonView.RPC(nameof(RPC_AddToField), RpcTarget.All);
                     player.RedrawHandCards();
                     player.Mana -= base.CardStats.PlayCost;
-                    photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0,0,0,0));
+                    if(photonView.IsMine)photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0,0,0,0));
+                    else if(!photonView.IsMine)photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0.5f,0,0,0));
                     if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnSummon?.Invoke();
                     Assign_BurnEvents(NetworkTarget.Local);
                     return;

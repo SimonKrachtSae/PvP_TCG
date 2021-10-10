@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using UnityEngine.SceneManagement;
 public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 {
     //[SerializeField] private List<GameObject> startingDeck;
@@ -38,10 +39,25 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     private int summonPowerBoost = 0;
     public int ManaBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value); }
     private int attackBoost = 0;
-    public int AttackBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); }
+    public int AttackBoost 
+    {
+        get => attackBoost;
+        set 
+        {
+            Call_ParticleBomb("AttackBoost: " + value, Color.blue, NetworkTarget.All);
+            photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); 
+        }
+    }
     private int defenseBoost = 0;
-    public int DefenseBoost { get => defenseBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
-
+    public int DefenseBoost
+    {
+        get => defenseBoost;
+        set
+        {
+            Call_ParticleBomb("DefenseBoost: " + value, Color.blue, NetworkTarget.All);
+            photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value);
+        }
+    }
     private int discardCounter = 0;
     public int DiscardCounter { get => discardCounter; set => discardCounter = value; }
 
@@ -53,6 +69,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] private List<CardName> CardNameList;
     private Deck deck;
     public Deck Deck { get => deck; set => deck = value; }
+    [SerializeField] private ParticleBomb particleBomb;
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
@@ -73,12 +90,14 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
+        deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
         deck.Load();
         if(photonView.IsMine) SpawnDeck();
+        
     }
     public void SpawnDeck()
     {
@@ -111,6 +130,18 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             Vector3 vector = Hand[i].transform.position;
             Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
         }
+    }
+    public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
+    {
+        if (target == NetworkTarget.Local) particleBomb.Explode(s, color);
+        else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_ParticleBomb), RpcTarget.Others, s, new byte[3] { (byte)color.r, (byte)color.g, (byte)color.b });
+        else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_ParticleBomb), RpcTarget.All, s, new byte[3] { (byte)color.r, (byte)color.g, (byte)color.b });
+    }
+    [PunRPC]
+    public void RPC_ParticleBomb(string s, byte[] colorVals)
+    {
+        Color color = new Color(colorVals[0], colorVals[1], colorVals[2]);
+        particleBomb.Explode(s, color);
     }
     public void Subscribe(Card card)
     {
@@ -296,7 +327,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
                 case MonsterCardLocation.OnField:
                     foreach (MonsterCard c in Field) c.ClearEvents();
                     break;
-                case MonsterCardLocation.InDeck:
+                case MonsterCardLocation.Deck:
                     foreach (Card c in DeckList) c.ClearEvents();
                     break;
                 case MonsterCardLocation.InGraveyard:

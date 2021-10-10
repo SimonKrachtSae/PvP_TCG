@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class CardStats : MonoBehaviour
+public abstract class CardStat : MonoBehaviour
 {
     public int Index { get; set; }
 
