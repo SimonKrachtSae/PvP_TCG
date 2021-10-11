@@ -52,9 +52,9 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         }
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
-            //StartGame();
+            StartGame();
             //Debug.Log("cheeeeseee");
-            photonView.RPC(nameof(RPC_SetNameText), RpcTarget.All, NameText.text);
+            //photonView.RPC(nameof(RPC_SetNameText), RpcTarget.All, NameText.text);
         }
     }
     [PunRPC]
