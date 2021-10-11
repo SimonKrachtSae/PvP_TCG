@@ -25,6 +25,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public GameObject AttackButton { get => attackButton; set => attackButton = value; }
     
     public CardInfo CardInfo { get => cardInfo; }
+    public TMP_Text NameText;
 
     private void Awake()
     {
@@ -34,14 +35,40 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     private void Start()
     {
         SetGameState(GameState.CoinFlip);
-        HeadsButton.onClick.AddListener(() => { OnHeadsClicked(); });
-        TailsButton.onClick.AddListener(() => { OnTailsClicked(); });
-        StartButton.onClick.AddListener(() => { StartGame(); });
         EndTurnButton.onClick.AddListener(() => { EndTurn(); });
-        if(PhotonNetwork.LocalPlayer.IsMasterClient)
+        StartCoroutine(NameSelector());
+    }
+    public IEnumerator NameSelector()
+    {
+        float timer = 5;
+        string name1 = PhotonNetwork.PlayerList[0].NickName;
+        string name2 = PhotonNetwork.PlayerList[1].NickName;
+        while (timer > 0)
         {
-            HeadsButton.gameObject.SetActive(true);
-            TailsButton.gameObject.SetActive(true);
+            yield return new WaitForSeconds(0.25f);
+            if (NameText.text == name1) NameText.text = name2;
+            else NameText.text = name1;
+            timer -= 0.25f;
+        }
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        {
+            //StartGame();
+            //Debug.Log("cheeeeseee");
+            photonView.RPC(nameof(RPC_SetNameText), RpcTarget.All, NameText.text);
+        }
+    }
+    [PunRPC]
+    public void RPC_SetNameText(string text)
+    {
+        NameText.text = text;
+        StartCoroutine(LagTime());
+    }
+    public IEnumerator LagTime()
+    {
+        yield return new WaitForSeconds(2);
+        if(NameText.text == PhotonNetwork.LocalPlayer.NickName)
+        {
+            StartGame();
         }
     }
     public void SetGameState(GameState state)
@@ -82,24 +109,34 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public void StartGame()
     {
         photonView.RPC(nameof(RPC_StartGame), RpcTarget.All);
+        Game_Manager.Instance.CurrentDuelist = DuelistType.Player;
+        Game_Manager.Instance.Player.Mana = Game_Manager.Instance.Turn;
+        EndTurnButton.gameObject.SetActive(true);
+        Game_Manager.Instance.StartTurn();
     }
     [PunRPC]
     public void RPC_StartGame()
     {
         SetGameState(GameState.Running);
 
-        Game_Manager.Instance.StartGame();
+        Game_Manager.Instance.Call_DrawHandCards();
     }
     public void EndTurn()
     {
         int amount = Game_Manager.Instance.Player.Hand.Count;
+
+        Game_Manager.Instance.SetMainPhaseState(GameManagerStates.AttackPhase);
+       
         if (amount > 7)
         {
-            Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 5, NetworkTarget.Local);
+            Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 7, NetworkTarget.Local);
             return;
         }
         if (Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
-            { Debug.Log(Game_Manager.Instance.State.ToString()); return; }
+        {
+            Debug.Log(Game_Manager.Instance.State.ToString()); 
+            return; 
+        }
 
         AttackButton.SetActive(false);
 
@@ -121,6 +158,19 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void Block()
     {
+        int counter = 0;
+        foreach(MonsterCard c in Game_Manager.Instance.Player.Field)
+        {
+            if(!c.HasBlocked)
+            {
+                counter++;
+            }
+        }
+        if(counter == 0)
+        {
+            Board.Instance.PlayerInfoText.text = "No Monsters left for blocking!";
+            return;
+        }
         Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Blocking);
         Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         Board.Instance.BlockRequest.SetActive(false);

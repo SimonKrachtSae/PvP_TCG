@@ -75,11 +75,11 @@ public abstract class Card : MonoBehaviourPunCallbacks
     }
     public void Local_DrawCard()
     {
-        photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
+        photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
         MoveTowardsHand(player.HandParent.transform.position);
         Call_RotateToFront(NetworkTarget.Local);
-        if (gameManager.State == GameManagerStates.StartPhase) AssignHandEvents(NetworkTarget.Local);
+        if (gameManager.State == GameManagerStates.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy ) AssignHandEvents(NetworkTarget.Local);
     }
     public void Call_RotateToFront(NetworkTarget target)
     {
@@ -133,7 +133,6 @@ public abstract class Card : MonoBehaviourPunCallbacks
         Location = CardLocation.Hand;
         player.Hand.Add(this);
         player.RedrawHandCards();
-        yield return new WaitForSeconds(0);
     }
     [PunRPC]
     public void RPC_UpdatePosition(Vector3 value)
@@ -217,17 +216,36 @@ public abstract class Card : MonoBehaviourPunCallbacks
         transform.position = Target;
         player.RedrawHandCards();
     }
+    public void Call_AddToHand()
+    {
+        photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
+    }
     [PunRPC]
     public void RPC_AddToHand()
     {
-        if (photonView.IsMine) player.Hand.Add(this);
-        else gameManager.Enemy.Hand.Add(this);
+        if (photonView.IsMine)
+        {
+            player.Hand.Add(this);
+        }
+        else
+        {
+            gameManager.Enemy.Hand.Add(this);
+        }
+
     }
     [PunRPC]
     public void RPC_RemoveFromHand()
     {
-        if (photonView.IsMine) player.Hand.Remove(this);
-        else gameManager.Enemy.Hand.Remove(this);
+        if (photonView.IsMine)
+        {
+            player.Hand.Remove(this);
+            player.RedrawHandCards();
+        }
+        else
+        {
+            gameManager.Enemy.Hand.Remove(this);
+            gameManager.Enemy.RedrawHandCards();
+        }
     }
     [PunRPC]
     public void RPC_AddToDeck()
@@ -264,11 +282,14 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void Event_Discard()
     {
         Call_SendToGraveyard();
-        player.DiscardCounter--;
+        gameManager.DiscardCounter--;
+        if (player.Hand.Count == 0) gameManager.DiscardCounter = 0;
     }
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
+        gameManager.DestroyCounter--;
+        if (player.Field.Count == 0) gameManager.DestroyCounter = 0;
     }
     public void Event_Recall()
     {
@@ -278,8 +299,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     }
     public void Call_SendToDeck()
     {
-        Local_RemoveFromCurrentLists();
-        ClearEvents();
+        photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToDeck), RpcTarget.All);
 
         if (this.GetType().ToString() == nameof(MonsterCard).ToString()) photonView.RPC(nameof(RPC_SetValuesToDefault), RpcTarget.All);
@@ -297,20 +317,21 @@ public abstract class Card : MonoBehaviourPunCallbacks
     }
     public void Local_SendToDeck()
     {
+        ClearEvents();
         MoveTowardsTarget(player.DeckField.transform.position);
         RotateToBack();
     }
     public void Call_SendToGraveyard()
     {
         Local_RemoveFromCurrentLists();
-        ClearEvents();
+        photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
-
         if (this.GetType().ToString() == nameof(MonsterCard).ToString()) photonView.RPC(nameof(RPC_SetValuesToDefault), RpcTarget.All);
 
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToGraveyard), RpcTarget.Others);
         else
         {
+            ClearEvents();
             MoveTowardsTarget(player.GraveyardObj.transform.position);
         }
     }
@@ -318,10 +339,9 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void RPC_SendToGraveyard()
     {
         if (this.GetType().ToString() == nameof(MonsterCard).ToString())
-            if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
-        MoveTowardsTarget(player.GraveyardObj.transform.position);
+            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         ClearEvents();
-        Local_RemoveFromCurrentLists();
+        MoveTowardsTarget(player.GraveyardObj.transform.position);
     }
     [PunRPC]
     public void RPC_SetValuesToDefault()

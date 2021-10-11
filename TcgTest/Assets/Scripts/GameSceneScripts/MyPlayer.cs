@@ -90,7 +90,6 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-        deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
@@ -128,7 +127,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
-            Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
+            if(vector.y == HandParent.transform.position.y)
+                Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
         }
     }
     public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
@@ -255,46 +255,46 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
  
     public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
-        if (selector == NetworkTarget.Local) { DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
+        if (selector == NetworkTarget.Local) { gameManager.DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
         else if (selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDiscardEffects), RpcTarget.Others, amount); }
     }
     [PunRPC]
     public void RPC_AddDiscardEffects(int amount)
     {
-        DiscardCounter = amount;
+        gameManager.DiscardCounter = amount;
         StartCoroutine(AddDiscardEffects());
     }
     public IEnumerator AddDiscardEffects()
     {
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
-        while(DiscardCounter != 0)
+        while(gameManager.DiscardCounter != 0)
         {
             yield return new WaitForFixedUpdate();
-            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + DiscardCounter.ToString();
-            if (Hand.Count == 0 || DiscardCounter == 0) break;
+            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + gameManager.DiscardCounter.ToString();
+            if (gameManager.DiscardCounter == 0) break;
         }
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
     public void Call_AddDestroyEffects(int amount, NetworkTarget selector)
     {
-        if(selector == NetworkTarget.Local) {DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
+        if(selector == NetworkTarget.Local) {gameManager.DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
         else if(selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDestroyEvents), RpcTarget.Others, amount); }
     }
     [PunRPC]
     public void RPC_AddDestroyEvents(int amount)
     {
-        DestroyCounter = amount;
+        gameManager.DestroyCounter = amount;
         StartCoroutine(AddDestroyEvents());
     }
     public IEnumerator AddDestroyEvents()
     {
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
-        while (DestroyCounter != 0)
+        while (gameManager.DestroyCounter != 0)
         {
-            if (Field.Count == 0 || DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
-            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + DestroyCounter.ToString();
+            if (gameManager.DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
+            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + gameManager.DestroyCounter.ToString();
             yield return new WaitForFixedUpdate();
         }
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);

@@ -108,6 +108,7 @@ MonoBehaviour:
   - SetRotation
   - RPC_UpdateSwordIcon
   - RPC_ParticleBomb
+  - RPC_SetNameText
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

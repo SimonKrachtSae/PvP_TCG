@@ -25,8 +25,8 @@ public class DrawCard : Effect
     {
         for (int i = 0; i < amount; i++)
         {
+            Game_Manager.Instance.Player.DeckList[0].Call_AddToHand();
             Game_Manager.Instance.Player.DrawCard(0);
-            yield return new WaitForSecondsRealtime(1);
         }
         yield return new WaitForSecondsRealtime(2);
     }
@@ -34,8 +34,8 @@ public class DrawCard : Effect
     {
         for (int i = 0; i < amount; i++)
         {
+            Game_Manager.Instance.Enemy.DeckList[0].Call_AddToHand();
             Game_Manager.Instance.Enemy.DrawCard(0);
-            yield return new WaitForSecondsRealtime(1);
         }
         yield return new WaitForSecondsRealtime(2);
     }

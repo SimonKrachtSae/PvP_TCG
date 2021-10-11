@@ -85,6 +85,7 @@ public class MonsterCard : Card, IPunObservable
         l.endWidth = 1f;
         l.SetPositions(pos.ToArray());
         l.useWorldSpace = true;
+        l.sortingLayerName = "Default";
         l.sortingOrder = 4;
     }
     public void Event_Attack()
@@ -146,8 +147,7 @@ public class MonsterCard : Card, IPunObservable
                     photonView.RPC(nameof(RPC_AddToField), RpcTarget.All);
                     player.RedrawHandCards();
                     player.Mana -= base.CardStats.PlayCost;
-                    if(photonView.IsMine)photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0,0,0,0));
-                    else if(!photonView.IsMine)photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0.5f,0,0,0));
+                    photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
                     if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnSummon?.Invoke();
                     Assign_BurnEvents(NetworkTarget.Local);
                     return;

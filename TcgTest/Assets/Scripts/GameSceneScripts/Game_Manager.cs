@@ -42,6 +42,8 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     public GameManagerStates State  { get => state; }
     public GameManagerStates PrevState { get; set; }
     public Card AttackingMonster { get; set; }
+    public int DiscardCounter { get; set; }
+    public int DestroyCounter { get; set; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -53,20 +55,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
 
     }
     /// <summary> 
-    /// <see cref="StartGame"/>
+    /// <see cref="Call_DrawHandCards"/>
     /// </summary>
     /// <remarks>
     /// Sets starting player
     /// </remarks>
-    public void StartGame()
+    public void Call_DrawHandCards()
     {
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-        {
-            CurrentDuelist = DuelistType.Player;
-            Player.Mana = Turn;
-            GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
-            StartTurn();
-        }
         StartCoroutine(DrawHandCards());
     }
     /// <summary> 
@@ -182,10 +177,14 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         PrevState = state;
         state = value;
         Board.Instance.PlayerInfoText.text = value.ToString();
-        if(state!= GameManagerStates.StartPhase && !(round == 0 && turn == 1)) GameUIManager.Instance.AttackButton.SetActive(false);
+        if(state!= GameManagerStates.StartPhase && !(round == 0 && turn == 1) || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.AttackButton.SetActive(false);
         else GameUIManager.Instance.AttackButton.SetActive(true);
-        if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
+        if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         else GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+        foreach (MonsterCard c in Player.Field) c.ClearEvents();
+        foreach (Card c in Player.Hand) c.ClearEvents();
+        foreach (MonsterCard c in Enemy.Field) c.ClearEvents();
+        foreach (Card c in Enemy.Hand) c.ClearEvents();
         switch (state)
         {
             case GameManagerStates.StartPhase:
@@ -212,19 +211,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
                 }
                 break;
             case GameManagerStates.Blocking:
+                foreach (MonsterCard c in Player.Field)
                 {
-                    foreach (MonsterCard c in Player.Field)
-                    {
-                        c.ClearEvents();
-                        c.Call_AddEvent(CardEvent.Block, MouseEvent.Down, NetworkTarget.Local);
-                    }
+                    c.ClearEvents();
+                    c.Call_AddEvent(CardEvent.Block, MouseEvent.Down, NetworkTarget.Local);
                 }
                 break;
             case GameManagerStates.Busy:
-                {
-                    foreach (MonsterCard c in Player.Field) c.ClearEvents();
-                    foreach (Card c in Player.Hand)  c.ClearEvents();
-                }
                 break;
         }
     }
