@@ -90,7 +90,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-
+       //deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
@@ -256,6 +256,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
  
     public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
+        if(Hand.Count == 0) { Board.Instance.PlayerInfoText.text = "No Cards To Discard"; return; }
         if (selector == NetworkTarget.Local) { gameManager.DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
         else if (selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDiscardEffects), RpcTarget.Others, amount); }
     }
@@ -279,7 +280,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void Call_AddDestroyEffects(int amount, NetworkTarget selector)
     {
-        if(selector == NetworkTarget.Local) {gameManager.DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
+        if (Field.Count == 0) { Board.Instance.PlayerInfoText.text = "No Cards To Discard"; return; }
+        if (selector == NetworkTarget.Local) {gameManager.DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
         else if(selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDestroyEvents), RpcTarget.Others, amount); }
     }
     [PunRPC]

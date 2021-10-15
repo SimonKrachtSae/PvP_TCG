@@ -50,6 +50,7 @@ public class EffectCard : Card,IPunObservable
             Vector3 direction;
             Local_RemoveFromCurrentLists();
             player.RedrawHandCards();
+            photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
             transform.localScale *= 1.3f;
             yield return new WaitForSeconds(4);
             transform.localScale /= 1.3f;

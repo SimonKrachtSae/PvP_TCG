@@ -156,11 +156,6 @@ public class MonsterCard : Card, IPunObservable
         }
         transform.position = mouseDownPos;
     }
-    [PunRPC]
-    public void SetRotation(Quaternion q)
-    {
-        transform.rotation = q;
-    }
     public void Event_Block()
     {
         if (HasBlocked) { Board.Instance.PlayerInfoText.text = "Already blocked!"; return; }

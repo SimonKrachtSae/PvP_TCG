@@ -135,6 +135,11 @@ public abstract class Card : MonoBehaviourPunCallbacks
         player.RedrawHandCards();
     }
     [PunRPC]
+    public void SetRotation(Quaternion q)
+    {
+        transform.rotation = q;
+    }
+    [PunRPC]
     public void RPC_UpdatePosition(Vector3 value)
     {
         transform.position = new Vector3(value.x, value.y * -1, value.z);
@@ -299,10 +304,11 @@ public abstract class Card : MonoBehaviourPunCallbacks
     }
     public void Call_SendToDeck()
     {
+        if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToDeck), RpcTarget.All);
-
         if (this.GetType().ToString() == nameof(MonsterCard).ToString()) photonView.RPC(nameof(RPC_SetValuesToDefault), RpcTarget.All);
+        ClearEvents();
 
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToDeck), RpcTarget.Others);
         else
@@ -317,29 +323,30 @@ public abstract class Card : MonoBehaviourPunCallbacks
     }
     public void Local_SendToDeck()
     {
+        if (this.GetType().ToString() == nameof(MonsterCard).ToString())
+            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         ClearEvents();
         MoveTowardsTarget(player.DeckField.transform.position);
         RotateToBack();
     }
     public void Call_SendToGraveyard()
     {
+        if (this.GetType().ToString() == nameof(MonsterCard).ToString())
+            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         Local_RemoveFromCurrentLists();
         photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
         if (this.GetType().ToString() == nameof(MonsterCard).ToString()) photonView.RPC(nameof(RPC_SetValuesToDefault), RpcTarget.All);
-
+        ClearEvents();
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToGraveyard), RpcTarget.Others);
         else
         {
-            ClearEvents();
             MoveTowardsTarget(player.GraveyardObj.transform.position);
         }
     }
     [PunRPC]
     public void RPC_SendToGraveyard()
     {
-        if (this.GetType().ToString() == nameof(MonsterCard).ToString())
-            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
         ClearEvents();
         MoveTowardsTarget(player.GraveyardObj.transform.position);
     }
@@ -353,9 +360,9 @@ public abstract class Card : MonoBehaviourPunCallbacks
         if(this.GetType().ToString() == nameof(MonsterCard).ToString())
             if (player.Field.Contains((MonsterCard)this)) photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
 
-        if (player.Hand.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
-        if (player.DeckList.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
-        if (player.Graveyard.Contains(this)) photonView.RPC(nameof(RPC_RemoveFromGraveyard), RpcTarget.All);
+        photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
+        photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
+        photonView.RPC(nameof(RPC_RemoveFromGraveyard), RpcTarget.All);
     }
     [PunRPC]
     public void RPC_RemoveFromField()

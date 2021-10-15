@@ -177,7 +177,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         PrevState = state;
         state = value;
         Board.Instance.PlayerInfoText.text = value.ToString();
-        if(state!= GameManagerStates.StartPhase && !(round == 0 && turn == 1) || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.AttackButton.SetActive(false);
+        if(state!= GameManagerStates.StartPhase || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.AttackButton.SetActive(false);
         else GameUIManager.Instance.AttackButton.SetActive(true);
         if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         else GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
@@ -188,7 +188,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         switch (state)
         {
             case GameManagerStates.StartPhase:
-                GameUIManager.Instance.AttackButton.SetActive(true);
+                if(!(round == 0 && turn == 1))GameUIManager.Instance.AttackButton.SetActive(true);
                 foreach (Card c in Player.Hand)
                 {
                     c.ClearEvents();
