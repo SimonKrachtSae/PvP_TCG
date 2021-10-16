@@ -9,14 +9,17 @@ using System.IO;
 public class Deck: MonoBehaviour
 {
     public static Deck Instance;
-    [SerializeField] private List<CardName> cardNames;
+    [SerializeField] private List<GameObject> cards;
     private DeckData deckData;
     public DeckData DeckData { get => deckData; set => deckData = value; }
-    private void Awake()
+	List<CardName> names;
+
+	void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
-		cardNames = new List<CardName>();
+		cards = new List<GameObject>();
+		names = new List<CardName>();
     }
     public void Save()
     {
@@ -24,11 +27,11 @@ public class Deck: MonoBehaviour
         if (File.Exists(path)) return;
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(path, FileMode.Create);
-        DeckData data = new DeckData(cardNames);
+		DeckData data = new DeckData(names);
         formatter.Serialize(stream, data);
         stream.Close();
     }
-    public void Load()
+    public void LoadData()
     {
         string path = Application.persistentDataPath + "/Deck.fun";
 
@@ -38,40 +41,41 @@ public class Deck: MonoBehaviour
             FileStream stream = new FileStream(path, FileMode.Open);
             deckData = formatter.Deserialize(stream) as DeckData;
             stream.Close();
-			//foreach(CardName cardName in deckData.CardNames)
-			//{
-			//	Instantiate(cardPreview, parent);
-			//	cardPreview.GetComponent<CardInfo>().AssignCard(layout);
-			//	cardPreview.gameObject.name = layout.NameTextUI.text;
-			//}
         }
         else
         {
             Debug.Log("File not found! \n Path: " + path);
-			deckData = new DeckData(cardNames);
-			deckData.CardNames = new List<CardName>();
         }
     }
+	public void LoadUI()
+    {
+		string path = Application.persistentDataPath + "/Deck.fun";
 
-	public void Subscribe(string s)
-	{
-		if (deckData == null)
+		if (File.Exists(path))
 		{
-			deckData = new DeckData(cardNames);
+			BinaryFormatter formatter = new BinaryFormatter();
+			FileStream stream = new FileStream(path, FileMode.Open);
+			deckData = formatter.Deserialize(stream) as DeckData;
+			stream.Close();
+			foreach (CardName cardName in deckData.CardNames)
+			{
+				DeckUIManager.Instance.SpawnCardOnLoad(cardName);
+			}
 		}
-
-		CardName cardName = GetCardName(s);
-		deckData.CardNames.Add(cardName);
-		Deck.Instance.Save();
-		Debug.Log(cardName);
-		Debug.Log(deckData.CardNames.Count);
+	}
+	public void Subscribe(GameObject gameObject)
+	{
+		if (!cards.Contains(gameObject)) cards.Add(gameObject);
+		Debug.Log(cards.Count);
+		CardName cardName;
+		//cardName = GetCardName(gameObject.name);
+		System.Enum.TryParse(gameObject.name, out cardName);
+		names.Add(cardName);
 	}
 
-	public void Unsubscribe(string s)
+	public void Unsubscribe(GameObject gameObject)
 	{
-		CardName cardName = GetCardName(s);
-		deckData.CardNames.Remove(cardName);
-		Deck.Instance.Save();
+		if(cards.Contains(gameObject)) cards.Remove(gameObject);
 	}
 
 	private CardName GetCardName(string s)

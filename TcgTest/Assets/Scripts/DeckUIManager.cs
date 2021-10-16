@@ -8,22 +8,34 @@ public class DeckUIManager : MonoBehaviour
 	[SerializeField] private List<CardLayout> cards;
 	[SerializeField] private GameObject cardPreview;
 	[SerializeField] private Transform parent;
-
-	private void Start()
+	private List<GameObject> spawnedSelectableCards;
+	public static DeckUIManager Instance;
+	private CardName copyCardName;
+    private void Awake()
+    {
+		if (Instance != null) Destroy(this.gameObject);
+		else { Instance = this; }
+	}
+    private void Start()
 	{
+		spawnedSelectableCards = new List<GameObject>();
 		foreach(CardLayout layout in cards)
 		{
-			Instantiate(cardPreview, parent);
-			cardPreview.GetComponent<CardInfo>().AssignCard(layout);
-			cardPreview.gameObject.name = layout.NameTextUI.text;
+			GameObject card = Instantiate(cardPreview, parent);
+			card.GetComponent<CardInfo>().AssignCard(layout);
+			card.gameObject.name = layout.NameTextUI.text;
+			spawnedSelectableCards.Add(card);
 		}
 	}
-
-	public void Spawn()
+    public void SpawnCardOnLoad(CardName cardName)
 	{
-		foreach(CardDragHandler dragHandler in deckCardsParent.GetComponentsInChildren<CardDragHandler>())
+		foreach (GameObject card in spawnedSelectableCards)
 		{
-			dragHandler.AssignToDeck();
+			if(card.name == cardName.ToString())
+            {
+				card.GetComponent<CardDragHandler>().DuplicateCard();
+				return;
+            }
 		}
 	}
 }

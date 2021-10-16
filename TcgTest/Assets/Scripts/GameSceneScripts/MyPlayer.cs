@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using UnityEngine.SceneManagement;
 public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 {
     //[SerializeField] private List<GameObject> startingDeck;
@@ -39,25 +38,10 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     private int summonPowerBoost = 0;
     public int ManaBoost { get => summonPowerBoost; set => photonView.RPC(nameof(RPC_UpdateSumonPowerBoost), RpcTarget.All, value); }
     private int attackBoost = 0;
-    public int AttackBoost 
-    {
-        get => attackBoost;
-        set 
-        {
-            Call_ParticleBomb("AttackBoost: " + value, Color.blue, NetworkTarget.All);
-            photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); 
-        }
-    }
+    public int AttackBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); }
     private int defenseBoost = 0;
-    public int DefenseBoost
-    {
-        get => defenseBoost;
-        set
-        {
-            Call_ParticleBomb("DefenseBoost: " + value, Color.blue, NetworkTarget.All);
-            photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value);
-        }
-    }
+    public int DefenseBoost { get => defenseBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
+
     private int discardCounter = 0;
     public int DiscardCounter { get => discardCounter; set => discardCounter = value; }
 
@@ -68,12 +52,10 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     private MonsterCardLocation recallArea;
     [SerializeField] private List<CardName> CardNameList;
     private Deck deck;
-    public Deck Deck { get => deck; set => deck = value; }
-    [SerializeField] private ParticleBomb particleBomb;
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
-        Deck = Deck.Instance;
+        
         if (photonView.IsMine)
         {
             gameManager.Player = this;
@@ -90,18 +72,21 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-        //if (photonView.IsMine) deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
-        if (photonView.IsMine) deck.Load();
-        if(photonView.IsMine) SpawnDeck();
-        
-    }
-    public void SpawnDeck()
+	}
+
+	private void Start()
+	{
+        Deck.Instance.LoadData();
+		if (photonView.IsMine) SpawnDeck();
+	}
+
+	public void SpawnDeck()
     {
-        foreach (CardName cardName in deck.DeckData.CardNames)
+        foreach (CardName cardName in Deck.Instance.DeckData.CardNames)
         {
             PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position, new Quaternion(0,0.5f,0,0));
         }
@@ -128,21 +113,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
-            if(vector.y == HandParent.transform.position.y)
-                Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
+            Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
         }
-    }
-    public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
-    {
-        if (target == NetworkTarget.Local) particleBomb.Explode(s, color);
-        else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_ParticleBomb), RpcTarget.Others, s, new byte[3] { (byte)color.r, (byte)color.g, (byte)color.b });
-        else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_ParticleBomb), RpcTarget.All, s, new byte[3] { (byte)color.r, (byte)color.g, (byte)color.b });
-    }
-    [PunRPC]
-    public void RPC_ParticleBomb(string s, byte[] colorVals)
-    {
-        Color color = new Color(colorVals[0], colorVals[1], colorVals[2]);
-        particleBomb.Explode(s, color);
     }
     public void Subscribe(Card card)
     {
@@ -256,48 +228,46 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
  
     public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
-        if(Hand.Count == 0) { Board.Instance.PlayerInfoText.text = "No Cards To Discard"; return; }
-        if (selector == NetworkTarget.Local) { gameManager.DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
+        if (selector == NetworkTarget.Local) { DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
         else if (selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDiscardEffects), RpcTarget.Others, amount); }
     }
     [PunRPC]
     public void RPC_AddDiscardEffects(int amount)
     {
-        gameManager.DiscardCounter = amount;
+        DiscardCounter = amount;
         StartCoroutine(AddDiscardEffects());
     }
     public IEnumerator AddDiscardEffects()
     {
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
-        while(gameManager.DiscardCounter != 0)
+        while(DiscardCounter != 0)
         {
             yield return new WaitForFixedUpdate();
-            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + gameManager.DiscardCounter.ToString();
-            if (gameManager.DiscardCounter == 0) break;
+            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + DiscardCounter.ToString();
+            if (Hand.Count == 0 || DiscardCounter == 0) break;
         }
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
     public void Call_AddDestroyEffects(int amount, NetworkTarget selector)
     {
-        if (Field.Count == 0) { Board.Instance.PlayerInfoText.text = "No Cards To Discard"; return; }
-        if (selector == NetworkTarget.Local) {gameManager.DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
+        if(selector == NetworkTarget.Local) {DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
         else if(selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDestroyEvents), RpcTarget.Others, amount); }
     }
     [PunRPC]
     public void RPC_AddDestroyEvents(int amount)
     {
-        gameManager.DestroyCounter = amount;
+        DestroyCounter = amount;
         StartCoroutine(AddDestroyEvents());
     }
     public IEnumerator AddDestroyEvents()
     {
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
-        while (gameManager.DestroyCounter != 0)
+        while (DestroyCounter != 0)
         {
-            if (gameManager.DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
-            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + gameManager.DestroyCounter.ToString();
+            if (Field.Count == 0 || DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
+            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + DestroyCounter.ToString();
             yield return new WaitForFixedUpdate();
         }
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
@@ -330,7 +300,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
                 case MonsterCardLocation.OnField:
                     foreach (MonsterCard c in Field) c.ClearEvents();
                     break;
-                case MonsterCardLocation.Deck:
+                case MonsterCardLocation.InDeck:
                     foreach (Card c in DeckList) c.ClearEvents();
                     break;
                 case MonsterCardLocation.InGraveyard:
