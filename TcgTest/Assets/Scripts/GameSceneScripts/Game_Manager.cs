@@ -42,6 +42,8 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     public GameManagerStates State  { get => state; }
     public GameManagerStates PrevState { get; set; }
     public Card AttackingMonster { get; set; }
+    public int DiscardCounter { get; set; }
+    public int DestroyCounter { get; set; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -50,22 +52,16 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     public void Start()
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
+
     }
     /// <summary> 
-    /// <see cref="StartGame"/>
+    /// <see cref="Call_DrawHandCards"/>
     /// </summary>
     /// <remarks>
     /// Sets starting player
     /// </remarks>
-    public void StartGame()
+    public void Call_DrawHandCards()
     {
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-        {
-            CurrentDuelist = DuelistType.Player;
-            Player.Mana = Turn;
-            GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
-            StartTurn();
-        }
         StartCoroutine(DrawHandCards());
     }
     /// <summary> 
@@ -120,17 +116,23 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnDirectAttackSucceeds?.Invoke();
             Player.DrawCard(0);
+            AttackingMonster.ClearEvents();
             return;
         }
         blockingMonster = Enemy.Field[index];
         if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnAttack?.Invoke();
         if (((MonsterCardStats)blockingMonster.CardStats).Effect != null) ((MonsterCardStats)blockingMonster.CardStats).Effect.OnBlock?.Invoke();
-        if (((MonsterCardStats)blockingMonster.CardStats).Defense < ((MonsterCardStats)AttackingMonster.CardStats).Attack)
+        int value =((MonsterCardStats)AttackingMonster.CardStats).Attack - ((MonsterCardStats)blockingMonster.CardStats).Defense;
+        if (value > 0)
         {
+            blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
+            AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             blockingMonster.Call_SendToGraveyard();
         }
-        else if (((MonsterCardStats)blockingMonster.CardStats).Defense > ((MonsterCardStats)AttackingMonster.CardStats).Attack)
+        else if (value < 0)
         {
+            blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
+            AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             AttackingMonster.Call_SendToGraveyard();
         }
         Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
@@ -142,13 +144,12 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         CurrentDuelist = DuelistType.Player;
         Player.Mana = turn + Player.ManaBoost;
-        Player.DrawCard(0);
+        if(!(round == 0 && turn == 1))Player.DrawCard(0);
         for(int i = 0; i < Player.Field.Count; i++)
         {
             Player.Field[i].HasAttacked = false;
             Player.Field[i].HasBlocked = false;
         }
-        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.StartPhase);
     }
     public void SetStateLocally(GameManagerStates value)
     {
@@ -159,7 +160,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         if (networkTarget == NetworkTarget.Local) SetMainPhaseState(value);
         else if (networkTarget == NetworkTarget.Other) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.Others, value);
         else if (networkTarget == NetworkTarget.All) photonView.RPC(nameof(RPC_SetMainPhaseState), RpcTarget.All, value);
-
     }
     /// <summary>
     /// Asdf
@@ -176,14 +176,20 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         PrevState = state;
         state = value;
         Board.Instance.PlayerInfoText.text = value.ToString();
-        if(state!= GameManagerStates.StartPhase) GameUIManager.Instance.AttackButton.SetActive(false);
+        if(state!= GameManagerStates.StartPhase || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.AttackButton.SetActive(false);
         else GameUIManager.Instance.AttackButton.SetActive(true);
-        if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
+        if (state != GameManagerStates.StartPhase && state != GameManagerStates.AttackPhase || currentDuelist == DuelistType.Enemy) GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         else GameUIManager.Instance.EndTurnButton.gameObject.SetActive(true);
+        foreach (MonsterCard c in Player.Field) c.ClearEvents();
+        foreach (Card c in Player.Hand) c.ClearEvents();
+        foreach (MonsterCard c in Enemy.Field) c.ClearEvents();
+        foreach (Card c in Enemy.Hand) c.ClearEvents();
         switch (state)
         {
             case GameManagerStates.StartPhase:
                 GameUIManager.Instance.AttackButton.SetActive(true);
+                if(round == 0 && turn == 1) 
+                    GameUIManager.Instance.AttackButton.SetActive(false);
                 foreach (Card c in Player.Hand)
                 {
                     c.ClearEvents();
@@ -206,19 +212,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
                 }
                 break;
             case GameManagerStates.Blocking:
+                foreach (MonsterCard c in Player.Field)
                 {
-                    foreach (MonsterCard c in Player.Field)
-                    {
-                        c.ClearEvents();
-                        c.Call_AddEvent(CardEvent.Block, MouseEvent.Down, NetworkTarget.Local);
-                    }
+                    c.ClearEvents();
+                    c.Call_AddEvent(CardEvent.Block, MouseEvent.Down, NetworkTarget.Local);
                 }
                 break;
             case GameManagerStates.Busy:
-                {
-                    foreach (MonsterCard c in Player.Field) c.ClearEvents();
-                    foreach (Card c in Player.Hand)  c.ClearEvents();
-                }
                 break;
         }
     }

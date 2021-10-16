@@ -10,10 +10,12 @@ public class CustomParticle : MonoBehaviour
     private float lifeSpan;
     private Vector3 direction;
 
+    public TMP_Text Text { get => text; set => text = value; }
+
     public void Initiate(string _text, Color _color, Vector3 _direction)
     {
-        text.text = _text;
-        text.color = _color;
+        Text.text = _text;
+        Text.color = _color;
         direction = _direction;
         StartCoroutine(SelfDestruct());
     }

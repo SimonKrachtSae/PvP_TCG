@@ -20,8 +20,9 @@ public class Deck: MonoBehaviour
     }
     public void Save()
     {
-        BinaryFormatter formatter = new BinaryFormatter();
         string path = Application.persistentDataPath + "/Deck.fun";
+        if (File.Exists(path)) return;
+        BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(path, FileMode.Create);
         DeckData data = new DeckData(cardNames);
         formatter.Serialize(stream, data);

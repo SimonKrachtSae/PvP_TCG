@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MonsterCardStats : CardStats
+public class MonsterCardStats : CardStat
 {
     [SerializeField]
     private int attack;
