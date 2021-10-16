@@ -241,11 +241,11 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
-        while(DiscardCounter != 0)
+        while(gameManager.DiscardCounter != 0)
         {
             yield return new WaitForFixedUpdate();
-            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + DiscardCounter.ToString();
-            if (Hand.Count == 0 || DiscardCounter == 0) break;
+            Board.Instance.PlayerInfoText.text = "Cards to Discard: " + gameManager.DiscardCounter.ToString();
+            if (Hand.Count == 0 || gameManager.DiscardCounter == 0) break;
         }
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
@@ -264,10 +264,10 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
-        while (DestroyCounter != 0)
+        while (gameManager.DestroyCounter != 0)
         {
-            if (Field.Count == 0 || DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
-            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + DestroyCounter.ToString();
+            if (Field.Count == 0 || gameManager.DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
+            Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + gameManager.DestroyCounter.ToString();
             yield return new WaitForFixedUpdate();
         }
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
