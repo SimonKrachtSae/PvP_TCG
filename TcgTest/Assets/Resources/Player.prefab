@@ -46,7 +46,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CardNameList: 
-  particleBomb: {fileID: 6625923981766934956}
 --- !u!114 &1491771139646323026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -132,14 +131,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1407854643772446316, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
   m_PrefabInstance: {fileID: 8663336160803721975}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6625923981766934956 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2580097046311949147, guid: ae9e5eb3535922041a1c7d15bd4e22a5, type: 3}
-  m_PrefabInstance: {fileID: 8663336160803721975}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7fd0675b3bccf0439e4202e503adbac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
