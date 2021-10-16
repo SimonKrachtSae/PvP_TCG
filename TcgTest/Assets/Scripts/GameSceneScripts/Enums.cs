@@ -90,7 +90,7 @@ public enum GameManagerStates
 }
 public enum MonsterCardLocation
 {
-    Deck,
+    InDeck,
     OnField,
     InGraveyard,
     InHand

@@ -23,8 +23,14 @@ public class Deck: MonoBehaviour
     }
     public void Save()
     {
+		foreach(GameObject gameObject in cards)
+		{
+			CardName cardName;
+			System.Enum.TryParse(gameObject.name, out cardName);
+			names.Add(cardName);
+		}
         string path = Application.persistentDataPath + "/Deck.fun";
-        if (File.Exists(path)) return;
+        if (File.Exists(path)) File.Delete(path);
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(path, FileMode.Create);
 		DeckData data = new DeckData(names);
@@ -69,45 +75,14 @@ public class Deck: MonoBehaviour
 		Debug.Log(cards.Count);
 		CardName cardName;
 		//cardName = GetCardName(gameObject.name);
-		System.Enum.TryParse(gameObject.name, out cardName);
-		names.Add(cardName);
+		//System.Enum.TryParse(gameObject.name, out cardName);
+		//names.Add(cardName);
+		if(!cards.Contains(gameObject))
+			cards.Add(gameObject);
 	}
 
 	public void Unsubscribe(GameObject gameObject)
 	{
 		if(cards.Contains(gameObject)) cards.Remove(gameObject);
-	}
-
-	private CardName GetCardName(string s)
-	{
-		CardName cardName;
-		switch (s)
-		{
-			case "Cheese":
-				cardName = CardName.Cheese;
-				break;
-
-			case "Tomato":
-				cardName = CardName.Tomato;
-				break;
-
-			case "Recall":
-				cardName = CardName.Recall;
-				break;
-
-			case "Destroy":
-				cardName = CardName.Destroy;
-				break;
-
-			case "Discard":
-				cardName = CardName.Discard;
-				break;
-
-			default:
-				cardName = CardName.Cheese;
-				break;
-		}
-
-		return cardName;
 	}
 }
