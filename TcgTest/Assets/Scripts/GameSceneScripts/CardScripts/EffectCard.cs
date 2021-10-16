@@ -19,7 +19,7 @@ public class EffectCard : Card,IPunObservable
         }
 
 
-        player.Subscribe(this);
+        photonView.RPC(nameof(RPC_AddToDeck), RpcTarget.All);
         Type = CardType.Effect;
     }
     private void OnMouseDown()
@@ -48,7 +48,7 @@ public class EffectCard : Card,IPunObservable
 
             if (((EffectCardStats)cardStats).Effect != null) ((EffectCardStats)cardStats).Effect.OnPlay?.Invoke();
             Vector3 direction;
-            Local_RemoveFromCurrentLists();
+            photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
             player.RedrawHandCards();
             photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
             transform.localScale *= 1.3f;

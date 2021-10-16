@@ -23,8 +23,8 @@ public class MonsterCard : Card, IPunObservable
             Debug.Log("Failed to create Card...");
             Destroy(this.gameObject);
         }
-        
-        player.Subscribe(this);
+
+        photonView.RPC(nameof(RPC_AddToDeck), RpcTarget.All);
         Type = CardType.Monster;
     }
 
@@ -110,6 +110,7 @@ public class MonsterCard : Card, IPunObservable
                 Call_SendToGraveyard();
             }
             ClearEvents();
+            HasAttacked = true;
         }
         else if (l.GetPosition(1) == Board.Instance.EnemyHandParent.transform.position)
         {
@@ -119,12 +120,14 @@ public class MonsterCard : Card, IPunObservable
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDirectAttackSucceeds?.Invoke();
                 player.DrawCard(0);
                 photonView.RPC(nameof(RPC_UpdateSwordIcon), RpcTarget.All, false);
+                HasAttacked = true;
             }
             else
             {
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnAttack?.Invoke();
                 gameManager.AttackingMonster = this;
                 gameManager.Enemy.ShowBlockRequest();
+                HasAttacked = true;
             }
             ClearEvents();
         }
@@ -168,6 +171,7 @@ public class MonsterCard : Card, IPunObservable
         if (((Vector2)Board.Instance.BurnField.transform.position - (Vector2)transform.position).magnitude < 10)
         {
             photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+            photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
             player.Mana += ((MonsterCardStats)cardStats).PlayCost;
             if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
             PhotonNetwork.Destroy(this.gameObject);

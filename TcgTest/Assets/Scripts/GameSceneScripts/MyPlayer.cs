@@ -90,12 +90,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             HandParent = (RectTransform)Board.Instance.EnemyHandParent.transform;
             GraveyardObj = Board.Instance.EnemyGraveyard.gameObject;
         }
-       //deck.Save();
+        //if (photonView.IsMine) deck.Save();
         DeckList = new List<Card>();
         Hand = new List<Card>();
         Field = new List<MonsterCard>();
         Graveyard = new List<Card>();
-        deck.Load();
+        if (photonView.IsMine) deck.Load();
         if(photonView.IsMine) SpawnDeck();
         
     }

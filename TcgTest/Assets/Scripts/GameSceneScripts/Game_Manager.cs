@@ -150,7 +150,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
             Player.Field[i].HasAttacked = false;
             Player.Field[i].HasBlocked = false;
         }
-        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.StartPhase);
     }
     public void SetStateLocally(GameManagerStates value)
     {
@@ -188,7 +187,9 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         switch (state)
         {
             case GameManagerStates.StartPhase:
-                if(!(round == 0 && turn == 1))GameUIManager.Instance.AttackButton.SetActive(true);
+                GameUIManager.Instance.AttackButton.SetActive(true);
+                if(round == 0 && turn == 1) 
+                    GameUIManager.Instance.AttackButton.SetActive(false);
                 foreach (Card c in Player.Hand)
                 {
                     c.ClearEvents();
