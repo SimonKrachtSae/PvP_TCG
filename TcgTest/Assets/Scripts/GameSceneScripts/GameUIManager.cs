@@ -9,8 +9,10 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameUIManager Instance;
 
+    [SerializeField] private Arrow arrow;
     [SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
+    [SerializeField] private GameObject PauseMenu;
     [SerializeField] private TMP_Text winText;
     [SerializeField] private Button HeadsButton;
     [SerializeField] private Button TailsButton;
@@ -19,14 +21,17 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public Button EndTurnButton { get => endTurnButton; set => endTurnButton = value; }
     public Button StartButton { get => startButton; set => startButton = value; }
 
-    [SerializeField] private GameObject BoardCanvas;
+    [SerializeField] private GameObject boardCanvas;
     [SerializeField] private CardInfo cardInfo;
     [SerializeField] private GameObject attackButton;
     public GameObject AttackButton { get => attackButton; set => attackButton = value; }
     
     public CardInfo CardInfo { get => cardInfo; }
     public TMP_Text NameText;
-
+    public GameState State { get; set; }
+    public GameObject BoardCanvas { get => boardCanvas; set => boardCanvas = value; }
+    public Arrow Arrow { get => arrow; set => arrow = value; }
+    [SerializeField] private TMP_Text roundTime;
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -73,9 +78,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void SetGameState(GameState state)
     {
+        State = state;
         CoinFlipCanvas.SetActive(false);
         BoardCanvas.SetActive(false);
         GameOverCanvas.SetActive(false);
+        PauseMenu.SetActive(false);
         switch(state)
         {
             case GameState.CoinFlip:
@@ -90,6 +97,10 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 else winText.text = "You Lose...";
                 foreach (GameObject gameObject in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<GameObject>()) PhotonNetwork.Destroy(gameObject);
                 break;
+            case GameState.Paused:
+                PauseMenu.SetActive(true);
+                break;
+
         }
     }
     public void OnHeadsClicked()
@@ -118,8 +129,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public void RPC_StartGame()
     {
         SetGameState(GameState.Running);
-
-        Game_Manager.Instance.Call_DrawHandCards();
+        Game_Manager.Instance.Player.Call_DrawCards(5);
     }
     public void EndTurn()
     {

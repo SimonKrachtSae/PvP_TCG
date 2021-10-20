@@ -7,6 +7,7 @@ using Photon.Pun;
 // Game_Manager: Manages players and assigns cardevents
 public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
 {
+    [SerializeField]private ParticleManager particleManager;
     public static Game_Manager Instance;
     private int round = 0;
     private int turn = 1;
@@ -44,6 +45,12 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     public Card AttackingMonster { get; set; }
     public int DiscardCounter { get; set; }
     public int DestroyCounter { get; set; }
+    private bool executingEffects;
+    public bool ExecutingEffects { get => executingEffects; set => photonView.RPC(nameof(SetExecutingEffect),RpcTarget.All, value); }
+    public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
+
+    private GameManagerStates stateToSet;
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -53,30 +60,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
 
-    }
-    /// <summary> 
-    /// <see cref="Call_DrawHandCards"/>
-    /// </summary>
-    /// <remarks>
-    /// Sets starting player
-    /// </remarks>
-    public void Call_DrawHandCards()
-    {
-        StartCoroutine(DrawHandCards());
-    }
-    /// <summary> 
-    /// <see cref="DrawHandCards"/>
-    /// </summary>
-    /// <remarks>
-    /// Draw starting cards in time intervalls
-    /// </remarks>
-    private IEnumerator DrawHandCards()
-    {
-        for(int i = 0; i < 5; i++)
-        {
-            Player.DrawCard(0);
-            yield return new WaitForSecondsRealtime(1);
-        }
     }
     /// <summary> 
     /// <see cref="RPC_UpdateCurrentDuelist"/>
@@ -114,14 +97,13 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
 
         if (index == 6)
         {
-            if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnDirectAttackSucceeds?.Invoke();
-            Player.DrawCard(0);
+            if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_OnDirectAttack();
+            Player.Call_DrawCards(1);
             AttackingMonster.ClearEvents();
             return;
         }
         blockingMonster = Enemy.Field[index];
-        if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.OnAttack?.Invoke();
-        if (((MonsterCardStats)blockingMonster.CardStats).Effect != null) ((MonsterCardStats)blockingMonster.CardStats).Effect.OnBlock?.Invoke();
+        if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_OnAttack();
         int value =((MonsterCardStats)AttackingMonster.CardStats).Attack - ((MonsterCardStats)blockingMonster.CardStats).Defense;
         if (value > 0)
         {
@@ -135,17 +117,17 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
             AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             AttackingMonster.Call_SendToGraveyard();
         }
-        Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.AttackPhase);
+        Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
     }
     public void StartTurn()
     {
-        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.StartPhase);
-        Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         CurrentDuelist = DuelistType.Player;
         Player.Mana = turn + Player.ManaBoost;
-        if(!(round == 0 && turn == 1))Player.DrawCard(0);
-        for(int i = 0; i < Player.Field.Count; i++)
+        Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.StartPhase);
+        Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
+        if(!(round == 0 && turn == 1)) Player.Call_DrawCards(1);
+        for (int i = 0; i < Player.Field.Count; i++)
         {
             Player.Field[i].HasAttacked = false;
             Player.Field[i].HasBlocked = false;
@@ -173,6 +155,12 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void SetMainPhaseState(GameManagerStates value)
     {
+        if (ExecutingEffects)
+        {
+            stateToSet = value;
+            StartCoroutine(WaitUntilFinishedExecutingEffectBeforeSetMainPhaseState());
+            return;
+        }
         PrevState = state;
         state = value;
         Board.Instance.PlayerInfoText.text = value.ToString();
@@ -222,10 +210,19 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
         }
     }
-
+    private IEnumerator WaitUntilFinishedExecutingEffectBeforeSetMainPhaseState()
+    {
+        while (ExecutingEffects) { yield return new WaitForFixedUpdate(); }
+        SetMainPhaseState(stateToSet);
+    }
+    private IEnumerator WaitUntilFinishedExecutingEffectBeforeSettingToPrevState()
+    {
+        while (ExecutingEffects) { yield return new WaitForFixedUpdate(); }
+        SetMainPhaseState(PrevState);
+    }
     public void Call_SetMainPhaseStateToPrevious(NetworkTarget networkTarget)
     {
-        if (networkTarget == NetworkTarget.Local) SetMainPhaseStateToPrevious();
+        if (networkTarget == NetworkTarget.Local) { SetMainPhaseStateToPrevious(); }
         else if (networkTarget == NetworkTarget.Other) photonView.RPC(nameof(RPC_SetMainPhaseStateToPrevious), RpcTarget.Others);
         else if (networkTarget == NetworkTarget.All) photonView.RPC(nameof(RPC_SetMainPhaseStateToPrevious), RpcTarget.All);
     }
@@ -236,7 +233,12 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void SetMainPhaseStateToPrevious()
     {
-        SetMainPhaseState(PrevState);
+        StartCoroutine(WaitUntilFinishedExecutingEffectBeforeSettingToPrevState());
+    }
+    [PunRPC]
+    public void SetExecutingEffect(bool value)
+    {
+        executingEffects = value;
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

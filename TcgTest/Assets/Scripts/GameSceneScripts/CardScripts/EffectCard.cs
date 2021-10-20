@@ -24,7 +24,6 @@ public class EffectCard : Card,IPunObservable
     }
     private void OnMouseDown()
     {
-        GameUIManager.Instance.CardInfo.AssignCard(this);
         mouseDownPos = transform.position;
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
         OnMouseDownEvent?.Invoke();
@@ -38,18 +37,23 @@ public class EffectCard : Card,IPunObservable
     private void OnMouseUp()
     {
         OnMouseUpEvent?.Invoke();
+        if (Player.Hand.Contains(this) && transform.position.y != Player.HandParent.transform.position.y)
+        {
+            transform.position = new Vector3(transform.position.x, Player.HandParent.transform.position.y, transform.position.z);
+            Player.RedrawHandCards();
+        }
     }
     private IEnumerator Play()
     {
-        if (((Vector2)Board.Instance.gameObject.transform.position - (Vector2)transform.position).magnitude < 20)
+        if (((Vector2)Board.Instance.gameObject.transform.position - (Vector2)transform.position).magnitude < 25)
         {
             transform.position = new Vector3(Board.Instance.transform.position.x, Board.Instance.gameObject.transform.position.y, transform.position.z);
-            player.Mana -= cardStats.PlayCost;
+            Player.Mana -= cardStats.PlayCost;
 
-            if (((EffectCardStats)cardStats).Effect != null) ((EffectCardStats)cardStats).Effect.OnPlay?.Invoke();
+            if (((EffectCardStats)cardStats).Effect != null) ((EffectCardStats)cardStats).Effect.Call_OnPlay();
             Vector3 direction;
             photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
-            player.RedrawHandCards();
+            Player.RedrawHandCards();
             photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
             transform.localScale *= 1.3f;
             yield return new WaitForSeconds(4);
@@ -71,13 +75,13 @@ public class EffectCard : Card,IPunObservable
         while (true)
         {
             yield return new WaitForFixedUpdate();
-            direction = player.GraveyardObj.transform.position - transform.position;
+            direction = Player.GraveyardObj.transform.position - transform.position;
             transform.position += direction.normalized * Time.fixedDeltaTime * 25;
             if (direction.magnitude < 0.3f) break;
         }
         transform.position = Board.Instance.PlayerGraveyard.transform.position;
         Location = CardLocation.Graveyard;
-        player.Graveyard.Add(this);
+        Player.Graveyard.Add(this);
     }
     public void Assign_PlayEvents(NetworkTarget networkTarget)
     {
@@ -121,7 +125,7 @@ public class EffectCard : Card,IPunObservable
     }
     public void Event_Play()
     {
-        if (player.Mana < cardStats.PlayCost) { transform.position = mouseDownPos; return; }
+        if (Player.Mana < cardStats.PlayCost) { transform.position = mouseDownPos; return; }
         StartCoroutine(Play());
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

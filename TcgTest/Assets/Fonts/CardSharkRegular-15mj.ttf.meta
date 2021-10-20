@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: dfe3418e33e0ddd40b626c51aa4df9f0
+guid: f297e7f1178b03a4c8172a894f0374c3
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Brush Strokes
+  - Card Shark
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

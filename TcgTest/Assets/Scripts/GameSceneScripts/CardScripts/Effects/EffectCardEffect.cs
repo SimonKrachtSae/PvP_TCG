@@ -5,14 +5,20 @@ using UnityEngine.Events;
 
 public class EffectCardEffect : MonoBehaviour
 {
-    private UnityAction onPlay;
-    public UnityAction OnPlay { get => onPlay; set => onPlay = value; }
     [SerializeField] private List<Effect> effects;
-    private void Awake()
+    public void Call_OnPlay()
+    {
+        StartCoroutine(Play());
+    }
+    private IEnumerator Play()
     {
         for (int i = 0; i < effects.Count; i++)
         {
-            OnPlay += effects[i].Execute;
+            while (Game_Manager.Instance.ExecutingEffects)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            effects[i].Execute();
         }
     }
 }

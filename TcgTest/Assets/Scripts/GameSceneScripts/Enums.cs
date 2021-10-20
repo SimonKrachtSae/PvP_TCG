@@ -49,7 +49,8 @@ public enum GameState
 {
     CoinFlip,
     Running,
-    GameOver
+    GameOver,
+    Paused
 }
 public enum CoinState
 {
@@ -86,7 +87,7 @@ public enum GameManagerStates
     Recalling,
     Discarding,
     Destroying,
-    EndPhase
+    EndPhase,
 }
 public enum MonsterCardLocation
 {
