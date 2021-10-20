@@ -8,6 +8,10 @@ using Photon.Pun;
 public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static Game_Manager Instance;
+
+	[SerializeField] private GameObject gamePhasePanel;
+	[SerializeField] private Animator gamePhaseAnimator;
+
     private int round = 0;
     private int turn = 1;
     public int Round { get => round; set => photonView.RPC(nameof(RPC_UpdateRound), RpcTarget.All, value); }
@@ -187,7 +191,8 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         switch (state)
         {
             case GameManagerStates.StartPhase:
-                GameUIManager.Instance.AttackButton.SetActive(true);
+				StartCoroutine(ShowPhaseAnimation(1.6f, 1));
+				GameUIManager.Instance.AttackButton.SetActive(true);
                 if(round == 0 && turn == 1) 
                     GameUIManager.Instance.AttackButton.SetActive(false);
                 foreach (Card c in Player.Hand)
@@ -203,7 +208,8 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
                 }
                 break;
             case GameManagerStates.AttackPhase:
-                GameUIManager.Instance.AttackButton.SetActive(false);
+				StartCoroutine(ShowPhaseAnimation(1.6f, 2));
+				GameUIManager.Instance.AttackButton.SetActive(false);
                 foreach (Card c in Player.Hand) c.ClearEvents();
                 foreach (MonsterCard c in Player.Field)
                 {
@@ -223,7 +229,17 @@ public class Game_Manager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    public void Call_SetMainPhaseStateToPrevious(NetworkTarget networkTarget)
+	private IEnumerator ShowPhaseAnimation(float seconds, int phase)
+	{
+		gamePhasePanel.SetActive(true);
+		gamePhaseAnimator.SetInteger("GamePhase", phase);
+		yield return new WaitForSeconds(0.4f);
+		gamePhaseAnimator.SetInteger("GamePhase", 0);
+		yield return new WaitForSeconds(seconds);
+		gamePhasePanel.SetActive(false);
+	}
+
+	public void Call_SetMainPhaseStateToPrevious(NetworkTarget networkTarget)
     {
         if (networkTarget == NetworkTarget.Local) SetMainPhaseStateToPrevious();
         else if (networkTarget == NetworkTarget.Other) photonView.RPC(nameof(RPC_SetMainPhaseStateToPrevious), RpcTarget.Others);

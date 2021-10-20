@@ -9,7 +9,10 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameUIManager Instance;
 
-    [SerializeField] private GameObject CoinFlipCanvas;
+	[SerializeField] private GameObject gamePhasePanel;
+	[SerializeField] private Animator gamePhaseAnimator;
+
+	[SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
     [SerializeField] private TMP_Text winText;
     [SerializeField] private Button HeadsButton;
@@ -38,7 +41,18 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         EndTurnButton.onClick.AddListener(() => { EndTurn(); });
         StartCoroutine(NameSelector());
     }
-    public IEnumerator NameSelector()
+
+	private IEnumerator ShowEndPhaseAnimation(float seconds)
+	{
+		gamePhasePanel.SetActive(true);
+		gamePhaseAnimator.SetInteger("GamePhase", 3);
+		yield return new WaitForSeconds(0.4f);
+		gamePhaseAnimator.SetInteger("GamePhase", 0);
+		yield return new WaitForSeconds(seconds);
+		gamePhasePanel.SetActive(false);
+	}
+
+	public IEnumerator NameSelector()
     {
         float timer = 5;
         string name1 = PhotonNetwork.PlayerList[0].NickName;
@@ -138,7 +152,9 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
             return; 
         }
 
-        AttackButton.SetActive(false);
+		StartCoroutine(ShowEndPhaseAnimation(1.4f));
+
+		AttackButton.SetActive(false);
 
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
