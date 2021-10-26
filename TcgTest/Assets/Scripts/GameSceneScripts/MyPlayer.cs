@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using UnityEngine.Events;
 public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 {
     //[SerializeField] private List<GameObject> startingDeck;
@@ -42,16 +43,11 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     private int defenseBoost = 0;
     public int DefenseBoost { get => defenseBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
 
-    private int discardCounter = 0;
-    public int DiscardCounter { get => discardCounter; set => discardCounter = value; }
-
-    private int destroyCounter = 0;
-    public int DestroyCounter { get => destroyCounter; set => destroyCounter = value; }
-
     private int recallCounter = 0;
     private MonsterCardLocation recallArea;
     [SerializeField] private List<CardName> CardNameList;
     private Deck deck;
+    private int drawAmount;
     public override void OnEnable()
     {
         gameManager = Game_Manager.Instance;
@@ -80,18 +76,19 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 
 	private void Start()
 	{
+        if (!photonView.IsMine) return;
         Deck.Instance.LoadData();
-		if (photonView.IsMine) SpawnDeck();
+        SpawnDeck();
 	}
 
 	public void SpawnDeck()
     {
         foreach (CardName cardName in Deck.Instance.DeckData.CardNames)
         {
-            PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position, new Quaternion(0,0.5f,0,0));
+            GameObject card = PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position, new Quaternion(0,0.5f,0,0));
         }
     }
-    public void DrawCard(int index)
+    private void DrawCard(int index)
     {
         if (deckList.Count == 1 && gameManager.Turn > 1)
         {
@@ -106,14 +103,41 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     {
         DeckList[index].Local_DrawCard();
     }
+    public void Call_DrawCards(int amount)
+    {
+        if (!photonView.IsMine) photonView.RPC(nameof(RPC_DrawCards), RpcTarget.Others, amount);
+        else
+        {
+            drawAmount = amount;
+            StartCoroutine(DrawCardsWithTimeOffset());
+        }
+    }
+
+    private IEnumerator DrawCardsWithTimeOffset()
+    {
+        gameManager.ExecutingEffects = true;
+        for(int i = 0; i < drawAmount; i++)
+        {
+            DrawCard(0);
+            yield return new WaitForSecondsRealtime(1);
+        }
+        gameManager.ExecutingEffects = false;
+    }
+    [PunRPC]
+    public void RPC_DrawCards(int amount)
+    {
+        drawAmount = amount;
+        StartCoroutine(DrawCardsWithTimeOffset());
+    }
     public void RedrawHandCards()
     {
-        float step = 10;
+        float step = 15;
         float start = -((Hand.Count / 2) * step);
         for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
-            Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z);
+            if(vector.y == HandParent.transform.position.y)
+                Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z + i * 0.05f);
         }
     }
     public void Subscribe(Card card)
@@ -183,7 +207,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     public void AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
         recallCounter = amount;
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, TurnState.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
         {
             if (Field.Count < 1)
@@ -191,6 +215,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
                 Board.Instance.PlayerInfoText.text = "No Card To Send To Deck";
                 return;
             }
+            gameManager.ExecutingEffects = true;
             foreach (MonsterCard c in Field) 
             { 
                 c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
@@ -204,6 +229,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
                 Board.Instance.PlayerInfoText.text = "No Card To Send To Deck";
                 return;
             }
+            gameManager.ExecutingEffects = true;
             foreach (Card c in Hand) 
             {
                 c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
@@ -218,28 +244,37 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
         if(recallCounter == 0) Board.Instance.PlayerInfoText.text = "";
         if (recallArea == MonsterCardLocation.OnField)
         {
-            if (recallCounter == 0 || Field.Count == 0) gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+            if (recallCounter == 0 || Field.Count == 0)
+            {
+                gameManager.ExecutingEffects = false;
+                gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+            }
         }
         else if(recallArea == MonsterCardLocation.InHand)
         {
-            if(recallCounter == 0 || Hand.Count == 0) gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+            if (recallCounter == 0 || Hand.Count == 0)
+            {
+                gameManager.ExecutingEffects = false;
+                gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+            }
         }
     }
  
     public void Call_AddDiscardEffects(int amount, NetworkTarget selector)
     {
-        if (selector == NetworkTarget.Local) { DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
+        if (selector == NetworkTarget.Local) { gameManager.DiscardCounter = amount; StartCoroutine(AddDiscardEffects()); }
         else if (selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDiscardEffects), RpcTarget.Others, amount); }
     }
     [PunRPC]
     public void RPC_AddDiscardEffects(int amount)
     {
-        DiscardCounter = amount;
+        gameManager.DiscardCounter = amount;
         StartCoroutine(AddDiscardEffects());
     }
     public IEnumerator AddDiscardEffects()
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, TurnState.Busy);
+        gameManager.ExecutingEffects = true;
         foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
         while(gameManager.DiscardCounter != 0)
         {
@@ -247,22 +282,24 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             Board.Instance.PlayerInfoText.text = "Cards to Discard: " + gameManager.DiscardCounter.ToString();
             if (Hand.Count == 0 || gameManager.DiscardCounter == 0) break;
         }
+        gameManager.ExecutingEffects = false;
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
     public void Call_AddDestroyEffects(int amount, NetworkTarget selector)
     {
-        if(selector == NetworkTarget.Local) {DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
+        if(selector == NetworkTarget.Local) {gameManager.DestroyCounter = amount; StartCoroutine(AddDestroyEvents()); }
         else if(selector == NetworkTarget.Other) { photonView.RPC(nameof(RPC_AddDestroyEvents), RpcTarget.Others, amount); }
     }
     [PunRPC]
     public void RPC_AddDestroyEvents(int amount)
     {
-        DestroyCounter = amount;
+        gameManager.DestroyCounter = amount;
         StartCoroutine(AddDestroyEvents());
     }
     public IEnumerator AddDestroyEvents()
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, TurnState.Busy);
+        gameManager.ExecutingEffects = true;
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
         while (gameManager.DestroyCounter != 0)
         {
@@ -270,6 +307,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + gameManager.DestroyCounter.ToString();
             yield return new WaitForFixedUpdate();
         }
+        gameManager.ExecutingEffects = false;
         gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
     public void Call_ClearCardEvents(NetworkTarget networkTarget, List<MonsterCardLocation> locations)
@@ -308,6 +346,10 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
                     break;
             }
         }
+    }
+    private IEnumerator WaitBeforeExecutingNextEffect()
+    {
+        while (gameManager.ExecutingEffects) { yield return new WaitForFixedUpdate(); }
     }
     [PunRPC]
     public void RPC_ClearCardEvents(List<MonsterCardLocation> locations)

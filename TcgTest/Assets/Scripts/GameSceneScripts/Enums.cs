@@ -35,11 +35,6 @@ public enum DuelistType
     Enemy,
     Both
 }
-public enum TurnState
-{
-    Normal,
-    Summoning
-}
 public enum FieldState
 {
     Selected,
@@ -49,7 +44,8 @@ public enum GameState
 {
     CoinFlip,
     Running,
-    GameOver
+    GameOver,
+    Paused
 }
 public enum CoinState
 {
@@ -73,7 +69,7 @@ public enum MonsterCardButton
     Attack,
     Summon
 }
-public enum GameManagerStates
+public enum TurnState
 {
     StartPhase,
     HandCardSelected,
@@ -86,7 +82,7 @@ public enum GameManagerStates
     Recalling,
     Discarding,
     Destroying,
-    EndPhase
+    EndPhase,
 }
 public enum MonsterCardLocation
 {

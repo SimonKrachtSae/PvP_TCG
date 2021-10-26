@@ -43,15 +43,28 @@ public class Deck: MonoBehaviour
 
         if (File.Exists(path))
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            FileStream stream = new FileStream(path, FileMode.Open);
-            deckData = formatter.Deserialize(stream) as DeckData;
-            stream.Close();
+            try 
+			{
+				BinaryFormatter formatter = new BinaryFormatter();
+				FileStream stream = new FileStream(path, FileMode.Open);
+				deckData = formatter.Deserialize(stream) as DeckData;
+				stream.Close();
+			}
+            catch 
+            {
+				Debug.Log("Caught Exeption");
+				StartCoroutine(WaitBeforeRetryLoad());
+            }
         }
         else
         {
             Debug.Log("File not found! \n Path: " + path);
         }
+    }
+	private IEnumerator WaitBeforeRetryLoad()
+    {
+		yield return new WaitForSecondsRealtime(1.5f);
+		LoadData();
     }
 	public void LoadUI()
     {
@@ -73,7 +86,6 @@ public class Deck: MonoBehaviour
 	{
 		if (!cards.Contains(gameObject)) cards.Add(gameObject);
 		Debug.Log(cards.Count);
-		CardName cardName;
 		//cardName = GetCardName(gameObject.name);
 		//System.Enum.TryParse(gameObject.name, out cardName);
 		//names.Add(cardName);

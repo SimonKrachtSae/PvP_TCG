@@ -5,6 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class NetworkUIManager : MonoBehaviour
 {
@@ -128,7 +129,6 @@ public class NetworkUIManager : MonoBehaviour
         PhotonNetwork.LocalPlayer.NickName = playerNameField.text;
         PhotonNetwork.JoinLobby();
     }
-
     public void HostRoom()
     {
         if (string.IsNullOrWhiteSpace(roomNameField.text))

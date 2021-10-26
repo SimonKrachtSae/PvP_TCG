@@ -28,6 +28,7 @@ public class MonsterCardStats : CardStat
     private void OnValidate()
     {
          MonsterCard_Layout layout = GetComponent<MonsterCard_Layout>(); 
+
         if(layout ==null)
         {
             Debug.Log("Missing Card Layout!");
@@ -38,6 +39,7 @@ public class MonsterCardStats : CardStat
         layout.PlayCostTextUI.text = playCost.ToString();
         layout.EffectTextUI.text = effectText.ToString();
         layout.NameTextUI.text = cardName.ToString();
+        gameObject.name = cardName.ToString();
     }
     public void SetValuesToDefault()
     {

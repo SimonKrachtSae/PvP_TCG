@@ -18,5 +18,6 @@ public class EffectCardStats : CardStat
         layout.PlayCostTextUI.text = playCost.ToString();
         layout.EffectTextUI.text = effectText.ToString();
         layout.NameTextUI.text = cardName.ToString();
+        gameObject.name = cardName.ToString();
     }
 }

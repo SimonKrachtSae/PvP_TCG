@@ -11,7 +11,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public CardType Type { get; protected set; }
     public DuelistType DuelistType { get; protected set; }
     protected MyPlayer player;
-
+    public MyPlayer Player { get => player; set => player = value; }
     public CardLocation Location { get; set; }
 
     [SerializeField]protected CardStat cardStats;
@@ -30,36 +30,51 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public Vector3 Target { get; set; }
 
     protected Vector3 mousePos;
-    [SerializeField] protected Image border;
+    [SerializeField] protected SpriteRenderer border;
 
     [SerializeField] protected ParticleBomb particleBomb;
     public ParticleBomb ParticleBomb { get => particleBomb; set => particleBomb = value; }
+
     protected void Awake()
     {
+        if (GameUIManager.Instance == null) return;
+        if(GameUIManager.Instance.State != GameState.CoinFlip)
+        {
+            if (!photonView.IsMine) { Destroy(this.gameObject); return; }
+            enabled = false;
+            return;
+        }
         gameManager = Game_Manager.Instance;
         if (photonView.IsMine)
         {
             DuelistType = DuelistType.Player;
-            player = gameManager.Player;
+            Player = gameManager.Player;
         }
         else
         {
             DuelistType = DuelistType.Enemy;
-            player = gameManager.Enemy;
+            Player = gameManager.Enemy;
             transform.rotation = new Quaternion(0.5f, 0, 0, 0);
         }
         prevPos = transform.position;
-        transform.position = player.DeckField.transform.position;
-        transform.parent = player.transform;
+        transform.position = Player.DeckField.transform.position;
+        transform.parent = Player.transform;
     }
     protected void Update()
     {
         if (!photonView.IsMine) return;
         if (transform.position != prevPos)
         {
+            Vector3 direction = transform.position - prevPos;
+            float velocity = direction.magnitude;
+            //gameManager.ParticleManager.PlayDrag(direction,velocity);
             photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
         }
         prevPos = transform.position;
+    }
+    private void OnMouseOver()
+    {
+        if (Input.GetMouseButtonDown(1)) GameUIManager.Instance.CardInfo.AssignCard(this.gameObject);
     }
     public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
     {
@@ -77,9 +92,8 @@ public abstract class Card : MonoBehaviourPunCallbacks
     {
         photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
-        MoveTowardsHand(player.HandParent.transform.position);
+        MoveTowardsHand(Player.HandParent.transform.position);
         Call_RotateToFront(NetworkTarget.Local);
-        if (gameManager.State == GameManagerStates.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy ) AssignHandEvents(NetworkTarget.Local);
     }
     public void Call_RotateToFront(NetworkTarget target)
     {
@@ -131,7 +145,8 @@ public abstract class Card : MonoBehaviourPunCallbacks
         }
         transform.position = targetTransform.position;
         Location = CardLocation.Hand;
-        player.RedrawHandCards();
+        Player.RedrawHandCards();
+        if (gameManager.State == TurnState.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy) AssignHandEvents(NetworkTarget.Local);
     }
     [PunRPC]
     public void SetRotation(Quaternion q)
@@ -141,7 +156,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RPC_UpdatePosition(Vector3 value)
     {
-        transform.position = new Vector3(value.x, value.y * -1, value.z);
+        transform.position = new Vector3(value.x, (value.y * -1) , value.z);
     }
     public IEnumerator RotateToBack()
     {
@@ -188,11 +203,11 @@ public abstract class Card : MonoBehaviourPunCallbacks
     {
         Vector3 direction;
         int maxIterations = 5000;
-        while((Target - transform.position).magnitude > 0.5f)
+        while((Target - transform.position).magnitude > 5)
         {
             yield return new WaitForFixedUpdate();
             direction = Target - transform.position;
-            transform.position += direction.normalized * Time.fixedDeltaTime * 25;
+            transform.position += direction.normalized * Time.fixedDeltaTime * 50;
 
             maxIterations--;
             if (maxIterations <= 0) break;
@@ -208,17 +223,18 @@ public abstract class Card : MonoBehaviourPunCallbacks
     {
         Vector3 direction;
         int maxIterations = 5000;
-        while ((Target - transform.position).magnitude > 0.5f)
+        while ((Target - transform.position).magnitude > 5)
         {
             yield return new WaitForFixedUpdate();
             direction = Target - transform.position;
-            transform.position += direction.normalized * Time.fixedDeltaTime * 25;
+            transform.position += direction.normalized * Time.fixedDeltaTime * 50;
 
             maxIterations--;
             if (maxIterations <= 0) break;
         }
         transform.position = Target;
-        player.RedrawHandCards();
+        Player.RedrawHandCards();
+        if (gameManager.State == TurnState.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy && !(gameManager.Round == 0 && gameManager.Turn == 1) ) AssignHandEvents(NetworkTarget.Local);
     }
     public void Call_AddToHand()
     {
@@ -227,53 +243,33 @@ public abstract class Card : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RPC_AddToHand()
     {
-        if (photonView.IsMine)
-        {
-            if(!player.Hand.Contains(this)) player.Hand.Add(this);
-        }
-        else
-        {
-            if (!gameManager.Enemy.Hand.Contains(this)) gameManager.Enemy.Hand.Add(this);
-        }
-
+        if(!Player.Hand.Contains(this)) Player.Hand.Add(this);
     }
     [PunRPC]
     public void RPC_RemoveFromHand()
     {
-        if (photonView.IsMine)
-        {
-            if (player.Hand.Contains(this)) player.Hand.Remove(this);
-            player.RedrawHandCards();
-        }
-        else
-        {
-            if (gameManager.Enemy.Hand.Contains(this)) gameManager.Enemy.Hand.Remove(this);
-            gameManager.Enemy.RedrawHandCards();
-        }
+        if (Player.Hand.Contains(this)) Player.Hand.Remove(this);
+        Player.RedrawHandCards();
     }
     [PunRPC]
     public void RPC_AddToDeck()
     {
-        if (photonView.IsMine) if (!player.DeckList.Contains(this)) player.DeckList.Add(this);
-        else if (!gameManager.Enemy.DeckList.Contains(this)) player.DeckList.Add(this);
+        if (!Player.DeckList.Contains(this)) Player.DeckList.Add(this);
     }
     [PunRPC]
     public void RPC_RemoveFromDeck()
     {
-        if (photonView.IsMine) if (player.DeckList.Contains(this)) player.DeckList.Remove(this);
-        else if(gameManager.Enemy.DeckList.Contains(this)) gameManager.Enemy.DeckList.Remove(this);
+        if (Player.DeckList.Contains(this)) Player.DeckList.Remove(this);
     }
     [PunRPC]
     public void RPC_AddToGraveyard()
     {
-        if (photonView.IsMine) player.Graveyard.Add(this);
-        else gameManager.Enemy.Graveyard.Add(this);
+        if (!Player.Graveyard.Contains(this)) Player.Graveyard.Add(this);
     }
     [PunRPC]
     public void RPC_RemoveFromGraveyard()
     {
-        if (photonView.IsMine) player.Graveyard.Remove(this);
-        else gameManager.Enemy.Graveyard.Remove(this);
+        if (!Player.Graveyard.Contains(this)) Player.Graveyard.Remove(this);
     }
     public void Event_FollowMouseDown()
     {
@@ -287,24 +283,24 @@ public abstract class Card : MonoBehaviourPunCallbacks
     {
         Call_SendToGraveyard();
         gameManager.DiscardCounter--;
-        if (player.Hand.Count == 0) gameManager.DiscardCounter = 0;
+        if (Player.Hand.Count == 0) gameManager.DiscardCounter = 0;
     }
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
         gameManager.DestroyCounter--;
-        if (player.Field.Count == 0) gameManager.DestroyCounter = 0;
+        if (Player.Field.Count == 0) gameManager.DestroyCounter = 0;
     }
     public void Event_Recall()
     {
         Call_SendToDeck();
         Call_RotateToBack(NetworkTarget.All);
-        player.OnRecall();
+        Player.OnRecall();
     }
     public void Call_SendToDeck()
     {
         if (this.GetType().ToString() == nameof(MonsterCard).ToString())
-            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
+            if (((MonsterCardStats)cardStats).Effect != null && Player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.Call_OnDestroy();
         photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToDeck), RpcTarget.All);
@@ -325,15 +321,15 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void Local_SendToDeck()
     {
         if (this.GetType().ToString() == nameof(MonsterCard).ToString())
-            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
+            if (((MonsterCardStats)cardStats).Effect != null && Player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.Call_OnDestroy();
         ClearEvents();
-        MoveTowardsTarget(player.DeckField.transform.position);
+        MoveTowardsTarget(Player.DeckField.transform.position);
         RotateToBack();
     }
     public void Call_SendToGraveyard()
     {
         if (this.GetType().ToString() == nameof(MonsterCard).ToString())
-            if (((MonsterCardStats)cardStats).Effect != null && player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.OnDestroy?.Invoke();
+            if (((MonsterCardStats)cardStats).Effect != null && Player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.Call_OnDestroy();
         photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
@@ -342,14 +338,14 @@ public abstract class Card : MonoBehaviourPunCallbacks
         if (!photonView.IsMine) photonView.RPC(nameof(RPC_SendToGraveyard), RpcTarget.Others);
         else
         {
-            MoveTowardsTarget(player.GraveyardObj.transform.position);
+            MoveTowardsTarget(Player.GraveyardObj.transform.position);
         }
     }
     [PunRPC]
     public void RPC_SendToGraveyard()
     {
         ClearEvents();
-        MoveTowardsTarget(player.GraveyardObj.transform.position);
+        MoveTowardsTarget(Player.GraveyardObj.transform.position);
     }
     [PunRPC]
     public void RPC_SetValuesToDefault()
@@ -359,7 +355,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     protected void Local_RemoveFromCurrentLists()
     {
         if(this.GetType().ToString() == nameof(MonsterCard).ToString())
-            if (player.Field.Contains((MonsterCard)this)) photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
+            if (Player.Field.Contains((MonsterCard)this)) photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
 
         photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
@@ -369,11 +365,10 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void RPC_RemoveFromField()
     {
         if (this.GetType().ToString() != nameof(MonsterCard).ToString()) return;
-        if (photonView.IsMine) player.Field.Remove((MonsterCard)this);
-        else gameManager.Enemy.Field.Remove((MonsterCard)this);
-        ((MonsterCardStats)CardStats).Attack -= player.AttackBoost;
+        if(Player.Field.Contains((MonsterCard)this)) Player.Field.Remove((MonsterCard)this);
+        ((MonsterCardStats)CardStats).Attack -= Player.AttackBoost;
         ((MonsterCard_Layout)Layout).AttackTextUI.text = ((MonsterCardStats)CardStats).Attack.ToString();
-        ((MonsterCardStats)CardStats).Defense -= player.DefenseBoost;
+        ((MonsterCardStats)CardStats).Defense -= Player.DefenseBoost;
         ((MonsterCard_Layout)Layout).DefenseTextUI.text = ((MonsterCardStats)CardStats).Defense.ToString();
     }
     public virtual void Call_AddEvent(CardEvent cardEvent, MouseEvent mouseEvent, NetworkTarget target) { }

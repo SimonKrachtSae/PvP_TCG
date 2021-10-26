@@ -5,31 +5,36 @@ using Photon.Pun;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Unity.CodeEditor;
 public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameUIManager Instance;
-
-	[SerializeField] private GameObject gamePhasePanel;
-	[SerializeField] private Animator gamePhaseAnimator;
-
-	[SerializeField] private GameObject CoinFlipCanvas;
+    [SerializeField] private Arrow arrow;
+    Unity.CodeEditor.CodeEditor codeEditor;
+    [SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
+    [SerializeField] private GameObject PauseMenu;
     [SerializeField] private TMP_Text winText;
     [SerializeField] private Button HeadsButton;
     [SerializeField] private Button TailsButton;
     [SerializeField] private Button startButton;
     [SerializeField] private Button endTurnButton;
+    [SerializeField] private ParticleManager particleManager;
+    public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
     public Button EndTurnButton { get => endTurnButton; set => endTurnButton = value; }
     public Button StartButton { get => startButton; set => startButton = value; }
 
-    [SerializeField] private GameObject BoardCanvas;
+    [SerializeField] private GameObject boardCanvas;
     [SerializeField] private CardInfo cardInfo;
     [SerializeField] private GameObject attackButton;
     public GameObject AttackButton { get => attackButton; set => attackButton = value; }
     
     public CardInfo CardInfo { get => cardInfo; }
     public TMP_Text NameText;
-
+    public GameState State { get; set; }
+    public GameObject BoardCanvas { get => boardCanvas; set => boardCanvas = value; }
+    public Arrow Arrow { get => arrow; set => arrow = value; }
+    [SerializeField] private TMP_Text roundTime;
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -41,18 +46,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         EndTurnButton.onClick.AddListener(() => { EndTurn(); });
         StartCoroutine(NameSelector());
     }
-
-	private IEnumerator ShowEndPhaseAnimation(float seconds)
-	{
-		gamePhasePanel.SetActive(true);
-		gamePhaseAnimator.SetInteger("GamePhase", 3);
-		yield return new WaitForSeconds(0.4f);
-		gamePhaseAnimator.SetInteger("GamePhase", 0);
-		yield return new WaitForSeconds(seconds);
-		gamePhasePanel.SetActive(false);
-	}
-
-	public IEnumerator NameSelector()
+    public IEnumerator NameSelector()
     {
         float timer = 5;
         string name1 = PhotonNetwork.PlayerList[0].NickName;
@@ -87,9 +81,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void SetGameState(GameState state)
     {
+        State = state;
         CoinFlipCanvas.SetActive(false);
         BoardCanvas.SetActive(false);
         GameOverCanvas.SetActive(false);
+        PauseMenu.SetActive(false);
         switch(state)
         {
             case GameState.CoinFlip:
@@ -104,6 +100,10 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 else winText.text = "You Lose...";
                 foreach (GameObject gameObject in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<GameObject>()) PhotonNetwork.Destroy(gameObject);
                 break;
+            case GameState.Paused:
+                PauseMenu.SetActive(true);
+                break;
+
         }
     }
     public void OnHeadsClicked()
@@ -132,34 +132,31 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public void RPC_StartGame()
     {
         SetGameState(GameState.Running);
-
-        Game_Manager.Instance.Call_DrawHandCards();
+        Game_Manager.Instance.Player.Call_DrawCards(5);
     }
     public void EndTurn()
     {
         int amount = Game_Manager.Instance.Player.Hand.Count;
 
-        Game_Manager.Instance.SetMainPhaseState(GameManagerStates.AttackPhase);
+        Game_Manager.Instance.SetMainPhaseState(TurnState.AttackPhase);
        
         if (amount > 7)
         {
             Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 7, NetworkTarget.Local);
             return;
         }
-        if (Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
+        if (Game_Manager.Instance.State == TurnState.Discarding || Game_Manager.Instance.State == TurnState.Destroying)
         {
             Debug.Log(Game_Manager.Instance.State.ToString()); 
             return; 
         }
 
-		StartCoroutine(ShowEndPhaseAnimation(1.4f));
-
-		AttackButton.SetActive(false);
+        AttackButton.SetActive(false);
 
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Busy);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Busy);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
@@ -170,7 +167,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void StartAttackPhase()
     {
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.AttackPhase);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.AttackPhase);
     }
     public void Block()
     {
@@ -187,8 +184,8 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
             Board.Instance.PlayerInfoText.text = "No Monsters left for blocking!";
             return;
         }
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Blocking);
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Blocking);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, TurnState.Busy);
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }
