@@ -38,7 +38,7 @@ public class MonsterCard : Card, IPunObservable
     private void OnMouseDrag()
     {
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
-        gameManager.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local);
+        GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local);
         OnMouseDragEvent?.Invoke();
     }
 
@@ -133,7 +133,7 @@ public class MonsterCard : Card, IPunObservable
             {
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
                 gameManager.AttackingMonster = this;
-                gameManager.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Busy);
+                gameManager.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Busy);
                 gameManager.Enemy.ShowBlockRequest();
                 HasAttacked = true;
             }

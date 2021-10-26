@@ -50,7 +50,7 @@ public class Deck: MonoBehaviour
 				deckData = formatter.Deserialize(stream) as DeckData;
 				stream.Close();
 			}
-            catch (IOException)
+            catch 
             {
 				Debug.Log("Caught Exeption");
 				StartCoroutine(WaitBeforeRetryLoad());

@@ -5,11 +5,12 @@ using Photon.Pun;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Unity.CodeEditor;
 public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameUIManager Instance;
-
     [SerializeField] private Arrow arrow;
+    Unity.CodeEditor.CodeEditor codeEditor;
     [SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
     [SerializeField] private GameObject PauseMenu;
@@ -18,6 +19,8 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] private Button TailsButton;
     [SerializeField] private Button startButton;
     [SerializeField] private Button endTurnButton;
+    [SerializeField] private ParticleManager particleManager;
+    public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
     public Button EndTurnButton { get => endTurnButton; set => endTurnButton = value; }
     public Button StartButton { get => startButton; set => startButton = value; }
 
@@ -135,14 +138,14 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         int amount = Game_Manager.Instance.Player.Hand.Count;
 
-        Game_Manager.Instance.SetMainPhaseState(GameManagerStates.AttackPhase);
+        Game_Manager.Instance.SetMainPhaseState(TurnState.AttackPhase);
        
         if (amount > 7)
         {
             Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 7, NetworkTarget.Local);
             return;
         }
-        if (Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
+        if (Game_Manager.Instance.State == TurnState.Discarding || Game_Manager.Instance.State == TurnState.Destroying)
         {
             Debug.Log(Game_Manager.Instance.State.ToString()); 
             return; 
@@ -153,7 +156,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Busy);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Busy);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
@@ -164,7 +167,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void StartAttackPhase()
     {
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.AttackPhase);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.AttackPhase);
     }
     public void Block()
     {
@@ -181,8 +184,8 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
             Board.Instance.PlayerInfoText.text = "No Monsters left for blocking!";
             return;
         }
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Blocking);
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Blocking);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, TurnState.Busy);
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }

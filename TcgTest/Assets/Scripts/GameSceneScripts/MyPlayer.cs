@@ -207,7 +207,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     public void AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
         recallCounter = amount;
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, TurnState.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
         {
             if (Field.Count < 1)
@@ -273,7 +273,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public IEnumerator AddDiscardEffects()
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, TurnState.Busy);
         gameManager.ExecutingEffects = true;
         foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
         while(gameManager.DiscardCounter != 0)
@@ -298,7 +298,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public IEnumerator AddDestroyEvents()
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetMainPhaseState(NetworkTarget.All, TurnState.Busy);
         gameManager.ExecutingEffects = true;
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
         while (gameManager.DestroyCounter != 0)

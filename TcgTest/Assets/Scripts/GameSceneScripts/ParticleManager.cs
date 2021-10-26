@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+[ExecuteInEditMode]
 public class ParticleManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     [SerializeField]private ParticleSystem summon;
@@ -33,7 +34,6 @@ public class ParticleManager : MonoBehaviourPunCallbacks, IPunObservable
                 break;
         }
     }
-
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
     }

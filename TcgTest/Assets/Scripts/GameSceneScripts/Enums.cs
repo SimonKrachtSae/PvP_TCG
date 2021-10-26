@@ -35,11 +35,6 @@ public enum DuelistType
     Enemy,
     Both
 }
-public enum TurnState
-{
-    Normal,
-    Summoning
-}
 public enum FieldState
 {
     Selected,
@@ -74,7 +69,7 @@ public enum MonsterCardButton
     Attack,
     Summon
 }
-public enum GameManagerStates
+public enum TurnState
 {
     StartPhase,
     HandCardSelected,

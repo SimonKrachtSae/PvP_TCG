@@ -1,37 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu(fileName = "Observer", menuName = "Customs/ObservableValue", order = 1)]
-[System.Serializable]
-public class ObservableValue: ScriptableObject
+using Customs;
+namespace Customs
 {
-    [SerializeField] private ValueTypes valueType;
-    private void OnValidate()
+    public class ObservableValue<T> : Value<T>
     {
-        SetValueType(valueType);
-        //((Observer)Resources.Load(nameof(Observer))).Subscribe<T>(this);
-    }
-    private void SetValueType(ValueTypes value)
-    {
-        valueType = value;
-        if (valueType == ValueTypes.Int)
+        protected void Awake()
         {
+            ((Observer)Resources.Load(nameof(Observer))).Subscribe<T>(this);
+        }
+        protected void OnDisable()
+        {
+            ((Observer)Resources.Load(nameof(Observer))).UnSubscribe<T>(this);
         }
     }
-    //public ObservableValue(T value)
-    //{
-    //    this.Value = value;
-    //}
-    private void OnDestroy()
+    [CreateAssetMenu(fileName = "ObservableInt", menuName = "Customs/Observables/Int", order = 1)]
+    public class ObservableInt : ObservableValue<int>
     {
     }
-}
-public enum ValueTypes
-{
-    Object,
-    Int,
-    Float,
-    Bool,
-    Char,
-    String
 }

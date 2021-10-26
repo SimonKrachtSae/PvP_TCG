@@ -6694,7 +6694,7 @@ ParticleSystem:
     flipU: 0
     flipV: 0
   VelocityModule:
-    enabled: 0
+    enabled: 1
     x:
       serializedVersion: 2
       minMaxState: 0
@@ -10569,6 +10569,7 @@ MonoBehaviour:
   cardInfo: {fileID: 722847686}
   attackButton: {fileID: 1246716504}
   NameText: {fileID: 454394983}
+  roundTime: {fileID: 0}
 --- !u!114 &1301901501
 MonoBehaviour:
   m_ObjectHideFlags: 0

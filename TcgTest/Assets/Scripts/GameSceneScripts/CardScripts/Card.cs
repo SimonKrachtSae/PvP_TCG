@@ -37,6 +37,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
 
     protected void Awake()
     {
+        if (GameUIManager.Instance == null) return;
         if(GameUIManager.Instance.State != GameState.CoinFlip)
         {
             if (!photonView.IsMine) { Destroy(this.gameObject); return; }
@@ -64,6 +65,9 @@ public abstract class Card : MonoBehaviourPunCallbacks
         if (!photonView.IsMine) return;
         if (transform.position != prevPos)
         {
+            Vector3 direction = transform.position - prevPos;
+            float velocity = direction.magnitude;
+            //gameManager.ParticleManager.PlayDrag(direction,velocity);
             photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
         }
         prevPos = transform.position;
@@ -142,7 +146,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         transform.position = targetTransform.position;
         Location = CardLocation.Hand;
         Player.RedrawHandCards();
-        if (gameManager.State == GameManagerStates.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy) AssignHandEvents(NetworkTarget.Local);
+        if (gameManager.State == TurnState.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy) AssignHandEvents(NetworkTarget.Local);
     }
     [PunRPC]
     public void SetRotation(Quaternion q)
@@ -230,7 +234,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
         }
         transform.position = Target;
         Player.RedrawHandCards();
-        if (gameManager.State == GameManagerStates.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy && !(gameManager.Round == 0 && gameManager.Turn == 1) ) AssignHandEvents(NetworkTarget.Local);
+        if (gameManager.State == TurnState.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy && !(gameManager.Round == 0 && gameManager.Turn == 1) ) AssignHandEvents(NetworkTarget.Local);
     }
     public void Call_AddToHand()
     {
