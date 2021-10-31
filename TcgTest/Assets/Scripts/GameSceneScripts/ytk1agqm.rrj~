@@ -7,11 +7,16 @@ public class ButtonAssignAudio : MonoBehaviour
 {
     [SerializeField] private AudioType audioType;
     [SerializeField] private Button button;
+    AudioSource MouseOverSound;
 
+
+    public void OnMouseEnter()
+    {
+        MouseOverSound.Play();
+    }
 
     private void Start()
     {
-       
         button.onClick.AddListener(() => AudioManager.Instance.Local_PlaySound(audioType));
         
     }

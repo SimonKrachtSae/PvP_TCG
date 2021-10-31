@@ -9,6 +9,11 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] private AudioSource drawSound;
     [SerializeField] private AudioSource summonSound;
     [SerializeField] private AudioSource clickSound;
+    [SerializeField] private AudioSource backgroundMenuMusic;
+    [SerializeField] private AudioSource backgroundGameMusic;
+  
+
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -16,17 +21,27 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
         this.transform.position = Camera.main.transform.position;
         DontDestroyOnLoad(this.gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
+        Local_PlaySound(AudioType.BackgroundMenuMusic);
+        
     }
+   
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         this.transform.position = Camera.main.transform.position;
+        
     }
+
+
+
+
     public void Call_PlaySound(AudioType audioType, NetworkTarget target)
     {
         if (target == NetworkTarget.Local) Local_PlaySound(audioType);
         else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_PlaySound), RpcTarget.Others, audioType);
         else if (target == NetworkTarget.All) photonView.RPC(nameof(RPC_PlaySound), RpcTarget.All, audioType);
     }
+
+
     [PunRPC]
     public void RPC_PlaySound(AudioType audioType)
     {
@@ -37,7 +52,6 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
         switch (audioType)
         {
             case AudioType.Draw:
-                drawSound.volume = 1;
                 drawSound.Play();
                 break;
             case AudioType.Summon:
@@ -46,8 +60,13 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
             case AudioType.Click:
                 clickSound.Play();
                 break;
+            case AudioType.BackgroundMenuMusic:
+                backgroundMenuMusic.Play();
+                break;
         }
     }
+
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
     }
@@ -56,5 +75,8 @@ public enum AudioType
 {
     Draw,
     Summon,
-    Click
+    Click,
+    MouseOverSound,
+    BackgroundMenuMusic,
+    BackgroundGameMusic
 }

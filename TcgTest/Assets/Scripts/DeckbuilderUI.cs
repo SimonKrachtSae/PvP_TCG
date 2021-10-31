@@ -8,6 +8,7 @@ public class DeckbuilderUI : MonoBehaviour
 	public static DeckbuilderUI Instance;
     [SerializeField] private GameObject lobbyUI;
     [SerializeField] private GameObject detailedCardViewPanel;
+	
 
     public GameObject deckScroll;
     public GameObject collectionScroll;
@@ -24,7 +25,9 @@ public class DeckbuilderUI : MonoBehaviour
 
 	}
 
-	public void BackToDeckBuilderUI()
+   
+
+    public void BackToDeckBuilderUI()
 	{
 		Transform card = detailedCardViewPanel.transform.GetChild(1);
 
