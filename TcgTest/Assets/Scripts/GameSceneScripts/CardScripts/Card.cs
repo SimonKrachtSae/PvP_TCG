@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Photon.Pun;
-public abstract class Card : MonoBehaviourPun
+public abstract class Card : MonoBehaviourPunCallbacks
 {
     protected CardLayout layout;
     public CardLayout Layout { get => layout; set => layout = value; }
@@ -35,9 +35,8 @@ public abstract class Card : MonoBehaviourPun
     [SerializeField] protected ParticleBomb particleBomb;
     public ParticleBomb ParticleBomb { get => particleBomb; set => particleBomb = value; }
 
-    void Awake()
+    protected void Awake()
     {
-        if (GameUIManager.Instance == null) return;
         if(GameUIManager.Instance.State != GameState.CoinFlip)
         {
             if (!photonView.IsMine) { Destroy(this.gameObject); return; }
@@ -65,9 +64,6 @@ public abstract class Card : MonoBehaviourPun
         if (!photonView.IsMine) return;
         if (transform.position != prevPos)
         {
-            Vector3 direction = transform.position - prevPos;
-            float velocity = direction.magnitude;
-            //gameManager.ParticleManager.PlayDrag(direction,velocity);
             photonView.RPC(nameof(RPC_UpdatePosition), RpcTarget.Others, transform.position);
         }
         prevPos = transform.position;
@@ -129,9 +125,8 @@ public abstract class Card : MonoBehaviourPun
     {
         ClearEvents();
         Call_AddEvent(CardEvent.FollowMouse_MouseDown, MouseEvent.Down, networkTarget);
-        if(GetType().ToString() == nameof(MonsterCard)) Call_AddEvent(CardEvent.CardOverField, MouseEvent.Drag, networkTarget);
-        else if (GetType().ToString() == nameof(EffectCard)) Call_AddEvent(CardEvent.FollowMouse_MouseDrag, MouseEvent.Drag, networkTarget);
-        if (GetType().ToString() == nameof(MonsterCard))Call_AddEvent(CardEvent.Summon, MouseEvent.Up, networkTarget);
+        Call_AddEvent(CardEvent.FollowMouse_MouseDrag, MouseEvent.Drag, networkTarget);
+        if(GetType().ToString() == nameof(MonsterCard))Call_AddEvent(CardEvent.Summon, MouseEvent.Up, networkTarget);
         else if(GetType().ToString() == nameof(EffectCard))Call_AddEvent(CardEvent.Play, MouseEvent.Up, networkTarget);
     }
     public IEnumerator MoveCardFromDeckToHand()
@@ -147,7 +142,7 @@ public abstract class Card : MonoBehaviourPun
         transform.position = targetTransform.position;
         Location = CardLocation.Hand;
         Player.RedrawHandCards();
-        if (gameManager.State == TurnState.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy) AssignHandEvents(NetworkTarget.Local);
+        if (gameManager.State == GameManagerStates.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy) AssignHandEvents(NetworkTarget.Local);
     }
     [PunRPC]
     public void SetRotation(Quaternion q)
@@ -235,7 +230,7 @@ public abstract class Card : MonoBehaviourPun
         }
         transform.position = Target;
         Player.RedrawHandCards();
-        if (gameManager.State == TurnState.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy && !(gameManager.Round == 0 && gameManager.Turn == 1) ) AssignHandEvents(NetworkTarget.Local);
+        if (gameManager.State == GameManagerStates.StartPhase && gameManager.CurrentDuelist != DuelistType.Enemy && !(gameManager.Round == 0 && gameManager.Turn == 1) ) AssignHandEvents(NetworkTarget.Local);
     }
     public void Call_AddToHand()
     {
@@ -279,28 +274,6 @@ public abstract class Card : MonoBehaviourPun
     public void Event_FollowMouseDrag()
     {
         transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
-    }
-    public void Event_SummonFollowMouseDrag()
-    {
-        bool targeting = false;
-        transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
-        for (int i = 0; i < 5; i++)
-        {
-            Vector3 direction = Board.Instance.PlayerMonsterFields[i].transform.position - transform.position;
-            if (direction.magnitude < 7)
-            {
-                foreach (MonsterCard card in Player.Field)
-                    if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 7)
-                    {
-                        GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
-                        return;
-                    }
-                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,20,0), NetworkTarget.Local);
-                targeting = true;
-                continue;
-            }
-        }
-        if (!targeting) GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
     }
     public void Event_Discard()
     {

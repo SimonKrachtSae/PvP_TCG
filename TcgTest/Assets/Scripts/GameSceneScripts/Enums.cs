@@ -15,8 +15,7 @@ public enum CardEvent
     Burn,
     DrawLine_MouseDown,
     DrawLine_MouseDrag,
-    Recall,
-    CardOverField
+    Recall
 }
 public enum MouseEvent
 {
@@ -35,6 +34,11 @@ public enum DuelistType
     Player,
     Enemy,
     Both
+}
+public enum TurnState
+{
+    Normal,
+    Summoning
 }
 public enum FieldState
 {
@@ -70,7 +74,7 @@ public enum MonsterCardButton
     Attack,
     Summon
 }
-public enum TurnState
+public enum GameManagerStates
 {
     StartPhase,
     HandCardSelected,

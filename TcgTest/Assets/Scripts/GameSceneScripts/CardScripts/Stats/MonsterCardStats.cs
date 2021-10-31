@@ -38,18 +38,8 @@ public class MonsterCardStats : CardStat
         layout.DefenseTextUI.text = defense.ToString();
         layout.PlayCostTextUI.text = playCost.ToString();
         layout.EffectTextUI.text = effectText.ToString();
-        if(layout.NameTextUI.text != cardName.ToString())
-        {
-            CardNamesData cardNames = (CardNamesData)Resources.Load("CardNames");
-
-            if (cardNames.CardNames == null) cardNames.CardNames = new List<string>();
-
-            if (cardNames.CardNames.Contains(layout.NameTextUI.text))
-                cardNames.CardNames.Remove(layout.NameTextUI.text);
-            layout.NameTextUI.text = cardName.ToString();
-            gameObject.name = cardName.ToString();
-            cardNames.CardNames.Add(cardName.ToString());
-        }
+        layout.NameTextUI.text = cardName.ToString();
+        gameObject.name = cardName.ToString();
     }
     public void SetValuesToDefault()
     {

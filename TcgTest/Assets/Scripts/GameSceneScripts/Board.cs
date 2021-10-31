@@ -9,6 +9,7 @@ using UnityEditor;
 public class Board : MonoBehaviour
 {
     public static Board Instance;
+
     [SerializeField] private List<GameObject> playerMonsterFields;
     public List<GameObject> PlayerMonsterFields { get => playerMonsterFields; set => playerMonsterFields = value; }
 

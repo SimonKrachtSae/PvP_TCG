@@ -5,9 +5,10 @@ using Photon.Pun;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-public class GameUIManager : MonoBehaviourPun
+public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static GameUIManager Instance;
+
     [SerializeField] private Arrow arrow;
     [SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
@@ -17,8 +18,6 @@ public class GameUIManager : MonoBehaviourPun
     [SerializeField] private Button TailsButton;
     [SerializeField] private Button startButton;
     [SerializeField] private Button endTurnButton;
-    [SerializeField] private ParticleManager particleManager;
-    public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
     public Button EndTurnButton { get => endTurnButton; set => endTurnButton = value; }
     public Button StartButton { get => startButton; set => startButton = value; }
 
@@ -96,7 +95,7 @@ public class GameUIManager : MonoBehaviourPun
                 GameOverCanvas.SetActive(true);
                 if (Game_Manager.Instance.Player.DeckList.Count == 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
-                foreach (PhotonView photonView in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<PhotonView>()) PhotonNetwork.Destroy(photonView.gameObject);
+                foreach (GameObject gameObject in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<GameObject>()) PhotonNetwork.Destroy(gameObject);
                 break;
             case GameState.Paused:
                 PauseMenu.SetActive(true);
@@ -136,14 +135,14 @@ public class GameUIManager : MonoBehaviourPun
     {
         int amount = Game_Manager.Instance.Player.Hand.Count;
 
-        Game_Manager.Instance.Local_SetTurnState(TurnState.AttackPhase);
+        Game_Manager.Instance.SetMainPhaseState(GameManagerStates.AttackPhase);
        
         if (amount > 7)
         {
             Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 7, NetworkTarget.Local);
             return;
         }
-        if (Game_Manager.Instance.State == TurnState.Discarding || Game_Manager.Instance.State == TurnState.Destroying)
+        if (Game_Manager.Instance.State == GameManagerStates.Discarding || Game_Manager.Instance.State == GameManagerStates.Destroying)
         {
             Debug.Log(Game_Manager.Instance.State.ToString()); 
             return; 
@@ -154,7 +153,7 @@ public class GameUIManager : MonoBehaviourPun
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
-        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Busy);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Busy);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
@@ -165,7 +164,7 @@ public class GameUIManager : MonoBehaviourPun
     }
     public void StartAttackPhase()
     {
-        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.AttackPhase);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.AttackPhase);
     }
     public void Block()
     {
@@ -182,8 +181,8 @@ public class GameUIManager : MonoBehaviourPun
             Board.Instance.PlayerInfoText.text = "No Monsters left for blocking!";
             return;
         }
-        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Blocking);
-        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Other, TurnState.Busy);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Blocking);
+        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, GameManagerStates.Busy);
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }
@@ -200,5 +199,8 @@ public class GameUIManager : MonoBehaviourPun
     public void QuitPressed()
     {
         Application.Quit();
+    }
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
     }
 }

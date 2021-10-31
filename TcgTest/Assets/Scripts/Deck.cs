@@ -9,33 +9,86 @@ using System.IO;
 public class Deck: MonoBehaviour
 {
     public static Deck Instance;
-    [SerializeField]private DeckData deckData;
+    [SerializeField] private List<GameObject> cards;
+    private DeckData deckData;
     public DeckData DeckData { get => deckData; set => deckData = value; }
-	private List<GameObject> cards = new List<GameObject>();
+	List<CardName> names;
+
 	void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
+		cards = new List<GameObject>();
+		names = new List<CardName>();
     }
-	public void Save()
+    public void Save()
     {
-		deckData.CardNames = new List<string>();
 		foreach(GameObject gameObject in cards)
+		{
+			CardName cardName;
+			System.Enum.TryParse(gameObject.name, out cardName);
+			names.Add(cardName);
+		}
+        string path = Application.persistentDataPath + "/Deck.fun";
+        if (File.Exists(path)) File.Delete(path);
+        BinaryFormatter formatter = new BinaryFormatter();
+        FileStream stream = new FileStream(path, FileMode.Create);
+		DeckData data = new DeckData(names);
+        formatter.Serialize(stream, data);
+        stream.Close();
+    }
+    public void LoadData()
+    {
+        string path = Application.persistentDataPath + "/Deck.fun";
+
+        if (File.Exists(path))
         {
-			deckData.CardNames.Add(gameObject.name);
+            try 
+			{
+				BinaryFormatter formatter = new BinaryFormatter();
+				FileStream stream = new FileStream(path, FileMode.Open);
+				deckData = formatter.Deserialize(stream) as DeckData;
+				stream.Close();
+			}
+            catch (IOException)
+            {
+				Debug.Log("Caught Exeption");
+				StartCoroutine(WaitBeforeRetryLoad());
+            }
         }
+        else
+        {
+            Debug.Log("File not found! \n Path: " + path);
+        }
+    }
+	private IEnumerator WaitBeforeRetryLoad()
+    {
+		yield return new WaitForSecondsRealtime(1.5f);
+		LoadData();
     }
 	public void LoadUI()
     {
-		foreach (string cardName in deckData.CardNames)
+		string path = Application.persistentDataPath + "/Deck.fun";
+
+		if (File.Exists(path))
 		{
-			DeckUIManager.Instance.SpawnCardOnLoad(cardName);
+			BinaryFormatter formatter = new BinaryFormatter();
+			FileStream stream = new FileStream(path, FileMode.Open);
+			deckData = formatter.Deserialize(stream) as DeckData;
+			stream.Close();
+			foreach (CardName cardName in deckData.CardNames)
+			{
+				DeckUIManager.Instance.SpawnCardOnLoad(cardName);
+			}
 		}
 	}
 	public void Subscribe(GameObject gameObject)
 	{
 		if (!cards.Contains(gameObject)) cards.Add(gameObject);
 		Debug.Log(cards.Count);
+		//cardName = GetCardName(gameObject.name);
+		//System.Enum.TryParse(gameObject.name, out cardName);
+		//names.Add(cardName);
 		if(!cards.Contains(gameObject))
 			cards.Add(gameObject);
 	}
