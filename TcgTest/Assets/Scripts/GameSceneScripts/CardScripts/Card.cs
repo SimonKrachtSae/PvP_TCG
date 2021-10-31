@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Photon.Pun;
-public abstract class Card : MonoBehaviourPunCallbacks
+public abstract class Card : MonoBehaviourPun
 {
     protected CardLayout layout;
     public CardLayout Layout { get => layout; set => layout = value; }
@@ -35,7 +35,7 @@ public abstract class Card : MonoBehaviourPunCallbacks
     [SerializeField] protected ParticleBomb particleBomb;
     public ParticleBomb ParticleBomb { get => particleBomb; set => particleBomb = value; }
 
-    protected void Awake()
+    void Awake()
     {
         if (GameUIManager.Instance == null) return;
         if(GameUIManager.Instance.State != GameState.CoinFlip)
@@ -129,8 +129,9 @@ public abstract class Card : MonoBehaviourPunCallbacks
     {
         ClearEvents();
         Call_AddEvent(CardEvent.FollowMouse_MouseDown, MouseEvent.Down, networkTarget);
-        Call_AddEvent(CardEvent.FollowMouse_MouseDrag, MouseEvent.Drag, networkTarget);
-        if(GetType().ToString() == nameof(MonsterCard))Call_AddEvent(CardEvent.Summon, MouseEvent.Up, networkTarget);
+        if(GetType().ToString() == nameof(MonsterCard)) Call_AddEvent(CardEvent.CardOverField, MouseEvent.Drag, networkTarget);
+        else if (GetType().ToString() == nameof(EffectCard)) Call_AddEvent(CardEvent.FollowMouse_MouseDrag, MouseEvent.Drag, networkTarget);
+        if (GetType().ToString() == nameof(MonsterCard))Call_AddEvent(CardEvent.Summon, MouseEvent.Up, networkTarget);
         else if(GetType().ToString() == nameof(EffectCard))Call_AddEvent(CardEvent.Play, MouseEvent.Up, networkTarget);
     }
     public IEnumerator MoveCardFromDeckToHand()
@@ -278,6 +279,28 @@ public abstract class Card : MonoBehaviourPunCallbacks
     public void Event_FollowMouseDrag()
     {
         transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
+    }
+    public void Event_SummonFollowMouseDrag()
+    {
+        bool targeting = false;
+        transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
+        for (int i = 0; i < 5; i++)
+        {
+            Vector3 direction = Board.Instance.PlayerMonsterFields[i].transform.position - transform.position;
+            if (direction.magnitude < 7)
+            {
+                foreach (MonsterCard card in Player.Field)
+                    if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 7)
+                    {
+                        GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
+                        return;
+                    }
+                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,20,0), NetworkTarget.Local);
+                targeting = true;
+                continue;
+            }
+        }
+        if (!targeting) GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
     }
     public void Event_Discard()
     {

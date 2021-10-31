@@ -15,7 +15,8 @@ public enum CardEvent
     Burn,
     DrawLine_MouseDown,
     DrawLine_MouseDrag,
-    Recall
+    Recall,
+    CardOverField
 }
 public enum MouseEvent
 {

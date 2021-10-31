@@ -5,12 +5,10 @@ using Photon.Pun;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-using Unity.CodeEditor;
-public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
+public class GameUIManager : MonoBehaviourPun
 {
     public static GameUIManager Instance;
     [SerializeField] private Arrow arrow;
-    Unity.CodeEditor.CodeEditor codeEditor;
     [SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
     [SerializeField] private GameObject PauseMenu;
@@ -98,7 +96,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
                 GameOverCanvas.SetActive(true);
                 if (Game_Manager.Instance.Player.DeckList.Count == 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
-                foreach (GameObject gameObject in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<GameObject>()) PhotonNetwork.Destroy(gameObject);
+                foreach (PhotonView photonView in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<PhotonView>()) PhotonNetwork.Destroy(photonView.gameObject);
                 break;
             case GameState.Paused:
                 PauseMenu.SetActive(true);
@@ -138,7 +136,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         int amount = Game_Manager.Instance.Player.Hand.Count;
 
-        Game_Manager.Instance.SetMainPhaseState(TurnState.AttackPhase);
+        Game_Manager.Instance.Local_SetTurnState(TurnState.AttackPhase);
        
         if (amount > 7)
         {
@@ -156,7 +154,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
         GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Busy);
+        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Busy);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
@@ -167,7 +165,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     public void StartAttackPhase()
     {
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.AttackPhase);
+        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.AttackPhase);
     }
     public void Block()
     {
@@ -184,8 +182,8 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
             Board.Instance.PlayerInfoText.text = "No Monsters left for blocking!";
             return;
         }
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Local, TurnState.Blocking);
-        Game_Manager.Instance.Call_SetMainPhaseState(NetworkTarget.Other, TurnState.Busy);
+        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Blocking);
+        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Other, TurnState.Busy);
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }
@@ -202,8 +200,5 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IPunObservable
     public void QuitPressed()
     {
         Application.Quit();
-    }
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
     }
 }

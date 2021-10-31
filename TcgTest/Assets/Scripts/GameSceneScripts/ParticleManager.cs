@@ -2,13 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-[ExecuteInEditMode]
-public class ParticleManager : MonoBehaviourPunCallbacks, IPunObservable
+public class ParticleManager : MonoBehaviourPun
 {
     [SerializeField]private ParticleSystem summon;
     [SerializeField]private ParticleSystem destroy;
+    [SerializeField]private ParticleSystem burn;
     [SerializeField]private ParticleSystem drag;
     [SerializeField]private ParticleSystem attack;
+    [SerializeField]private ParticleSystem cardOverField;
+    [SerializeField] private Vector3 offset;
     public void Call_Play(ParticleType type, Vector3 position, NetworkTarget target)
     {
         if (target == NetworkTarget.Local) Local_Play(type, position);
@@ -29,13 +31,31 @@ public class ParticleManager : MonoBehaviourPunCallbacks, IPunObservable
         switch(type)
         {
             case ParticleType.Drag:
-                drag.gameObject.transform.position = position;
-                drag.Play();
+                drag.gameObject.transform.position = position + offset;
+                //drag.Play();
+                break;
+            case ParticleType.Summon:
+                summon.gameObject.transform.position = position + offset;
+                if(!summon.isPlaying) summon.Play();
+                break;
+            case ParticleType.Burn:
+                burn.gameObject.transform.position = position + offset;
+                if (!burn.isPlaying) burn.Play();
+                break;
+            case ParticleType.CardOverField:
+                cardOverField.gameObject.transform.position = position + offset;
+                if (!cardOverField.isPlaying) cardOverField.Play();
                 break;
         }
     }
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    public void Local_Stop(ParticleType type)
     {
+        switch (type)
+        {
+            case ParticleType.CardOverField:
+                if (cardOverField.isPlaying) cardOverField.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                break;
+        }
     }
 }
 public enum ParticleType
@@ -43,5 +63,7 @@ public enum ParticleType
     Summon,
     Attack,
     Drag,
-    Destroy
+    Destroy,
+    Burn,
+    CardOverField
 }
