@@ -5,7 +5,7 @@ using Photon.Pun;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
-public class MonsterCard : Card
+public class MonsterCard : Card, IPunObservable
 {
     private Card attackTarget;
     public bool HasAttacked { get; set; }
@@ -38,7 +38,7 @@ public class MonsterCard : Card
     private void OnMouseDrag()
     {
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
-        GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local);
+        gameManager.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local);
         OnMouseDragEvent?.Invoke();
     }
 
@@ -124,18 +124,18 @@ public class MonsterCard : Card
         {
             if (gameManager.Enemy.Field.Count == 0)
             {
-                Player.Call_DrawCards(1);
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnDirectAttack();
+                Player.Call_DrawCards(1);
                 HasAttacked = true;
             }
             else
             {
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
                 gameManager.AttackingMonster = this;
-                gameManager.Call_SetTurnState(NetworkTarget.Local, TurnState.Busy);
-                HasAttacked = true;
+                gameManager.Call_SetMainPhaseState(NetworkTarget.Local, GameManagerStates.Busy);
                 gameManager.Enemy.ShowBlockRequest();
+                HasAttacked = true;
             }
             ClearEvents();
         }
@@ -144,20 +144,13 @@ public class MonsterCard : Card
     }
     public void Event_Summon()
     {
-        GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
         if (Player.Mana >= base.CardStats.PlayCost)
         {
             for (int i = 0; i < 5; i++)
             {
                 Vector3 direction = Board.Instance.PlayerMonsterFields[i].transform.position - transform.position;
-                if (direction.magnitude < 7)
+                if (direction.magnitude < 5)
                 {
-                    foreach (MonsterCard card in Player.Field)
-                        if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 7)
-                        {
-                            transform.position = mouseDownPos;
-                            return;
-                        }
                     //AudioManager.Instance.Call_PlaySound(AudioType.Summon, NetworkTarget.Local);
                     ClearEvents();
                     transform.position = Board.Instance.PlayerMonsterFields[i].transform.position;
@@ -169,7 +162,6 @@ public class MonsterCard : Card
                     photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
                     Assign_BurnEvents(NetworkTarget.Local);
                     if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnSummon();
-                    GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Summon, transform.position, NetworkTarget.All);
                     return;
                 }
             }
@@ -187,7 +179,6 @@ public class MonsterCard : Card
     {
         if (((Vector2)Board.Instance.BurnField.transform.position - (Vector2)transform.position).magnitude < 10)
         {
-            GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Burn, Board.Instance.BurnField.transform.position, NetworkTarget.All);
             photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
             photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
             Player.Mana += ((MonsterCardStats)cardStats).PlayCost;
@@ -231,7 +222,7 @@ public class MonsterCard : Card
         ClearEvents();
         Call_AddEvent(CardEvent.DrawLine_MouseDown, MouseEvent.Down, networkTarget);
         Call_AddEvent(CardEvent.DrawLine_MouseDrag, MouseEvent.Drag, networkTarget);
-        if(!HasAttacked)Call_AddEvent(CardEvent.Attack, MouseEvent.Up, networkTarget);
+        Call_AddEvent(CardEvent.Attack, MouseEvent.Up, networkTarget);
     }
     public override void Call_AddEvent(CardEvent cardEvent, MouseEvent mouseEvent, NetworkTarget target)
     {
@@ -254,9 +245,6 @@ public class MonsterCard : Card
                 break;
             case CardEvent.FollowMouse_MouseDrag:
                 AssignEvent(Event_FollowMouseDrag, mouseEvent);
-                break;
-            case CardEvent.CardOverField:
-                AssignEvent(Event_SummonFollowMouseDrag, mouseEvent);
                 break;
             case CardEvent.DrawLine_MouseDrag:
                 AssignEvent(Event_DrawLine_MouseDrag, mouseEvent);
@@ -295,5 +283,8 @@ public class MonsterCard : Card
     public void RPC_UpdateSwordIcon(bool value)
     {
         swordIcon.SetActive(value);
+    }
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
     }
 }

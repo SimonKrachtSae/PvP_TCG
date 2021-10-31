@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.Events;
-public class EffectCard : Card
+public class EffectCard : Card,IPunObservable
 {
     private void Start()
     {
@@ -127,5 +127,9 @@ public class EffectCard : Card
     {
         if (Player.Mana < cardStats.PlayCost) { transform.position = mouseDownPos; return; }
         StartCoroutine(Play());
+    }
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+
     }
 }

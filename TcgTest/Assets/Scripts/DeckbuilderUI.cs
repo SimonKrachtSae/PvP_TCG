@@ -8,19 +8,16 @@ public class DeckbuilderUI : MonoBehaviour
 	public static DeckbuilderUI Instance;
     [SerializeField] private GameObject lobbyUI;
     [SerializeField] private GameObject detailedCardViewPanel;
+	
 
     public GameObject deckScroll;
     public GameObject collectionScroll;
-	void Awake()
+	private void Awake()
 	{
 		if (Instance != null) Destroy(this.gameObject);
 		else { Instance = this; }
 	}
-    private void OnEnable()
-    {
-		Deck.Instance.LoadUI();
-    }
-    public void BackToLobbyUI()
+	public void BackToLobbyUI()
 	{
 		lobbyUI.SetActive(true);
 		this.gameObject.SetActive(false);
@@ -28,7 +25,9 @@ public class DeckbuilderUI : MonoBehaviour
 
 	}
 
-	public void BackToDeckBuilderUI()
+   
+
+    public void BackToDeckBuilderUI()
 	{
 		Transform card = detailedCardViewPanel.transform.GetChild(1);
 
