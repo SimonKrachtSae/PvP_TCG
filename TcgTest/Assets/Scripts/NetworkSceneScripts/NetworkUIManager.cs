@@ -6,7 +6,6 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Threading.Tasks;
 
 public class NetworkUIManager : MonoBehaviour
 {
@@ -21,12 +20,6 @@ public class NetworkUIManager : MonoBehaviour
     private List<GameObject> panels;
 
 	public GameObject deckBuilderUI;
-
-    private bool isDestroyed = false;
-       
-   
-    [SerializeField] private List<Transform> shurikens;
-
 
     [Header("Connection Failed UIs")]
     [SerializeField] private GameObject connectFailedPanel;
@@ -71,13 +64,6 @@ public class NetworkUIManager : MonoBehaviour
         panels.Add(roomSelectionUIs);
         panels.Add(connectFailedPanel);
         SetConnectionStatus(ConnectionStatus.Connecting);
-
-        foreach (Transform t in shurikens)
-        {
-            RotateShuriken(t);
-        }
-
-        
     }
     private void Update()
     {
@@ -85,28 +71,7 @@ public class NetworkUIManager : MonoBehaviour
         {
             //audioManager.PlayClickSound();
         }
-
-           
-        
     }
-
-    public void OnDisable()
-    {
-        isDestroyed = true;
-    }
-    
-    public async void RotateShuriken(Transform transform)
-    {
-        while (!isDestroyed)
-        {
-         
-            transform.Rotate(Vector3.back * Time.deltaTime * 100, Space.World);
-            await Task.Yield();
-        }
-
-    }
-
-
     public void SetPlayerMessageText(string value)
     {
         playerMessageText.text = value;

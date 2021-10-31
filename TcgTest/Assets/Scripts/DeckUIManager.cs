@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class DeckUIManager : MonoBehaviour
 {
-	[SerializeField] private GameObject deckCardsParent;
-	[SerializeField] private List<CardLayout> cards;
 	[SerializeField] private GameObject cardPreview;
 	[SerializeField] private Transform parent;
 	private List<GameObject> spawnedSelectableCards;
@@ -19,19 +17,20 @@ public class DeckUIManager : MonoBehaviour
     private void Start()
 	{
 		spawnedSelectableCards = new List<GameObject>();
-		foreach(CardLayout layout in cards)
+		CardNamesData cardNames = (CardNamesData)Resources.Load("CardNames");
+		foreach(string s in cardNames.CardNames)
 		{
 			GameObject card = Instantiate(cardPreview, parent);
-			card.GetComponent<CardInfo>().AssignCard(layout);
-			card.gameObject.name = layout.NameTextUI.text;
+			card.GetComponent<CardInfo>().AssignCard(((GameObject)Resources.Load(s)).GetComponent<CardLayout>());
+			card.gameObject.name = s;
 			spawnedSelectableCards.Add(card);
 		}
 	}
-    public void SpawnCardOnLoad(CardName cardName)
+    public void SpawnCardOnLoad(string cardName)
 	{
 		foreach (GameObject card in spawnedSelectableCards)
 		{
-			if(card.name == cardName.ToString())
+			if(card.name == cardName)
             {
 				card.GetComponent<CardDragHandler>().DuplicateCard();
 				return;

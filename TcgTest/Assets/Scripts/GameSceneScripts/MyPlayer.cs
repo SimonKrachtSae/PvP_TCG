@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.Events;
-public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
+public class MyPlayer : MonoBehaviourPunCallbacks
 {
     //[SerializeField] private List<GameObject> startingDeck;
     //public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
@@ -48,7 +48,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] private List<CardName> CardNameList;
     private Deck deck;
     private int drawAmount;
-    public override void OnEnable()
+    
+    void Awake()
     {
         gameManager = Game_Manager.Instance;
         
@@ -76,16 +77,14 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
 
 	private void Start()
 	{
-        if (!photonView.IsMine) return;
-        Deck.Instance.LoadData();
-        SpawnDeck();
+        if (photonView.IsMine) SpawnDeck();
 	}
-
-	public void SpawnDeck()
+    public void SpawnDeck()
     {
-        foreach (CardName cardName in Deck.Instance.DeckData.CardNames)
+        DeckData deckData = (DeckData)Resources.Load("DeckData");
+        foreach (string cardName in deckData.CardNames)
         {
-            GameObject card = PhotonNetwork.Instantiate(cardName.ToString(), DeckField.transform.position, new Quaternion(0,0.5f,0,0));
+            PhotonNetwork.Instantiate(cardName, DeckField.transform.position, new Quaternion(0,0.5f,0,0));
         }
     }
     private void DrawCard(int index)
@@ -207,7 +206,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     public void AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
         recallCounter = amount;
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetTurnState(NetworkTarget.All, TurnState.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
         {
             if (Field.Count < 1)
@@ -247,7 +246,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             if (recallCounter == 0 || Field.Count == 0)
             {
                 gameManager.ExecutingEffects = false;
-                gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+                gameManager.Call_SetTurnStateToPrevious(NetworkTarget.All);
             }
         }
         else if(recallArea == MonsterCardLocation.InHand)
@@ -255,7 +254,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             if (recallCounter == 0 || Hand.Count == 0)
             {
                 gameManager.ExecutingEffects = false;
-                gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+                gameManager.Call_SetTurnStateToPrevious(NetworkTarget.All);
             }
         }
     }
@@ -273,7 +272,6 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public IEnumerator AddDiscardEffects()
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
         gameManager.ExecutingEffects = true;
         foreach (Card c in Hand) c.Call_AddEvent(CardEvent.Discard, MouseEvent.Down, NetworkTarget.Local);
         while(gameManager.DiscardCounter != 0)
@@ -283,7 +281,6 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             if (Hand.Count == 0 || gameManager.DiscardCounter == 0) break;
         }
         gameManager.ExecutingEffects = false;
-        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
     }
     public void Call_AddDestroyEffects(int amount, NetworkTarget selector)
     {
@@ -298,7 +295,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
     }
     public IEnumerator AddDestroyEvents()
     {
-        gameManager.Call_SetMainPhaseState(NetworkTarget.All, GameManagerStates.Busy);
+        gameManager.Call_SetTurnState(NetworkTarget.All, TurnState.Busy);
         gameManager.ExecutingEffects = true;
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
         while (gameManager.DestroyCounter != 0)
@@ -308,7 +305,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks, IPunObservable
             yield return new WaitForFixedUpdate();
         }
         gameManager.ExecutingEffects = false;
-        gameManager.Call_SetMainPhaseStateToPrevious(NetworkTarget.All);
+        gameManager.Call_SetTurnStateToPrevious(NetworkTarget.All);
     }
     public void Call_ClearCardEvents(NetworkTarget networkTarget, List<MonsterCardLocation> locations)
     {
