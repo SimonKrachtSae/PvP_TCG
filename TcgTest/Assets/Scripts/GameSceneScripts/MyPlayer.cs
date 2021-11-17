@@ -7,13 +7,14 @@ public class MyPlayer : MonoBehaviourPunCallbacks
 {
     //[SerializeField] private List<GameObject> startingDeck;
     //public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
-    private List<Card> deckList;
+    private List<Card> deckList = new List<Card>();
     public List<Card> DeckList
     {
         get => deckList;
         set
         {
             deckList = value;
+            UpdateDeckText();
             if (deckList.Count == 1 && gameManager.Turn > 1)
             {
                 photonView.RPC(nameof(RPC_GameOver), RpcTarget.All);
@@ -48,7 +49,7 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     [SerializeField] private List<CardName> CardNameList;
     private Deck deck;
     private int drawAmount;
-    
+    private List<GameObject> gems = new List<GameObject>();
     void Awake()
     {
         gameManager = Game_Manager.Instance;
@@ -78,14 +79,19 @@ public class MyPlayer : MonoBehaviourPunCallbacks
 	private void Start()
 	{
         if (photonView.IsMine) SpawnDeck();
-	}
+        //UIs.CardsInDeckCount.text = deckList.Count.ToString();
+    }
     public void SpawnDeck()
     {
         DeckData deckData = (DeckData)Resources.Load("DeckData");
         foreach (string cardName in deckData.CardNames)
         {
-            PhotonNetwork.Instantiate(cardName, DeckField.transform.position, new Quaternion(0,0.5f,0,0));
+            Card card = PhotonNetwork.Instantiate(cardName, DeckField.transform.position, new Quaternion(0,0.5f,0,0)).GetComponent<Card>();
         }
+    }
+    public void UpdateDeckText()
+    {
+        UIs.CardsInDeckCount.text = deckList.Count.ToString();
     }
     private void DrawCard(int index)
     {
@@ -130,13 +136,13 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     }
     public void RedrawHandCards()
     {
-        float step = 15;
+        float step = 30;
         float start = -((Hand.Count / 2) * step);
         for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
             if(vector.y == HandParent.transform.position.y)
-                Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z + i * 0.05f);
+                Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z + i * 0.00001f);
         }
     }
     public void Subscribe(Card card)
@@ -149,7 +155,35 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     public void RPC_UpdateMana(int value)
     {
         mana = value;
-        UIs.SummonPower.text = value.ToString();
+        int dif = value - gems.Count;
+        if (dif == 0) return;
+        else if(dif < 0)
+        {
+            for(int i = 0; i < Mathf.Abs(dif); i++)
+            {
+                DestroyGem();
+            }
+        }
+        else
+        {
+            for (int i = 0; i < dif; i++)
+            {
+                SpawnGem();
+            }
+        }
+    }
+    public void SpawnGem()
+    {
+        GameObject gem = GameUIManager.Instance.Gem;
+        GameObject newGem = Instantiate(gem, UIs.ManaPos);
+        newGem.transform.position += new Vector3(gems.Count * 13, 0, 0);
+        gems.Add(newGem);
+    }
+    public void DestroyGem()
+    {
+        GameObject toDestroy = gems[gems.Count - 1];
+        gems.Remove(toDestroy);
+        Destroy(toDestroy);
     }
     public void ShowBlockRequest()
     {

@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Photon.Pun;
+using Assets.Customs;
+
 public abstract class Card : MonoBehaviourPun
 {
     protected CardLayout layout;
@@ -30,17 +32,27 @@ public abstract class Card : MonoBehaviourPun
     public Vector3 Target { get; set; }
 
     protected Vector3 mousePos;
-    [SerializeField] protected SpriteRenderer border;
-
     [SerializeField] protected ParticleBomb particleBomb;
     public ParticleBomb ParticleBomb { get => particleBomb; set => particleBomb = value; }
 
+    [SerializeField] protected ParticleSystem destroyParticles;
+    [SerializeField] protected Animator backgroundAnimator;
+    private CardInfo cardInfo;
+    [SerializeField] private GameObject backGroundImage;
     void Awake()
     {
-        if (GameUIManager.Instance == null) return;
+        backGroundImage.SetActive(true);
+        if (GameUIManager.Instance == null)
+        {
+            cardInfo = MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().CardInfo;
+            this.GetComponent<Card>().enabled = false;
+            return;
+        }
+        cardInfo = GameUIManager.Instance.CardInfo;
         if(GameUIManager.Instance.State != GameState.CoinFlip)
         {
-            if (!photonView.IsMine) { Destroy(this.gameObject); return; }
+            
+            //if (!photonView.IsMine) { Destroy(this.gameObject); return; }
             enabled = false;
             return;
         }
@@ -72,9 +84,22 @@ public abstract class Card : MonoBehaviourPun
         }
         prevPos = transform.position;
     }
+    private void Start()
+    {
+        if (GameUIManager.Instance == null)
+        {
+            return;
+        }
+        cardInfo = GameUIManager.Instance.CardInfo;
+    }
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(1)) GameUIManager.Instance.CardInfo.AssignCard(this.gameObject);
+        if (Input.GetMouseButtonDown(1))
+        {
+            if(Game_Manager.Instance.Enemy.Hand.Contains(this)|| Game_Manager.Instance.Enemy.DeckList.Contains(this))
+                return;
+            cardInfo.AssignCard(cardStats.CardName);
+        }
     }
     public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
     {
@@ -162,9 +187,15 @@ public abstract class Card : MonoBehaviourPun
     public IEnumerator RotateToBack()
     {
         float value = 0;
+        bool set = false;
         while (true)
         {
             yield return new WaitForFixedUpdate();
+            if (value > 90 && !set)
+            {
+                set = true;
+                backGroundImage.SetActive(true);
+            }
             if (value > 175)
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
@@ -180,9 +211,15 @@ public abstract class Card : MonoBehaviourPun
     public IEnumerator RotateToFront()
     {
         float value = 180;
+        bool set = false;
         while (true)
         {
             yield return new WaitForFixedUpdate();
+            if(value < 90 && !set)
+            {
+                set = true;
+                backGroundImage.SetActive(false);
+            }
             if (value < 5)
             {
                 transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -256,11 +293,13 @@ public abstract class Card : MonoBehaviourPun
     public void RPC_AddToDeck()
     {
         if (!Player.DeckList.Contains(this)) Player.DeckList.Add(this);
+        Player.UpdateDeckText();
     }
     [PunRPC]
     public void RPC_RemoveFromDeck()
     {
         if (Player.DeckList.Contains(this)) Player.DeckList.Remove(this);
+        Player.UpdateDeckText();
     }
     [PunRPC]
     public void RPC_AddToGraveyard()
@@ -295,7 +334,7 @@ public abstract class Card : MonoBehaviourPun
                         GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
                         return;
                     }
-                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,20,0), NetworkTarget.Local);
+                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,20,0), NetworkTarget.Local,cardStats.CardName);
                 targeting = true;
                 continue;
             }
@@ -349,10 +388,18 @@ public abstract class Card : MonoBehaviourPun
         MoveTowardsTarget(Player.DeckField.transform.position);
         RotateToBack();
     }
+    [PunRPC]
+    public void RPC_PlayDestroyParticles()
+    {
+        destroyParticles.Play();
+    }
     public void Call_SendToGraveyard()
     {
         if (this.GetType().ToString() == nameof(MonsterCard).ToString())
+        {
             if (((MonsterCardStats)cardStats).Effect != null && Player.Field.Contains((MonsterCard)this)) ((MonsterCardStats)cardStats).Effect.Call_OnDestroy();
+                photonView.RPC(nameof(RPC_PlayDestroyParticles), RpcTarget.All);
+        }
         photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
         photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
@@ -397,7 +444,7 @@ public abstract class Card : MonoBehaviourPun
     public virtual void Call_AddEvent(CardEvent cardEvent, MouseEvent mouseEvent, NetworkTarget target) { }
     public void ClearEvents()
     {
-        border.color = Color.black;
+        backgroundAnimator.SetBool("Play", false);
         OnMouseDownEvent = null;
         OnMouseDragEvent = null;
         OnMouseUpEvent = null;

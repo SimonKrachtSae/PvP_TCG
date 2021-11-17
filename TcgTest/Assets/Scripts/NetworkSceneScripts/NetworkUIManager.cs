@@ -6,7 +6,7 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Threading.Tasks;
+using UnityEngine.Video;
 
 public class NetworkUIManager : MonoBehaviour
 {
@@ -21,10 +21,6 @@ public class NetworkUIManager : MonoBehaviour
     private List<GameObject> panels;
 
 	public GameObject deckBuilderUI;
-
-    [SerializeField] private List<Transform> shurikens;
-    public bool isDestroyed = false;
-
 
     [Header("Connection Failed UIs")]
     [SerializeField] private GameObject connectFailedPanel;
@@ -46,6 +42,8 @@ public class NetworkUIManager : MonoBehaviour
     [SerializeField] private GameObject inRoomUIs;
     [SerializeField] private List<TMP_Text> playerDescriptionTexts;
     [SerializeField] private GameObject startGameButton;
+
+    [SerializeField] private VideoPlayer videoPlayer;
 
     private void Awake()
     {
@@ -70,33 +68,22 @@ public class NetworkUIManager : MonoBehaviour
         panels.Add(connectFailedPanel);
         SetConnectionStatus(ConnectionStatus.Connecting);
     }
-    public void Update()
+    public IEnumerator PlayIntroVideo() 
     {
-       
-
-        foreach (Transform t in shurikens)
+        playerMessageText.transform.parent.gameObject.SetActive(false);
+        videoPlayer.Play();
+        yield return new WaitForSecondsRealtime((float)videoPlayer.length);
+        playerMessageText.transform.parent.gameObject.SetActive(true);
+        videoPlayer.gameObject.SetActive(false);
+        SetConnectionStatus(ConnectionStatus.Connected);
+    }
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
         {
-            RotateShuriken(t);
+            //audioManager.PlayClickSound();
         }
     }
-
-    public void OnDisable()
-    {
-        isDestroyed = true;
-    }
-
-    public  void RotateShuriken(Transform transform)
-    {
-        while (!isDestroyed)
-        {
-            transform.Rotate(Vector3.back * Time.deltaTime, Space.World);
-           
-        }
-    }
-
-
-
-
     public void SetPlayerMessageText(string value)
     {
         playerMessageText.text = value;
@@ -110,9 +97,13 @@ public class NetworkUIManager : MonoBehaviour
         }
 
         SetPlayerMessageText("");
-
+        playerMessageText.transform.parent.gameObject.SetActive(true);
         switch (connectionStatus)
         {
+            case ConnectionStatus.DeckBuilder:
+                deckBuilderUI.SetActive(true);
+                playerMessageText.transform.parent.gameObject.SetActive(false);
+                break;
             case ConnectionStatus.Connecting:
                 playerMessageText.text = "Connecting";
                 PhotonNetwork.ConnectUsingSettings();
@@ -136,9 +127,10 @@ public class NetworkUIManager : MonoBehaviour
                 break;
             case ConnectionStatus.InRoom:
                 if(!PhotonNetwork.LocalPlayer.IsMasterClient)
-                {
-                    playerMessageText.text = "Waiting for Host to Start Game";
-                }
+                    playerMessageText.text = "Waiting for Host to Start Game...";
+                else
+                    playerMessageText.text = "Waiting for other client to join...";
+               
                 inRoomUIs.SetActive(true);
                 break;
 
@@ -252,21 +244,16 @@ public class NetworkUIManager : MonoBehaviour
             startGameButton.SetActive(false);
         }
     }
-
 	public void GoToDeckbuilder()
 	{
-		for (int i = 0; i < panels.Count; i++)
-		{
-			panels[i].SetActive(false);
-		}
-
-		deckBuilderUI.SetActive(true);
+        SetConnectionStatus(ConnectionStatus.DeckBuilder);
 	}
 
     public void GoBack()
     {
         if (PhotonNetwork.InRoom)
         {
+            PhotonNetwork.CurrentRoom.EmptyRoomTtl = 0;
             PhotonNetwork.LeaveRoom();
         }
         if(PhotonNetwork.InLobby)

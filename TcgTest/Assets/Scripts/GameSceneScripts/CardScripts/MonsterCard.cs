@@ -11,6 +11,10 @@ public class MonsterCard : Card
     public bool HasAttacked { get; set; }
     public bool HasBlocked { get; set; }
     [SerializeField] private GameObject swordIcon;
+    [SerializeField] private ParticleSystem summonParticles;
+    [SerializeField] private ParticleSystem burnParticles;
+    [SerializeField] private ParticleSystem attackParticles;
+    [SerializeField] private ParticleSystem blockParticles;
     private void Start()
     {
         try
@@ -38,13 +42,14 @@ public class MonsterCard : Card
     private void OnMouseDrag()
     {
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
-        GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local);
+       // GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local, cardStats.CardName);
         OnMouseDragEvent?.Invoke();
     }
 
     private void OnMouseUp()
     {
         OnMouseUpEvent?.Invoke();
+        if (Player == null) return;
         if (Player.Hand.Contains(this) && transform.position.y != Player.HandParent.transform.position.y)
         {
             transform.position = new Vector3(transform.position.x, Player.HandParent.transform.position.y, transform.position.z);
@@ -101,6 +106,8 @@ public class MonsterCard : Card
         photonView.RPC(nameof(RPC_UpdateSwordIcon), RpcTarget.All, false);
         if (attackTarget != null)
         {
+            photonView.RPC(nameof(RPC_PlayAttackParticles), RpcTarget.All);
+            ((MonsterCard)attackTarget).Call_PlayBlockParticles();
             if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
             if (((MonsterCardStats)attackTarget.CardStats).Effect != null) ((MonsterCardStats)attackTarget.CardStats).Effect.Call_OnBlock();
             int value = ((MonsterCardStats)cardStats).Attack - ((MonsterCardStats)attackTarget.CardStats).Defense;
@@ -108,10 +115,12 @@ public class MonsterCard : Card
             {
                 attackTarget.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
                 Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
-               ((MonsterCard)attackTarget).Call_SendToGraveyard();
+                ((MonsterCard)attackTarget).Call_SendToGraveyard();
+                ((MonsterCardStats)cardStats).Effect.Call_BattleWon();
             }
             else if (value < 0)
             {
+                ((MonsterCardStats)attackTarget.CardStats).Effect.Call_BlockSuccessfull();
                 Call_ParticleBomb(value.ToString(), Color.red, NetworkTarget.All);
                 attackTarget.Call_ParticleBomb(Mathf.Abs(value).ToString(), Color.green,NetworkTarget.All);
                 Call_SendToGraveyard();
@@ -124,6 +133,7 @@ public class MonsterCard : Card
         {
             if (gameManager.Enemy.Field.Count == 0)
             {
+                photonView.RPC(nameof(RPC_PlayAttackParticles), RpcTarget.All);
                 Player.Call_DrawCards(1);
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnDirectAttack();
@@ -145,19 +155,19 @@ public class MonsterCard : Card
     public void Event_Summon()
     {
         GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
-        if (Player.Mana >= base.CardStats.PlayCost)
+        if (Player.Mana >= CardStats.PlayCost)
         {
             for (int i = 0; i < 5; i++)
             {
                 Vector3 direction = Board.Instance.PlayerMonsterFields[i].transform.position - transform.position;
-                if (direction.magnitude < 7)
+                if (direction.magnitude < 12)
                 {
                     foreach (MonsterCard card in Player.Field)
-                        if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 7)
-                        {
-                            transform.position = mouseDownPos;
-                            return;
-                        }
+                       if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 12)
+                       {
+                           transform.position = mouseDownPos;
+                           return;
+                       }
                     //AudioManager.Instance.Call_PlaySound(AudioType.Summon, NetworkTarget.Local);
                     ClearEvents();
                     transform.position = Board.Instance.PlayerMonsterFields[i].transform.position;
@@ -165,21 +175,46 @@ public class MonsterCard : Card
                     photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
                     photonView.RPC(nameof(RPC_AddToField), RpcTarget.All);
                     Player.RedrawHandCards();
-                    Player.Mana -= base.CardStats.PlayCost;
+                    Player.Mana -= CardStats.PlayCost;
                     photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
                     Assign_BurnEvents(NetworkTarget.Local);
-                    if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnSummon();
-                    GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Summon, transform.position, NetworkTarget.All);
+                    ((MonsterCardStats)cardStats).Effect?.Call_OnSummon();
+                    photonView.RPC(nameof(PlaySummonParticles), RpcTarget.All);
                     return;
                 }
             }
         }
         transform.position = mouseDownPos;
     }
+    public void Call_PlayBlockParticles()
+    {
+        photonView.RPC(nameof(RPC_PlayBlockParticles), RpcTarget.All);
+    }
+    [PunRPC]
+    public void RPC_PlayBlockParticles()
+    {
+        blockParticles.Play();
+    }
+    [PunRPC]
+    public void PlaySummonParticles()
+    {
+        summonParticles.Play();
+    }
+    [PunRPC]
+    public void RPC_PlayBurnParticles()
+    {
+        ParticleSystem system = Instantiate(burnParticles, this.transform.position,Quaternion.identity).GetComponent<ParticleSystem>();
+        system.Play();
+    }
+    [PunRPC]
+    public void RPC_PlayAttackParticles()
+    {
+        attackParticles.Play();
+    }
     public void Event_Block()
     {
         if (HasBlocked) { Board.Instance.PlayerInfoText.text = "Already blocked!"; return; }
-        if (((MonsterCardStats)CardStats).Effect != null) ((MonsterCardStats)CardStats).Effect.Call_OnBlock();
+        ((MonsterCardStats)CardStats).Effect?.Call_OnBlock();
         gameManager.BlockingMonsterIndex = Player.Field.IndexOf(this);
         HasBlocked = true;
     }
@@ -187,7 +222,7 @@ public class MonsterCard : Card
     {
         if (((Vector2)Board.Instance.BurnField.transform.position - (Vector2)transform.position).magnitude < 10)
         {
-            GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Burn, Board.Instance.BurnField.transform.position, NetworkTarget.All);
+            photonView.RPC(nameof(RPC_PlayBurnParticles), RpcTarget.All);
             photonView.RPC(nameof(RPC_RemoveFromField), RpcTarget.All);
             photonView.RPC(nameof(RPC_AddToGraveyard), RpcTarget.All);
             Player.Mana += ((MonsterCardStats)cardStats).PlayCost;
@@ -246,7 +281,7 @@ public class MonsterCard : Card
     }
     public void AddEvent(CardEvent cardEvent, MouseEvent mouseEvent)
     {
-        border.color = Color.yellow;
+        backgroundAnimator.SetBool("Play", true);
         switch (cardEvent)
         {
             case CardEvent.FollowMouse_MouseDown:

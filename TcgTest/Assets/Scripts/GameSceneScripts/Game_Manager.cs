@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Photon.Pun;
+using Photon.Realtime;
 using System.Threading.Tasks;
+using UnityEngine.UI;
+using System.Threading;
 
 // Game_Manager: Manages players and assigns cardevents
-public class Game_Manager : MonoBehaviourPun
+public class Game_Manager : MonoBehaviourPunCallbacks
 {
     public static Game_Manager Instance;
     #region Values
@@ -17,6 +20,8 @@ public class Game_Manager : MonoBehaviourPun
     private TurnState state;
     private TurnState stateToSet;
     private bool executingEffects;
+    public IEnumerator TimerCoroutine;
+    public float TimerTime { get; set; }
     #endregion
     #region Accessors
     /// <summary>
@@ -168,18 +173,25 @@ public class Game_Manager : MonoBehaviourPun
     public bool ExecutingEffects { get => executingEffects; set => photonView.RPC(nameof(RPC_SetExecutingEffect),RpcTarget.All, value); }
     #endregion
     #region Methods
-    private void Awake()
+    void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
         else { Instance = this; }
     }
 
-    public void Start()
+    void Start()
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
-        if(PhotonNetwork.CurrentRoom.Players.Count == 1)
-        {
+    }
 
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        if(GameUIManager.Instance.State != GameState.GameOver)
+        {
+            GameUIManager.Instance.ErrorMenu.SetActive(true);
+            transform.GetChild(0).gameObject.SetActive(false);
+            Player.gameObject.SetActive(false);
+            Enemy.gameObject.SetActive(false);
         }
     }
     /// <summary> 
@@ -249,16 +261,19 @@ public class Game_Manager : MonoBehaviourPun
             return;
         }
         blockingMonster = Enemy.Field[index];
+        ((MonsterCard)blockingMonster).Call_PlayBlockParticles();
         if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_OnAttack();
         int value =((MonsterCardStats)AttackingMonster.CardStats).Attack - ((MonsterCardStats)blockingMonster.CardStats).Defense;
         if (value > 0)
         {
+            ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_BattleWon();
             blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
             AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             blockingMonster.Call_SendToGraveyard();
         }
         else if (value < 0)
         {
+            ((MonsterCardStats)blockingMonster.CardStats).Effect.Call_BlockSuccessfull();
             blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
             AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             AttackingMonster.Call_SendToGraveyard();
@@ -287,7 +302,32 @@ public class Game_Manager : MonoBehaviourPun
             Player.Field[i].HasAttacked = false;
             Player.Field[i].HasBlocked = false;
         }
+        if(TimerCoroutine != null)StopCoroutine(TimerCoroutine);
+        TimerCoroutine = ManageTimer();
+        TimerTime = 240;
+        StartCoroutine(TimerCoroutine);
     }
+    public IEnumerator ManageTimer()
+    {
+        Slider slider = GameUIManager.Instance.TimeSlider;
+        slider.maxValue = TimerTime;
+        slider.value = TimerTime;
+
+        while(slider.value > 0)
+        {
+            yield return new WaitForFixedUpdate();
+            if(state != TurnState.Busy) slider.value -= Time.fixedDeltaTime;
+        }
+
+        if (currentDuelist == DuelistType.Player) GameUIManager.Instance.EndTurn();
+        //else if (currentDuelist == DuelistType.Enemy)
+        //{
+        //    BlockingMonsterIndex = 6;
+        //
+        //    TimerTime = 30;
+        //    StartCoroutine(ManageTimer());
+        //}
+    } 
     /// <summary>
     /// This method gets called by the local client, in order to call 
     /// <see cref="RPC_SetTurnState(TurnState)"/>

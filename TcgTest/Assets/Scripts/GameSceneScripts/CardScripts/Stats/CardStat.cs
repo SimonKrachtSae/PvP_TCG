@@ -4,6 +4,8 @@ using UnityEngine;
 
 public abstract class CardStat : MonoBehaviour
 {
+    [SerializeField] private int maxCount;
+    public int MaxCount { get => maxCount; set => maxCount = value; }
     public int Index { get; set; }
 
     [SerializeField]

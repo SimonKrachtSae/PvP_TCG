@@ -7,12 +7,12 @@ public class CardInfo : MonoBehaviour
     [SerializeField] private MonsterCard_Layout monsterCardLayout;
     [SerializeField] private EffectCard_Layout effectCardLayout;
 	private GameObject card;
-	public void AssignCard(GameObject toSpawn)
+	public void AssignCard(string name)
 	{
 		if (this.card != null) Destroy(card);
-		CardStat stats = toSpawn.GetComponent<CardStat>();
-		this.card = PhotonNetwork.Instantiate(stats.CardName, transform.position, new Quaternion(0, 0, 0, 0));
+		this.card = (GameObject)Instantiate(Resources.Load(name), transform.position, new Quaternion(0, 0, 0, 0));
 		this.card.transform.localScale *= 2;
+		card.transform.parent = transform;
 	}
 
 	public void AssignCard(CardLayout cardLayout)

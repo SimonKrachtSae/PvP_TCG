@@ -10,6 +10,8 @@ public class MonsterCardEffect : MonoBehaviour
     [SerializeField] private List<Effect> onDestroyEffects;
     [SerializeField] private List<Effect> onAttackEffects;
     [SerializeField] private List<Effect> onBlockEffects;
+    [SerializeField] private List<Effect> onBattlleWonEffects;
+    [SerializeField] private List<Effect> onBlockSuccessfullEffects;
     [SerializeField] private List<Effect> onDirectAttackSucceedsEffects;
     public void Call_OnSummon()
     {
@@ -39,6 +41,36 @@ public class MonsterCardEffect : MonoBehaviour
                 yield return new WaitForFixedUpdate();
             }
             onDestroyEffects[i].Execute();
+        }
+    }
+    public void Call_BattleWon()
+    {
+        StartCoroutine(BattleWon());
+    }
+    private IEnumerator BattleWon()
+    {
+        for (int i = 0; i < onBattlleWonEffects.Count; i++)
+        {
+            while (Game_Manager.Instance.ExecutingEffects)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            onBattlleWonEffects[i].Execute();
+        }
+    }
+    public void Call_BlockSuccessfull()
+    {
+        StartCoroutine(BlockSuccessfull());
+    }
+    private IEnumerator BlockSuccessfull()
+    {
+        for (int i = 0; i < onBattlleWonEffects.Count; i++)
+        {
+            while (Game_Manager.Instance.ExecutingEffects)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            onBattlleWonEffects[i].Execute();
         }
     }
     public void Call_OnBlock()
