@@ -18,7 +18,8 @@ public enum ConnectionStatus
     Connected,
     HostingOrJoiningRoom,
     InRoomSelection,
-    InRoom
+    InRoom,
+    DeckBuilder
 }
 public enum PlayerType
 {

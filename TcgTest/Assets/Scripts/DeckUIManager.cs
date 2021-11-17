@@ -1,40 +1,38 @@
+using Assets.Customs;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class DeckUIManager : MonoBehaviour
+public class DeckUIManager : MB_Singleton<DeckUIManager>
 {
-	[SerializeField] private GameObject cardPreview;
-	[SerializeField] private Transform parent;
-	private List<GameObject> spawnedSelectableCards;
-	public static DeckUIManager Instance;
-	private CardName copyCardName;
-    private void Awake()
+	[SerializeField] private CardInfo cardInfo;
+    public CardInfo CardInfo { get => cardInfo; set => cardInfo = value; }
+    public GameObject CollectionCard { get => collectionCard; set => collectionCard = value; }
+
+	[SerializeField] private GameObject collectionCard;
+    protected new void Awake()
     {
-		if (Instance != null) Destroy(this.gameObject);
-		else { Instance = this; }
-	}
-    private void Start()
+    	base.Awake();
+    }
+    protected new void OnDestroy()
+    {
+    	base.OnDestroy();
+    }
+    void Start()
 	{
-		spawnedSelectableCards = new List<GameObject>();
 		CardNamesData cardNames = (CardNamesData)Resources.Load("CardNames");
-		foreach(string s in cardNames.CardNames)
+		for (int i = 0; i < cardNames.CardNames.Count; i++)
 		{
-			GameObject card = Instantiate(cardPreview, parent);
-			card.GetComponent<CardInfo>().AssignCard(((GameObject)Resources.Load(s)).GetComponent<CardLayout>());
-			card.gameObject.name = s;
-			spawnedSelectableCards.Add(card);
+			string s = cardNames.CardNames[i];
+			GameObject deckCard = (GameObject)Instantiate(Resources.Load(s), DeckbuilderUI.Instance.collectionScroll.transform.GetChild(0));
+			deckCard.name = s;
+			deckCard.transform.localScale = new Vector3(2, 2, 2);
+			deckCard.AddComponent(typeof(MyCardDragHandler));
+			deckCard.GetComponent<MyCardDragHandler>().Index = i;
 		}
-	}
-    public void SpawnCardOnLoad(string cardName)
-	{
-		foreach (GameObject card in spawnedSelectableCards)
-		{
-			if(card.name == cardName)
-            {
-				card.GetComponent<CardDragHandler>().DuplicateCard();
-				return;
-            }
-		}
+		MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().LoadUI(0);
 	}
 }

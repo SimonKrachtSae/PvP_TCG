@@ -3,45 +3,95 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using UnityEngine.UI;
+using Assets.Customs;
 
 // Inpsired by: Brackeys Save and Load
 // Link: https://www.youtube.com/watch?v=XOjd_qU2Ido
-public class Deck: MonoBehaviour
+public class Deck: MB_Singleton<Deck>
 {
-    public static Deck Instance;
-    [SerializeField]private DeckData deckData;
+    //public static Deck Instance;
+    private DeckData deckData;
     public DeckData DeckData { get => deckData; set => deckData = value; }
-	private List<GameObject> cards = new List<GameObject>();
-	void Awake()
+    public List<GameObject> Cards { get => cards; set => cards = value; }
+
+    private List<GameObject> cards = new List<GameObject>();
+	private int selectedDeckIndex = 0;
+	protected new void Awake()
     {
-        if (Instance != null) Destroy(this.gameObject);
-        else { Instance = this; }
+		base.Awake();
+		deckData = (DeckData)Resources.Load("DeckData");
     }
-	public void Save()
+	protected new void OnDestroy()
+	{
+		base.OnDestroy();
+	}
+    private void Start()
     {
+		if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 0)
+			LoadUI(0);
+    }
+    public void Save()
+	{
 		deckData.CardNames = new List<string>();
-		foreach(GameObject gameObject in cards)
-        {
-			deckData.CardNames.Add(gameObject.name);
-        }
-    }
-	public void LoadUI()
-    {
-		foreach (string cardName in deckData.CardNames)
+		foreach (GameObject gameObject in Cards)
 		{
-			DeckUIManager.Instance.SpawnCardOnLoad(cardName);
+			deckData.CardNames.Add(gameObject.name);
 		}
+		string path = Application.persistentDataPath + "/Deck"+selectedDeckIndex+".fun";
+		if (File.Exists(path)) File.Delete(path);
+		BinaryFormatter formatter = new BinaryFormatter();
+		FileStream stream = new FileStream(path, FileMode.Create);
+		formatter.Serialize(stream, deckData.CardNames);
+		stream.Close();
+	}
+	public void LoadUI(int i)
+    {
+		ClearDeck();
+		deckData.CardNames = new List<string>();
+		selectedDeckIndex = i;
+		string path = Application.persistentDataPath + "/Deck"+i+".fun";
+		
+		if (File.Exists(path))
+        {
+			BinaryFormatter formatter = new BinaryFormatter();
+			FileStream stream = new FileStream(path, FileMode.Open);
+			deckData.CardNames = (List<string>)formatter.Deserialize(stream);
+			stream.Close();
+			RectTransform deckScrollField = DeckbuilderUI.Instance.deckScroll.gameObject.transform as RectTransform;
+			
+			if (MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>() == null || 
+				MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().gameObject.activeInHierarchy == false)
+				return;
+
+			foreach (string s in deckData.CardNames)
+			{
+				GameObject deckCard = Instantiate(MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().CollectionCard, deckScrollField.GetChild(0));
+				deckCard.GetComponent<CollectionCard>().Initiate(s);
+			}
+        }
 	}
 	public void Subscribe(GameObject gameObject)
 	{
-		if (!cards.Contains(gameObject)) cards.Add(gameObject);
-		Debug.Log(cards.Count);
-		if(!cards.Contains(gameObject))
-			cards.Add(gameObject);
+		if (!Cards.Contains(gameObject)) Cards.Add(gameObject);
+		Debug.Log(Cards.Count);
+		if(!Cards.Contains(gameObject))
+			Cards.Add(gameObject);
 	}
 
 	public void Unsubscribe(GameObject gameObject)
 	{
-		if(cards.Contains(gameObject)) cards.Remove(gameObject);
+		if(Cards.Contains(gameObject)) Cards.Remove(gameObject);
+	}
+	public void ClearDeck()
+	{
+		for(int i = Cards.Count - 1; i >= 0; i--)
+        {
+			GameObject gameObject = Cards[i];
+			Cards.RemoveAt(i);
+			Destroy(gameObject);
+        }
+		Cards = new List<GameObject>();
+		deckData.CardNames = new List<string>();
 	}
 }

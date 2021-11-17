@@ -1,3 +1,4 @@
+using Assets.Customs;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,21 +17,20 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 	private RectTransform collectionScrollField;
 	private GameObject previousParent;
 	private GameObject deckbuilderPanel;
-
     private void Start()
     {
 		deckbuilderPanel = NetworkUIManager.Instance.deckBuilderUI;
 		collectionScrollField = DeckbuilderUI.Instance.collectionScroll.gameObject.transform as RectTransform;
 		deckScrollField = DeckbuilderUI.Instance.deckScroll.gameObject.transform as RectTransform;
-    }
-    public void StartCard()
+	}
+	public void StartCard()
 	{
-		Deck.Instance.Subscribe(this.gameObject);
+		MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Subscribe(this.gameObject);
 	}
 
 	private void OnDestroy()
 	{
-		Deck.Instance.Unsubscribe(this.gameObject);
+		MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Unsubscribe(this.gameObject);
 	}
 
 	public void OnBeginDrag(PointerEventData eventData)

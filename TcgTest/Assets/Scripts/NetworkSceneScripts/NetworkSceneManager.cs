@@ -27,7 +27,6 @@ public class NetworkSceneManager : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.ConnectUsingSettings();
         }
-
         PhotonNetwork.AutomaticallySyncScene = true;
     }
 
@@ -61,7 +60,7 @@ public class NetworkSceneManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("ConnectedToMaster");
-        uiManager.SetConnectionStatus(ConnectionStatus.Connected);
+        uiManager.StartCoroutine(uiManager.PlayIntroVideo());
     }
 
     public override void OnJoinedLobby()
