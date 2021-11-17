@@ -14,8 +14,8 @@ public class Board : MonoBehaviour
 
     [SerializeField] private List<GameObject> enemyMonsterFields;
     public List<GameObject> EnemyMonsterFields { get => enemyMonsterFields; set => enemyMonsterFields = value; }
-    [SerializeField] private TMP_Text enemyDeck;
-    [SerializeField] private TMP_Text enemyGraveyardTxt;
+    [SerializeField] private TMP_Text enemyDeckText;
+    [SerializeField] private TMP_Text playerDeckText;
     public GameObject PlayerHandParent { get => playerHandParent; set => playerHandParent = value; }
 
     [SerializeField] private GameObject playerHandParent;
@@ -33,12 +33,12 @@ public class Board : MonoBehaviour
     [SerializeField] private List<Button> monsterCardControls;
 
     [SerializeField] TMP_Text playerCardsInDeckCount;
-    [SerializeField] TMP_Text playerSummonPowerText;
+    [SerializeField] Transform playerManaPos;
     [SerializeField] TMP_Text playerCardsInGraveyardCount;
 
     [SerializeField] TMP_Text enemyCardsInDeckCount;
     [SerializeField] TMP_Text enemyCardsInGraveyardCount;
-    [SerializeField] TMP_Text enemySummonPowerText;
+    [SerializeField] Transform enemyManaPos;
 
     [SerializeField] private TMP_Text playerInfoText;
     public TMP_Text PlayerInfoText { get => playerInfoText; set => playerInfoText = value; }
@@ -58,12 +58,15 @@ public class Board : MonoBehaviour
 
     [SerializeField] private GameObject burnField;
     public GameObject BurnField { get => burnField; set => burnField = value; }
+    public TMP_Text EnemyDeckText { get => enemyDeckText; set => enemyDeckText = value; }
+    public TMP_Text PlayerDeckText { get => playerDeckText; set => playerDeckText = value; }
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
         else Instance = this;
 
-        PlayerUIs = new DuelistUIs(playerCardsInDeckCount, playerCardsInGraveyardCount, playerSummonPowerText);
-        EnemyUIs = new DuelistUIs(enemyCardsInDeckCount, enemyCardsInGraveyardCount, enemySummonPowerText);
+        PlayerUIs = new DuelistUIs(playerCardsInDeckCount, playerCardsInGraveyardCount,playerManaPos);
+        EnemyUIs = new DuelistUIs(enemyCardsInDeckCount, enemyCardsInGraveyardCount, enemyManaPos);
     }
 }

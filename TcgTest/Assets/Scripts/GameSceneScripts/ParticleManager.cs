@@ -5,28 +5,30 @@ using Photon.Pun;
 public class ParticleManager : MonoBehaviourPun
 {
     [SerializeField]private ParticleSystem summon;
+    [SerializeField]private ParticleSystem summonParticle;
     [SerializeField]private ParticleSystem destroy;
     [SerializeField]private ParticleSystem burn;
     [SerializeField]private ParticleSystem drag;
     [SerializeField]private ParticleSystem attack;
     [SerializeField]private ParticleSystem cardOverField;
     [SerializeField] private Vector3 offset;
-    public void Call_Play(ParticleType type, Vector3 position, NetworkTarget target)
+
+    public void Call_Play(ParticleType type, Vector3 position, NetworkTarget target,string cardName)
     {
-        if (target == NetworkTarget.Local) Local_Play(type, position);
+        if (target == NetworkTarget.Local) Local_Play(type, position, cardName);
         else if (target == NetworkTarget.Other) photonView.RPC(nameof(RPC_Play), RpcTarget.Others, type, position);
         else if (target == NetworkTarget.All)
         {
-            Local_Play(type, position);
+            Local_Play(type, position,cardName);
             photonView.RPC(nameof(RPC_Play), RpcTarget.Others, type, position);
         }
     }
     [PunRPC]
-    public void RPC_Play(ParticleType type, Vector3 position)
+    public void RPC_Play(ParticleType type, Vector3 position, string cardName)
     {
-        Local_Play(type, new Vector3(position.x, -position.y, position.z));
+        Local_Play(type, new Vector3(position.x, -position.y, position.z),cardName);
     }
-    public void Local_Play(ParticleType type, Vector3 position)
+    public void Local_Play(ParticleType type, Vector3 position, string cardName)
     {
         switch(type)
         {
@@ -35,6 +37,9 @@ public class ParticleManager : MonoBehaviourPun
                 //drag.Play();
                 break;
             case ParticleType.Summon:
+                GameObject gameObject = (GameObject)Resources.Load(cardName);
+                MonsterCard monsterCard= gameObject.GetComponent<MonsterCard>();
+
                 summon.gameObject.transform.position = position + offset;
                 if(!summon.isPlaying) summon.Play();
                 break;

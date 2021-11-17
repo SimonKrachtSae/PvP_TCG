@@ -12,12 +12,15 @@ public class GameUIManager : MonoBehaviourPun
     [SerializeField] private GameObject CoinFlipCanvas;
     [SerializeField] private GameObject GameOverCanvas;
     [SerializeField] private GameObject PauseMenu;
+    [SerializeField] private GameObject gem;
+    [SerializeField] private Slider timeSlider;
     [SerializeField] private TMP_Text winText;
     [SerializeField] private Button HeadsButton;
     [SerializeField] private Button TailsButton;
     [SerializeField] private Button startButton;
     [SerializeField] private Button endTurnButton;
     [SerializeField] private ParticleManager particleManager;
+    public GameObject ErrorMenu;
     public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
     public Button EndTurnButton { get => endTurnButton; set => endTurnButton = value; }
     public Button StartButton { get => startButton; set => startButton = value; }
@@ -32,7 +35,8 @@ public class GameUIManager : MonoBehaviourPun
     public GameState State { get; set; }
     public GameObject BoardCanvas { get => boardCanvas; set => boardCanvas = value; }
     public Arrow Arrow { get => arrow; set => arrow = value; }
-    [SerializeField] private TMP_Text roundTime;
+    public GameObject Gem { get => gem; set => gem = value; }
+    public Slider TimeSlider { get => timeSlider; set => timeSlider = value; }
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -58,10 +62,18 @@ public class GameUIManager : MonoBehaviourPun
         }
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
-            StartGame();
+            if (NameText.text == name1)
+                StartGame();
+            else
+                photonView.RPC(nameof(PlayerStartGame), RpcTarget.Others);
             //Debug.Log("cheeeeseee");
             //photonView.RPC(nameof(RPC_SetNameText), RpcTarget.All, NameText.text);
         }
+    }
+    [PunRPC]
+    public void PlayerStartGame()
+    {
+        StartGame();
     }
     [PunRPC]
     public void RPC_SetNameText(string text)
@@ -76,6 +88,14 @@ public class GameUIManager : MonoBehaviourPun
         {
             StartGame();
         }
+    }
+    public void PauseGame()
+    {
+        SetGameState(GameState.Paused);
+    }
+    public void ResumeGame()
+    {
+        SetGameState(GameState.Running);
     }
     public void SetGameState(GameState state)
     {
@@ -94,6 +114,9 @@ public class GameUIManager : MonoBehaviourPun
                 break;
             case GameState.GameOver:
                 GameOverCanvas.SetActive(true);
+                transform.GetChild(0).gameObject.SetActive(false);
+                Game_Manager.Instance.Player.gameObject.SetActive(false);
+                Game_Manager.Instance.Enemy.gameObject.SetActive(false);
                 if (Game_Manager.Instance.Player.DeckList.Count == 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
                 foreach (PhotonView photonView in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<PhotonView>()) PhotonNetwork.Destroy(photonView.gameObject);
@@ -101,7 +124,6 @@ public class GameUIManager : MonoBehaviourPun
             case GameState.Paused:
                 PauseMenu.SetActive(true);
                 break;
-
         }
     }
     public void OnHeadsClicked()
@@ -127,6 +149,7 @@ public class GameUIManager : MonoBehaviourPun
         Game_Manager.Instance.StartTurn();
     }
     [PunRPC]
+        private Image image;
     public void RPC_StartGame()
     {
         SetGameState(GameState.Running);
@@ -152,9 +175,14 @@ public class GameUIManager : MonoBehaviourPun
         AttackButton.SetActive(false);
 
         Game_Manager.Instance.CurrentDuelist = DuelistType.Enemy;
-        GameUIManager.Instance.EndTurnButton.gameObject.SetActive(false);
+        EndTurnButton.gameObject.SetActive(false);
         Game_Manager.Instance.Round++;
         Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Busy);
+
+        if (Game_Manager.Instance.TimerCoroutine != null) StopCoroutine(Game_Manager.Instance.TimerCoroutine);
+        Game_Manager.Instance.TimerCoroutine = Game_Manager.Instance.ManageTimer();
+        Game_Manager.Instance.TimerTime = 120;
+        StartCoroutine(Game_Manager.Instance.TimerCoroutine);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]

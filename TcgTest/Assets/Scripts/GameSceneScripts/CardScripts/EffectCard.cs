@@ -55,9 +55,13 @@ public class EffectCard : Card
             photonView.RPC(nameof(RPC_RemoveFromHand), RpcTarget.All);
             Player.RedrawHandCards();
             photonView.RPC(nameof(SetRotation), RpcTarget.All, new Quaternion(0, 0, 0, 0));
-            transform.localScale *= 1.3f;
+            transform.localScale *= 1.5f;
+            while (Game_Manager.Instance.ExecutingEffects)
+            {
+                yield return new WaitForFixedUpdate();
+            }
             yield return new WaitForSeconds(4);
-            transform.localScale /= 1.3f;
+            transform.localScale /= 1.5f;
             while (true)
             {
                 yield return new WaitForFixedUpdate();
@@ -103,7 +107,7 @@ public class EffectCard : Card
     }
     public void AddEvent(CardEvent cardEvent, MouseEvent mouseEvent)
     {
-        border.color = Color.yellow;
+        backgroundAnimator.SetBool("Play", true);
         switch (cardEvent)
         {
             case CardEvent.FollowMouse_MouseDown:

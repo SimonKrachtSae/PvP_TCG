@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Customs;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,21 +12,27 @@ public class DeckbuilderUI : MonoBehaviour
 
     public GameObject deckScroll;
     public GameObject collectionScroll;
+
+	public GameObject CollectionCard { get => collectionCard; set => collectionCard = value; }
+
+	[SerializeField] private GameObject collectionCard;
+	[SerializeField] private GameObject deckBuilderPanel;
 	void Awake()
 	{
 		if (Instance != null) Destroy(this.gameObject);
 		else { Instance = this; }
 	}
-    private void OnEnable()
-    {
-		Deck.Instance.LoadUI();
-    }
     public void BackToLobbyUI()
 	{
+		int cardsInDeck = MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Cards.Count;
+		if (cardsInDeck < 20)
+        {
+			MB_SingletonServiceLocator.Instance.GetSingleton<InfoText>().ShowInfoText("Current deck must contain a minimum of 20 cards! Currently: " + cardsInDeck, 1);
+			return;
+        }
 		lobbyUI.SetActive(true);
-		this.gameObject.SetActive(false);
-		Deck.Instance.Save();
-
+		deckBuilderPanel.SetActive(false);
+		MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Save();
 	}
 
 	public void BackToDeckBuilderUI()
