@@ -43,6 +43,7 @@ public class MyCardDragHandler : MonoBehaviour
             GameObject deckCard = Instantiate(MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().CollectionCard, deckScrollField.GetChild(0));
             deckCard.GetComponent<CollectionCard>().Initiate(this.gameObject.name);
         }
+
         transform.parent = prevTransform;
         transform.SetSiblingIndex(Index);
         transform.localPosition = Vector3.zero;
