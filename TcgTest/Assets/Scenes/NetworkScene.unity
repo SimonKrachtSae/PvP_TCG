@@ -1822,7 +1822,7 @@ GameObject:
   - component: {fileID: 1275045473}
   - component: {fileID: 1275045472}
   m_Layer: 0
-  m_Name: shuriken1
+  m_Name: Shuriken
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7716,6 +7716,9 @@ MonoBehaviour:
   - {fileID: 4647406576947502193}
   - {fileID: 4647406576505151096}
   startGameButton: {fileID: 4647406576549690890}
+  shurikens:
+  - {fileID: 1275045471}
+  isDestroyed: 0
   videoPlayer: {fileID: 2126485559157966843}
 --- !u!4 &4647406577239993628
 Transform:
