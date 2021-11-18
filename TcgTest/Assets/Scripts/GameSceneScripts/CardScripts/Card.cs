@@ -45,6 +45,7 @@ public abstract class Card : MonoBehaviourPun
         if (GameUIManager.Instance == null)
         {
             cardInfo = MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().CardInfo;
+            backGroundImage.SetActive(false);
             this.GetComponent<Card>().enabled = false;
             return;
         }
@@ -96,9 +97,14 @@ public abstract class Card : MonoBehaviourPun
     {
         if (Input.GetMouseButtonDown(1))
         {
-            if(Game_Manager.Instance.Enemy.Hand.Contains(this)|| Game_Manager.Instance.Enemy.DeckList.Contains(this))
+            if(Game_Manager.Instance != null)
+            {
+                if(Game_Manager.Instance.Enemy.Hand.Contains(this)|| Game_Manager.Instance.Enemy.DeckList.Contains(this))
+                    return;
+                cardInfo.AssignCard(cardStats.CardName,2);
                 return;
-            cardInfo.AssignCard(cardStats.CardName);
+            }
+            cardInfo.AssignCard(cardStats.CardName,4);
         }
     }
     public void Call_ParticleBomb(string s, Color color, NetworkTarget target)

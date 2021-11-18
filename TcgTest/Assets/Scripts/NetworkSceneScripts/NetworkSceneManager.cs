@@ -38,6 +38,7 @@ public class NetworkSceneManager : MonoBehaviourPunCallbacks
     public void TryConnect()
     {
         uiManager = NetworkUIManager.Instance;
+        uiManager.StartCoroutine(uiManager.PlayIntroVideo());
         uiManager.SetConnectionStatus(ConnectionStatus.Connecting);
         StartCoroutine(connectionTime(10));
     }
@@ -60,7 +61,7 @@ public class NetworkSceneManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("ConnectedToMaster");
-        uiManager.StartCoroutine(uiManager.PlayIntroVideo());
+        uiManager.SetConnectionStatus(ConnectionStatus.Connected);
     }
 
     public override void OnJoinedLobby()

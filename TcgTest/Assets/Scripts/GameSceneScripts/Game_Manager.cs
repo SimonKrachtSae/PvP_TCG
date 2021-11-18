@@ -20,7 +20,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks
     private TurnState state;
     private TurnState stateToSet;
     private bool executingEffects;
-    public IEnumerator TimerCoroutine;
+    public IEnumerator TimerCoroutine { get; set; }
     public float TimerTime { get; set; }
     #endregion
     #region Accessors
@@ -170,7 +170,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks
     /// Sets on all Clients:
     /// <see cref="executingEffects"/>.
     /// </remarks>
-    public bool ExecutingEffects { get => executingEffects; set => photonView.RPC(nameof(RPC_SetExecutingEffect),RpcTarget.All, value); }
+    public bool ExecutingEffects { get => executingEffects; set => SetExecutingEffect(value); }
     #endregion
     #region Methods
     void Awake()
@@ -261,7 +261,6 @@ public class Game_Manager : MonoBehaviourPunCallbacks
             return;
         }
         blockingMonster = Enemy.Field[index];
-        ((MonsterCard)blockingMonster).Call_PlayBlockParticles();
         if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_OnAttack();
         int value =((MonsterCardStats)AttackingMonster.CardStats).Attack - ((MonsterCardStats)blockingMonster.CardStats).Defense;
         if (value > 0)
@@ -273,6 +272,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks
         }
         else if (value < 0)
         {
+            ((MonsterCard)blockingMonster).Call_PlayBlockParticles();
             ((MonsterCardStats)blockingMonster.CardStats).Effect.Call_BlockSuccessfull();
             blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
             AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
@@ -316,18 +316,73 @@ public class Game_Manager : MonoBehaviourPunCallbacks
         while(slider.value > 0)
         {
             yield return new WaitForFixedUpdate();
-            if(state != TurnState.Busy) slider.value -= Time.fixedDeltaTime;
+            if(state != TurnState.Busy || executingEffects) slider.value -= Time.fixedDeltaTime;
         }
 
-        if (currentDuelist == DuelistType.Player) GameUIManager.Instance.EndTurn();
-        //else if (currentDuelist == DuelistType.Enemy)
-        //{
-        //    BlockingMonsterIndex = 6;
-        //
-        //    TimerTime = 30;
-        //    StartCoroutine(ManageTimer());
-        //}
+        if (currentDuelist == DuelistType.Player)
+        {
+            ManageEffectsOnTimOver();
+            GameUIManager.Instance.EndTurn();
+        }
+        else if (currentDuelist == DuelistType.Enemy)
+        {
+            if (state == TurnState.Blocking) BlockingMonsterIndex = 6;
+
+            ManageEffectsOnTimOver();
+
+            TimerTime = 60;
+            StartCoroutine(ManageTimer());
+        }
     } 
+    private void ManageEffectsOnTimOver()
+    {
+        if (DestroyCounter > 0)
+        {
+            if (Player.Field.Count < DestroyCounter)
+                DestroyCounter = Player.Field.Count;
+            for (int i = 0; i < DestroyCounter; i++)
+            {
+                Player.Field[i].OnMouseDownEvent?.Invoke();
+            }
+            DestroyCounter = 0;
+        }
+        if (DiscardCounter > 0)
+        {
+            if (Player.Hand.Count < DiscardCounter)
+                DiscardCounter = Player.Hand.Count;
+
+            for (int i = 0; i < DiscardCounter; i++)
+            {
+                Player.Hand[i].OnMouseDownEvent?.Invoke();
+            }
+            DiscardCounter = 0;
+        }
+        if (Player.RecallCounter > 0)
+        {
+            if (Player.RecallArea == MonsterCardLocation.InHand)
+            {
+                if (Player.Hand.Count < Player.RecallCounter)
+                    Player.RecallCounter = Player.Hand.Count;
+
+                for (int i = 0; i < Player.RecallCounter; i++)
+                {
+                    Player.Hand[i].OnMouseDownEvent?.Invoke();
+                }
+                Player.RecallCounter = 0;
+            }
+            else
+            {
+                if (Player.Field.Count < Player.RecallCounter)
+                    Player.RecallCounter = Player.Field.Count;
+
+                for (int i = 0; i < Player.RecallCounter; i++)
+                {
+                    Player.Field[i].OnMouseDownEvent?.Invoke();
+                }
+                Player.RecallCounter = 0;
+            }
+        }
+    }
     /// <summary>
     /// This method gets called by the local client, in order to call 
     /// <see cref="RPC_SetTurnState(TurnState)"/>
@@ -544,10 +599,19 @@ public class Game_Manager : MonoBehaviourPunCallbacks
     /// Called by:
     /// <see cref="ExecutingEffects"/>
     /// </remarks>
-    [PunRPC]
-    public void RPC_SetExecutingEffect(bool value)
+    public void SetExecutingEffect(bool value)
     {
         executingEffects = value;
+        if(value == false)
+        {
+            if (CurrentDuelist == DuelistType.Enemy)
+            {
+                if(TimerCoroutine != null) StopCoroutine(TimerCoroutine);
+                TimerTime = 60;
+                TimerCoroutine = ManageTimer();
+                StartCoroutine(TimerCoroutine);
+            }
+        }
     }
     #endregion
 }

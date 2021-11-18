@@ -24,7 +24,7 @@ public class CollectionCard : MonoBehaviour
     }
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(1)) MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().CardInfo.AssignCard(text.text);
+        if (Input.GetMouseButtonDown(1)) MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().CardInfo.AssignCard(text.text,4);
     }
 
     private void OnDestroy()

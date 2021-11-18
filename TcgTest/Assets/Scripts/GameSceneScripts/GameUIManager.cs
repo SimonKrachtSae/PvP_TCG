@@ -149,7 +149,6 @@ public class GameUIManager : MonoBehaviourPun
         Game_Manager.Instance.StartTurn();
     }
     [PunRPC]
-        private Image image;
     public void RPC_StartGame()
     {
         SetGameState(GameState.Running);
@@ -163,6 +162,7 @@ public class GameUIManager : MonoBehaviourPun
        
         if (amount > 7)
         {
+            if (timeSlider.value >= 0) timeSlider.value = 0.1f;
             Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 7, NetworkTarget.Local);
             return;
         }
@@ -181,8 +181,8 @@ public class GameUIManager : MonoBehaviourPun
 
         if (Game_Manager.Instance.TimerCoroutine != null) StopCoroutine(Game_Manager.Instance.TimerCoroutine);
         Game_Manager.Instance.TimerCoroutine = Game_Manager.Instance.ManageTimer();
-        Game_Manager.Instance.TimerTime = 120;
-        StartCoroutine(Game_Manager.Instance.TimerCoroutine);
+        Game_Manager.Instance.TimerTime = 60;
+        Game_Manager.Instance.StartCoroutine(Game_Manager.Instance.TimerCoroutine);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
     }
     [PunRPC]
@@ -211,7 +211,6 @@ public class GameUIManager : MonoBehaviourPun
             return;
         }
         Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Blocking);
-        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Other, TurnState.Busy);
         Board.Instance.BlockRequest.SetActive(false);
         Board.Instance.PlayerInfoText.text = "Select Blocking Monster";  
     }

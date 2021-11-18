@@ -43,6 +43,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     public int AttackBoost { get => attackBoost; set => photonView.RPC(nameof(RPC_UpdateAttackBoost), RpcTarget.All, value); }
     private int defenseBoost = 0;
     public int DefenseBoost { get => defenseBoost; set => photonView.RPC(nameof(RPC_UpdateDefenseBoost), RpcTarget.All, value); }
+    public int RecallCounter { get => recallCounter; set => recallCounter = value; }
+    public MonsterCardLocation RecallArea { get => recallArea; set => recallArea = value; }
 
     private int recallCounter = 0;
     private MonsterCardLocation recallArea;
@@ -136,8 +138,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     }
     public void RedrawHandCards()
     {
-        float step = 30;
-        float start = -((Hand.Count / 2) * step);
+        float step = 20;
+        float start = -((Hand.Count / 1.5f) * step);
         for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
@@ -187,6 +189,8 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     }
     public void ShowBlockRequest()
     {
+        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Local, TurnState.Busy);
+        Game_Manager.Instance.Call_SetTurnState(NetworkTarget.Other, TurnState.Blocking);
         photonView.RPC(nameof(RPC_ShowBlockRequest), RpcTarget.Others);
     }
     [PunRPC]
@@ -239,12 +243,13 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     }
     public void AddRecallEvents(MonsterCardLocation targetLocation, int amount)
     {
-        recallCounter = amount;
+        RecallCounter = amount;
         gameManager.Call_SetTurnState(NetworkTarget.All, TurnState.Busy);
         if(targetLocation == MonsterCardLocation.OnField)
         {
             if (Field.Count < 1)
             {
+                RecallCounter = 0;
                 Board.Instance.PlayerInfoText.text = "No Card To Send To Deck";
                 return;
             }
@@ -252,13 +257,14 @@ public class MyPlayer : MonoBehaviourPunCallbacks
             foreach (MonsterCard c in Field) 
             { 
                 c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
-                recallArea = MonsterCardLocation.OnField;
+                RecallArea = MonsterCardLocation.OnField;
             }
         }
         else if (targetLocation == MonsterCardLocation.InHand)
         {
             if (Hand.Count < 1)
             {
+                RecallCounter = 0;
                 Board.Instance.PlayerInfoText.text = "No Card To Send To Deck";
                 return;
             }
@@ -266,27 +272,29 @@ public class MyPlayer : MonoBehaviourPunCallbacks
             foreach (Card c in Hand) 
             {
                 c.ClearEvents(); c.Call_AddEvent(CardEvent.Recall, MouseEvent.Down, NetworkTarget.Local);
-                recallArea = MonsterCardLocation.InHand;
+                RecallArea = MonsterCardLocation.InHand;
             }
         }
     }
     public void OnRecall()
     {
-        recallCounter--;
-        Board.Instance.PlayerInfoText.text = "Recall: " + recallCounter;
-        if(recallCounter == 0) Board.Instance.PlayerInfoText.text = "";
-        if (recallArea == MonsterCardLocation.OnField)
+        RecallCounter--;
+        Board.Instance.PlayerInfoText.text = "Recall: " + RecallCounter;
+        if(RecallCounter == 0) Board.Instance.PlayerInfoText.text = "";
+        if (RecallArea == MonsterCardLocation.OnField)
         {
-            if (recallCounter == 0 || Field.Count == 0)
+            if (RecallCounter == 0 || Field.Count == 0)
             {
+                RecallCounter = 0;
                 gameManager.ExecutingEffects = false;
                 gameManager.Call_SetTurnStateToPrevious(NetworkTarget.All);
             }
         }
-        else if(recallArea == MonsterCardLocation.InHand)
+        else if(RecallArea == MonsterCardLocation.InHand)
         {
-            if (recallCounter == 0 || Hand.Count == 0)
+            if (RecallCounter == 0 || Hand.Count == 0)
             {
+                RecallCounter = 0;
                 gameManager.ExecutingEffects = false;
                 gameManager.Call_SetTurnStateToPrevious(NetworkTarget.All);
             }
@@ -312,7 +320,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks
         {
             yield return new WaitForFixedUpdate();
             Board.Instance.PlayerInfoText.text = "Cards to Discard: " + gameManager.DiscardCounter.ToString();
-            if (Hand.Count == 0 || gameManager.DiscardCounter == 0) break;
+            if (Hand.Count == 0 || gameManager.DiscardCounter == 0)
+            {
+                Board.Instance.PlayerInfoText.text = "";
+                gameManager.DiscardCounter = 0;
+                break; 
+            }
         }
         gameManager.ExecutingEffects = false;
     }
@@ -334,7 +347,12 @@ public class MyPlayer : MonoBehaviourPunCallbacks
         foreach (MonsterCard c in Field) c.Call_AddEvent(CardEvent.Destroy, MouseEvent.Down, NetworkTarget.Local);
         while (gameManager.DestroyCounter != 0)
         {
-            if (Field.Count == 0 || gameManager.DestroyCounter == 0) { Board.Instance.PlayerInfoText.text = ""; break; }
+            if (Field.Count == 0 || gameManager.DestroyCounter == 0)
+            { 
+                Board.Instance.PlayerInfoText.text = "";
+                gameManager.DestroyCounter = 0;
+                break;
+            }
             Board.Instance.PlayerInfoText.text = "Cards to Destroy: " + gameManager.DestroyCounter.ToString();
             yield return new WaitForFixedUpdate();
         }

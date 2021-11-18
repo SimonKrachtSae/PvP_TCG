@@ -43,10 +43,10 @@ public class NetworkUIManager : MonoBehaviour
     [SerializeField] private List<TMP_Text> playerDescriptionTexts;
     [SerializeField] private GameObject startGameButton;
 
-    //[SerializeField] private List<Transform> shurikens;
-   // public bool isDestroyed = false;
+    [SerializeField] private Transform shuriken;
+    [SerializeField] private bool isDestroyed = false;
     [SerializeField] private VideoPlayer videoPlayer;
-
+    [SerializeField] private GameObject panelsParent;
     private void Awake()
     {
         if (Instance == null)
@@ -60,6 +60,7 @@ public class NetworkUIManager : MonoBehaviour
     }
     public void Start()
     {
+        StartCoroutine(RotateShuriken());
         punCallbacks = NetworkSceneManager.Instance;
         roomInfos = new List<RoomInfo>();
         panels = new List<GameObject>();
@@ -74,32 +75,26 @@ public class NetworkUIManager : MonoBehaviour
     {
         playerMessageText.transform.parent.gameObject.SetActive(false);
         videoPlayer.Play();
+        yield return new WaitForSecondsRealtime(0.2f);
         yield return new WaitForSecondsRealtime((float)videoPlayer.length);
         playerMessageText.transform.parent.gameObject.SetActive(true);
+        panelsParent.SetActive(true);
         videoPlayer.gameObject.SetActive(false);
-        SetConnectionStatus(ConnectionStatus.Connected);
-    }
-    private void Update()
-    {
-       /* foreach (Transform t in shurikens)
-        {
-            RotateShuriken(t);
-        }*/
     }
 
-  /*  public void OnDisable()
+    public void OnDisable()
     {
         isDestroyed = true;
     }
 
-    public void RotateShuriken(Transform transform)
+    public IEnumerator RotateShuriken()
     {
         while (!isDestroyed)
         {
-            transform.Rotate(Vector3.back * Time.deltaTime, Space.World);
-
+            shuriken.Rotate(Vector3.back * Time.deltaTime * 50, Space.World);
+            yield return new WaitForFixedUpdate();
         }
-    } */
+    } 
 
     public void SetPlayerMessageText(string value)
     {

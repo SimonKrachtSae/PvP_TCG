@@ -37,6 +37,7 @@ public class EffectCard : Card
     private void OnMouseUp()
     {
         OnMouseUpEvent?.Invoke();
+        if (Player == null) return;
         if (Player.Hand.Contains(this) && transform.position.y != Player.HandParent.transform.position.y)
         {
             transform.position = new Vector3(transform.position.x, Player.HandParent.transform.position.y, transform.position.z);

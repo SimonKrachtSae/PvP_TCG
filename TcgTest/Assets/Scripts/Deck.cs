@@ -5,7 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using UnityEngine.UI;
 using Assets.Customs;
-
+using TMPro;
 // Inpsired by: Brackeys Save and Load
 // Link: https://www.youtube.com/watch?v=XOjd_qU2Ido
 public class Deck: MB_Singleton<Deck>
@@ -17,6 +17,7 @@ public class Deck: MB_Singleton<Deck>
 
     private List<GameObject> cards = new List<GameObject>();
 	private int selectedDeckIndex = 0;
+	[SerializeField] private TMP_Text deckCountText;
 	protected new void Awake()
     {
 		base.Awake();
@@ -73,15 +74,20 @@ public class Deck: MB_Singleton<Deck>
 	}
 	public void Subscribe(GameObject gameObject)
 	{
-		if (!Cards.Contains(gameObject)) Cards.Add(gameObject);
-		Debug.Log(Cards.Count);
-		if(!Cards.Contains(gameObject))
+		if (!Cards.Contains(gameObject))
+        {
 			Cards.Add(gameObject);
+			deckCountText.text = Cards.Count + "/20";
+        }
 	}
 
 	public void Unsubscribe(GameObject gameObject)
 	{
-		if(Cards.Contains(gameObject)) Cards.Remove(gameObject);
+		if (Cards.Contains(gameObject))
+		{
+			Cards.Remove(gameObject);
+			deckCountText.text = Cards.Count + "/20";
+		}
 	}
 	public void ClearDeck()
 	{
