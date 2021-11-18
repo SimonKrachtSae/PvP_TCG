@@ -43,8 +43,8 @@ public class NetworkUIManager : MonoBehaviour
     [SerializeField] private List<TMP_Text> playerDescriptionTexts;
     [SerializeField] private GameObject startGameButton;
 
-    //[SerializeField] private List<Transform> shurikens;
-   // public bool isDestroyed = false;
+    [SerializeField] private List<Transform> shurikens;
+    public bool isDestroyed = false;
     [SerializeField] private VideoPlayer videoPlayer;
 
     private void Awake()
@@ -79,15 +79,15 @@ public class NetworkUIManager : MonoBehaviour
         videoPlayer.gameObject.SetActive(false);
         SetConnectionStatus(ConnectionStatus.Connected);
     }
-    private void Update()
+   public void Update()
     {
-       /* foreach (Transform t in shurikens)
+        foreach (Transform t in shurikens)
         {
             RotateShuriken(t);
-        }*/
+        }
     }
 
-  /*  public void OnDisable()
+    public void OnDisable()
     {
         isDestroyed = true;
     }
@@ -99,7 +99,7 @@ public class NetworkUIManager : MonoBehaviour
             transform.Rotate(Vector3.back * Time.deltaTime, Space.World);
 
         }
-    } */
+    } 
 
     public void SetPlayerMessageText(string value)
     {
