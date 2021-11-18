@@ -107,7 +107,6 @@ public class MonsterCard : Card
         if (attackTarget != null)
         {
             photonView.RPC(nameof(RPC_PlayAttackParticles), RpcTarget.All);
-            ((MonsterCard)attackTarget).Call_PlayBlockParticles();
             if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
             if (((MonsterCardStats)attackTarget.CardStats).Effect != null) ((MonsterCardStats)attackTarget.CardStats).Effect.Call_OnBlock();
             int value = ((MonsterCardStats)cardStats).Attack - ((MonsterCardStats)attackTarget.CardStats).Defense;
@@ -120,6 +119,7 @@ public class MonsterCard : Card
             }
             else if (value < 0)
             {
+                ((MonsterCard)attackTarget).Call_PlayBlockParticles();
                 ((MonsterCardStats)attackTarget.CardStats).Effect.Call_BlockSuccessfull();
                 Call_ParticleBomb(value.ToString(), Color.red, NetworkTarget.All);
                 attackTarget.Call_ParticleBomb(Mathf.Abs(value).ToString(), Color.green,NetworkTarget.All);
@@ -180,6 +180,7 @@ public class MonsterCard : Card
                     Assign_BurnEvents(NetworkTarget.Local);
                     ((MonsterCardStats)cardStats).Effect?.Call_OnSummon();
                     photonView.RPC(nameof(PlaySummonParticles), RpcTarget.All);
+            
                     return;
                 }
             }

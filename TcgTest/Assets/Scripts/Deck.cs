@@ -5,7 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using UnityEngine.UI;
 using Assets.Customs;
-
+using TMPro;
 // Inpsired by: Brackeys Save and Load
 // Link: https://www.youtube.com/watch?v=XOjd_qU2Ido
 public class Deck: MB_Singleton<Deck>
@@ -17,6 +17,7 @@ public class Deck: MB_Singleton<Deck>
 
     private List<GameObject> cards = new List<GameObject>();
 	private int selectedDeckIndex = 0;
+	[SerializeField] private TMP_Text deckCountText;
 	protected new void Awake()
     {
 		base.Awake();
@@ -28,8 +29,6 @@ public class Deck: MB_Singleton<Deck>
 	}
     private void Start()
     {
-		if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 0)
-			LoadUI(0);
     }
     public void Save()
 	{
@@ -56,6 +55,7 @@ public class Deck: MB_Singleton<Deck>
         {
 			BinaryFormatter formatter = new BinaryFormatter();
 			FileStream stream = new FileStream(path, FileMode.Open);
+			deckData.CardNames = new List<string>();
 			deckData.CardNames = (List<string>)formatter.Deserialize(stream);
 			stream.Close();
 			RectTransform deckScrollField = DeckbuilderUI.Instance.deckScroll.gameObject.transform as RectTransform;
@@ -73,15 +73,20 @@ public class Deck: MB_Singleton<Deck>
 	}
 	public void Subscribe(GameObject gameObject)
 	{
-		if (!Cards.Contains(gameObject)) Cards.Add(gameObject);
-		Debug.Log(Cards.Count);
-		if(!Cards.Contains(gameObject))
+		if (!Cards.Contains(gameObject))
+        {
 			Cards.Add(gameObject);
+			deckCountText.text = Cards.Count + "/20";
+        }
 	}
 
 	public void Unsubscribe(GameObject gameObject)
 	{
-		if(Cards.Contains(gameObject)) Cards.Remove(gameObject);
+		if (Cards.Contains(gameObject))
+		{
+			Cards.Remove(gameObject);
+			deckCountText.text = Cards.Count + "/20";
+		}
 	}
 	public void ClearDeck()
 	{
@@ -93,5 +98,6 @@ public class Deck: MB_Singleton<Deck>
         }
 		Cards = new List<GameObject>();
 		deckData.CardNames = new List<string>();
+		deckCountText.text = Cards.Count + "/20";
 	}
 }

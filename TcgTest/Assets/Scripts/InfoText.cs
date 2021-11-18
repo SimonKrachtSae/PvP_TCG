@@ -9,7 +9,7 @@ public class InfoText : MB_Singleton<InfoText>
 {
     [SerializeField] private GameObject InfoTextObj;
     private Image Panel;
-    private TMP_Text Text;
+    [SerializeField] private TMP_Text Text;
     protected new void Awake()
     {
         base.Awake();
@@ -22,7 +22,6 @@ public class InfoText : MB_Singleton<InfoText>
     private void Start()
     {
         Panel = InfoTextObj.GetComponentInChildren<Image>();
-        Text = InfoTextObj.GetComponentInChildren<TMP_Text>();
     }
     public void ShowInfoText(string text, float size)
     {

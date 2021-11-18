@@ -7,11 +7,11 @@ public class CardInfo : MonoBehaviour
     [SerializeField] private MonsterCard_Layout monsterCardLayout;
     [SerializeField] private EffectCard_Layout effectCardLayout;
 	private GameObject card;
-	public void AssignCard(string name)
+	public void AssignCard(string name, float scale)
 	{
 		if (this.card != null) Destroy(card);
 		this.card = (GameObject)Instantiate(Resources.Load(name), transform.position, new Quaternion(0, 0, 0, 0));
-		this.card.transform.localScale *= 2;
+		this.card.transform.localScale *= scale;
 		card.transform.parent = transform;
 	}
 
