@@ -15,7 +15,7 @@ public class CollectionCard : MonoBehaviour
     }
     public void OnMouseUp()
     {
-        if ((transform.position - DeckbuilderUI.Instance.deckScroll.gameObject.transform.GetChild(0).transform.position).magnitude > 200)
+        if ((transform.position - DeckbuilderUI.Instance.deckScroll.gameObject.transform.GetChild(0).transform.position).magnitude > 300)
             Destroy(this.gameObject);
     }
     public void Start()
