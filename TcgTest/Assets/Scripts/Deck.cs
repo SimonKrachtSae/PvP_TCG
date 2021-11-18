@@ -29,8 +29,6 @@ public class Deck: MB_Singleton<Deck>
 	}
     private void Start()
     {
-		if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 0)
-			LoadUI(0);
     }
     public void Save()
 	{
@@ -57,6 +55,7 @@ public class Deck: MB_Singleton<Deck>
         {
 			BinaryFormatter formatter = new BinaryFormatter();
 			FileStream stream = new FileStream(path, FileMode.Open);
+			deckData.CardNames = new List<string>();
 			deckData.CardNames = (List<string>)formatter.Deserialize(stream);
 			stream.Close();
 			RectTransform deckScrollField = DeckbuilderUI.Instance.deckScroll.gameObject.transform as RectTransform;
@@ -99,5 +98,6 @@ public class Deck: MB_Singleton<Deck>
         }
 		Cards = new List<GameObject>();
 		deckData.CardNames = new List<string>();
+		deckCountText.text = Cards.Count + "/20";
 	}
 }
