@@ -38,7 +38,7 @@ public abstract class Card : MonoBehaviourPun
     [SerializeField] protected ParticleSystem destroyParticles;
     [SerializeField] protected Animator backgroundAnimator;
     private CardInfo cardInfo;
-    [SerializeField] private GameObject backGroundImage;
+    [SerializeField] protected GameObject backGroundImage;
     void Awake()
     {
         backGroundImage.SetActive(true);
@@ -101,9 +101,11 @@ public abstract class Card : MonoBehaviourPun
             {
                 if(Game_Manager.Instance.Enemy.Hand.Contains(this)|| Game_Manager.Instance.Enemy.DeckList.Contains(this))
                     return;
+                backGroundImage.SetActive(false);
                 cardInfo.AssignCard(cardStats.CardName,2);
                 return;
             }
+            backGroundImage.SetActive(false);
             cardInfo.AssignCard(cardStats.CardName,4);
         }
     }
@@ -183,6 +185,7 @@ public abstract class Card : MonoBehaviourPun
     [PunRPC]
     public void SetRotation(Quaternion q)
     {
+        backGroundImage.SetActive(false);
         transform.rotation = q;
     }
     [PunRPC]

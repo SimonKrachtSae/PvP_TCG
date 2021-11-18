@@ -180,6 +180,7 @@ public class MonsterCard : Card
                     Assign_BurnEvents(NetworkTarget.Local);
                     ((MonsterCardStats)cardStats).Effect?.Call_OnSummon();
                     photonView.RPC(nameof(PlaySummonParticles), RpcTarget.All);
+            
                     return;
                 }
             }

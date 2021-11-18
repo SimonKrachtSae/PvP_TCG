@@ -5,6 +5,7 @@ using Photon.Pun;
 using UnityEngine.Events;
 public class EffectCard : Card
 {
+    [SerializeField] private ParticleSystem playParticles;
     private void Start()
     {
         try
@@ -61,6 +62,7 @@ public class EffectCard : Card
             {
                 yield return new WaitForFixedUpdate();
             }
+            photonView.RPC(nameof(RPC_PlayParticles), RpcTarget.All);
             yield return new WaitForSeconds(4);
             transform.localScale /= 1.5f;
             while (true)
@@ -73,6 +75,11 @@ public class EffectCard : Card
             ClearEvents();
         }
         else transform.position = mouseDownPos;
+    }
+    [PunRPC]
+    public void RPC_PlayParticles()
+    {
+        playParticles.Play();
     }
     private IEnumerator SendToGraveyard()
     {
