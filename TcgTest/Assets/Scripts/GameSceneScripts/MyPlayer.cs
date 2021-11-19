@@ -138,13 +138,15 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     }
     public void RedrawHandCards()
     {
-        float step = 20;
-        float start = -((Hand.Count / 1.5f) * step);
+        float singleWidth = GraveyardObj.transform.lossyScale.x;
+        float step = 35;
+        float xWidth = Hand.Count * step;
+        Vector3 startPos = GraveyardObj.transform.position - new Vector3(singleWidth + xWidth, 0, 0);
         for (int i = 0; i < Hand.Count; i++)
         {
             Vector3 vector = Hand[i].transform.position;
-            if(vector.y == HandParent.transform.position.y)
-                Hand[i].transform.position = new Vector3(HandParent.transform.position.x + start + i * step, vector.y, vector.z + i * 0.00001f);
+            if (vector.y >= HandParent.transform.position.y -0.5f && vector.y <= HandParent.transform.position.y + 0.5f)
+                Hand[i].transform.position = startPos + new Vector3(i * step,0,0);
         }
     }
     public void Subscribe(Card card)

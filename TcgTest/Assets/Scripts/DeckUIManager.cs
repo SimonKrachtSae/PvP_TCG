@@ -27,7 +27,13 @@ public class DeckUIManager : MB_Singleton<DeckUIManager>
 		for (int i = 0; i < cardNames.CardNames.Count; i++)
 		{
 			string s = cardNames.CardNames[i];
-			GameObject deckCard = (GameObject)Instantiate(Resources.Load(s), DeckbuilderUI.Instance.collectionScroll.transform.GetChild(0));
+			GameObject toLoad = (GameObject)Resources.Load(s);
+			var card = toLoad.GetComponent<Card>();
+			GameObject deckCard;
+			if(card.GetType() == typeof(EffectCard))
+				deckCard = (GameObject)Instantiate(Resources.Load(s), DeckbuilderUI.Instance.MagicCollectionScroll.transform.GetChild(0));
+			else 
+				deckCard = (GameObject)Instantiate(Resources.Load(s), DeckbuilderUI.Instance.MonsterCollectionScroll.transform.GetChild(0));
 			deckCard.name = s;
 			deckCard.transform.localScale = new Vector3(2, 2, 2);
 			deckCard.AddComponent(typeof(MyCardDragHandler));

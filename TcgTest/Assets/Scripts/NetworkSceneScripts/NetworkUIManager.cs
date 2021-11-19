@@ -69,6 +69,7 @@ public class NetworkUIManager : MonoBehaviour
         panels.Add(inRoomUIs);
         panels.Add(roomSelectionUIs);
         panels.Add(connectFailedPanel);
+        panels.Add(deckBuilderUI);
         SetConnectionStatus(ConnectionStatus.Connecting);
     }
     public IEnumerator PlayIntroVideo() 
@@ -156,7 +157,7 @@ public class NetworkUIManager : MonoBehaviour
             return;
         }
         PhotonNetwork.LocalPlayer.NickName = playerNameField.text;
-        PhotonNetwork.JoinLobby();
+        SetConnectionStatus(ConnectionStatus.DeckBuilder);
     }
     public void HostRoom()
     {
@@ -190,7 +191,6 @@ public class NetworkUIManager : MonoBehaviour
             playerMessageText.text = "No Rooms Availabe";
             return;
         }
-        
 
         SetConnectionStatus(ConnectionStatus.InRoomSelection);
     }
@@ -256,10 +256,6 @@ public class NetworkUIManager : MonoBehaviour
             startGameButton.SetActive(false);
         }
     }
-	public void GoToDeckbuilder()
-	{
-        SetConnectionStatus(ConnectionStatus.DeckBuilder);
-	}
 
     public void GoBack()
     {

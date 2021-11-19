@@ -52,8 +52,9 @@ public abstract class Card : MonoBehaviourPun
         cardInfo = GameUIManager.Instance.CardInfo;
         if(GameUIManager.Instance.State != GameState.CoinFlip)
         {
-            
+
             //if (!photonView.IsMine) { Destroy(this.gameObject); return; }
+            backGroundImage.SetActive(false);
             enabled = false;
             return;
         }
@@ -102,11 +103,11 @@ public abstract class Card : MonoBehaviourPun
                 if(Game_Manager.Instance.Enemy.Hand.Contains(this)|| Game_Manager.Instance.Enemy.DeckList.Contains(this))
                     return;
                 backGroundImage.SetActive(false);
-                cardInfo.AssignCard(cardStats.CardName,2);
+                cardInfo.AssignCard(cardStats.CardName,2f);
                 return;
             }
             backGroundImage.SetActive(false);
-            cardInfo.AssignCard(cardStats.CardName,4);
+            cardInfo.AssignCard(cardStats.CardName,5);
         }
     }
     public void Call_ParticleBomb(string s, Color color, NetworkTarget target)

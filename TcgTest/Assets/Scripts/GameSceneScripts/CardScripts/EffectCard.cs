@@ -80,6 +80,7 @@ public class EffectCard : Card
     public void RPC_PlayParticles()
     {
         playParticles.Play();
+        GameUIManager.Instance.CardInfo.AssignCard(cardStats.CardName, 2);
     }
     private IEnumerator SendToGraveyard()
     {

@@ -82,7 +82,7 @@ public class MonsterCard : Card
         if (closestDistance > 20)
         {
             attackTarget = null;
-            if ((start - Board.Instance.EnemyHandParent.transform.position).magnitude < 30)
+            if (Mathf.Abs(Mathf.Abs(start.y) - Mathf.Abs(Board.Instance.EnemyHandParent.transform.position.y)) < 20)
             {
                 target = Board.Instance.EnemyHandParent.transform.position;
                 photonView.RPC(nameof(RPC_ShowAttackArrow), RpcTarget.Others, target, true); 

@@ -10,6 +10,7 @@ public class MyCardDragHandler : MonoBehaviour
     public int Index { get; set; }
     private void OnMouseDown()
     {
+        Index = transform.GetSiblingIndex();
         prevTransform = gameObject.transform.parent;
         transform.parent = MB_SingletonServiceLocator.Instance.GetSingleton<DeckUIManager>().gameObject.transform;
         Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
