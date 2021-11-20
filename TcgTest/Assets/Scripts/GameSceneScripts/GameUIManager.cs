@@ -53,6 +53,7 @@ public class GameUIManager : MonoBehaviourPun
         float timer = 5;
         string name1 = PhotonNetwork.PlayerList[0].NickName;
         string name2 = PhotonNetwork.PlayerList[1].NickName;
+        NameText.text = PhotonNetwork.PlayerList[Random.Range(0, 2)].NickName;
         while (timer > 0)
         {
             yield return new WaitForSeconds(0.25f);
@@ -62,7 +63,7 @@ public class GameUIManager : MonoBehaviourPun
         }
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
-            if (NameText.text == name1)
+            if (NameText.text == PhotonNetwork.LocalPlayer.NickName)
                 StartGame();
             else
                 photonView.RPC(nameof(PlayerStartGame), RpcTarget.Others);
@@ -122,6 +123,7 @@ public class GameUIManager : MonoBehaviourPun
                 foreach (PhotonView photonView in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<PhotonView>()) PhotonNetwork.Destroy(photonView.gameObject);
                 break;
             case GameState.Paused:
+                BoardCanvas.SetActive(true);
                 PauseMenu.SetActive(true);
                 break;
         }
@@ -162,7 +164,7 @@ public class GameUIManager : MonoBehaviourPun
        
         if (amount > 7)
         {
-            if (timeSlider.value >= 0) timeSlider.value = 0.1f;
+            if (timeSlider.value <= 0) timeSlider.value = 0.1f;
             Game_Manager.Instance.Player.Call_AddDiscardEffects(amount - 7, NetworkTarget.Local);
             return;
         }

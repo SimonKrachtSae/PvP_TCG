@@ -1,6 +1,8 @@
 ﻿using Assets.Customs;
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,12 +13,18 @@ public class DeckbuilderUI : MonoBehaviour
     [SerializeField] private GameObject detailedCardViewPanel;
 
     public GameObject deckScroll;
-    public GameObject collectionScroll;
+    public GameObject MonsterCollectionScroll;
+    public GameObject MagicCollectionScroll;
 
 	public GameObject CollectionCard { get => collectionCard; set => collectionCard = value; }
+    public Transform TrashBin { get => trashBin; set => trashBin = value; }
 
-	[SerializeField] private GameObject collectionCard;
+    [SerializeField] private GameObject collectionCard;
 	[SerializeField] private GameObject deckBuilderPanel;
+	[SerializeField] private TMP_InputField searchText;
+	private List<GameObject> outsourced = new List<GameObject>();
+	[SerializeField] private GameObject continueButton;
+	[SerializeField] private Transform trashBin;
 	void Awake()
 	{
 		if (Instance != null) Destroy(this.gameObject);
@@ -30,11 +38,27 @@ public class DeckbuilderUI : MonoBehaviour
 			MB_SingletonServiceLocator.Instance.GetSingleton<InfoText>().ShowInfoText("Current deck must contain a minimum of 20 cards! Currently: " + cardsInDeck, 1);
 			return;
         }
+		continueButton.SetActive(true);
 		lobbyUI.SetActive(true);
 		deckBuilderPanel.SetActive(false);
 		MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Save();
 	}
-
+	public void Continue()
+    {
+		int cardsInDeck = MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Cards.Count;
+		if (cardsInDeck < 20)
+		{
+			MB_SingletonServiceLocator.Instance.GetSingleton<InfoText>().ShowInfoText("Current deck must contain a minimum of 20 cards! Currently: " + cardsInDeck, 1);
+			return;
+		}
+		MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Save();
+		PhotonNetwork.JoinLobby();
+	}
+	public void GoToDeckbuilder()
+	{
+		NetworkUIManager.Instance.SetConnectionStatus(ConnectionStatus.DeckBuilder);
+		continueButton.SetActive(false);
+	}
 	public void BackToDeckBuilderUI()
 	{
 		Transform card = detailedCardViewPanel.transform.GetChild(1);
@@ -50,7 +74,7 @@ public class DeckbuilderUI : MonoBehaviour
 		}
 		else
 		{
-			card.SetParent(collectionScroll.transform.GetChild(0));
+			card.SetParent(MonsterCollectionScroll.transform.GetChild(0));
 			card.GetComponent<CardDragHandler>().draggable = true;
 			card.GetComponent<CardDragHandler>().deckViewForm.SetActive(false);
 			card.GetComponent<CardDragHandler>().collectionViewForm.SetActive(true);
@@ -74,4 +98,49 @@ public class DeckbuilderUI : MonoBehaviour
 		cardViewForm.transform.parent.localScale *= 2;
 		cardViewForm.GetComponent<Button>().enabled = false;
 	}
+	public void ShowMonsterPanel()
+	{
+		MonsterCollectionScroll.SetActive(true);
+		MagicCollectionScroll.SetActive(false);
+		SearchByName();
+	}
+	public void ShowMagicPanel()
+	{
+		MonsterCollectionScroll.SetActive(false);
+		MagicCollectionScroll.SetActive(true);
+		SearchByName();
+	}
+	public void SearchByName()
+    {
+		Debug.Log("sdfg");
+		Transform collectionParent;
+
+		if (MonsterCollectionScroll.activeSelf)
+			collectionParent = MonsterCollectionScroll.transform.GetChild(0);
+        else 
+			collectionParent = MagicCollectionScroll.transform.GetChild(0);
+
+		if (string.IsNullOrEmpty(searchText.text))
+        {
+			for (int i = 0; i < collectionParent.childCount; i++)
+			{
+					collectionParent.GetChild(i).gameObject.SetActive(true);
+			}
+			return;
+        }
+
+		for (int i = 0; i < collectionParent.childCount; i++)
+        {
+			string cardName = collectionParent.GetChild(i).gameObject.name.ToUpper();
+			Debug.Log(cardName);
+			if (cardName.StartsWith(searchText.text.ToUpper()))
+			{
+				collectionParent.GetChild(i).gameObject.SetActive(true);
+            }
+            else
+            {
+				collectionParent.GetChild(i).gameObject.SetActive(false);
+            }
+        }
+    }
 }

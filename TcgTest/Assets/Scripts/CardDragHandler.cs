@@ -20,7 +20,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
     private void Start()
     {
 		deckbuilderPanel = NetworkUIManager.Instance.deckBuilderUI;
-		collectionScrollField = DeckbuilderUI.Instance.collectionScroll.gameObject.transform as RectTransform;
+		collectionScrollField = DeckbuilderUI.Instance.MonsterCollectionScroll.gameObject.transform as RectTransform;
 		deckScrollField = DeckbuilderUI.Instance.deckScroll.gameObject.transform as RectTransform;
 	}
 	public void StartCard()
@@ -74,14 +74,14 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IBe
 			}
 			else
 			{
-				collectionScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().collectionScroll.transform as RectTransform;
+				collectionScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().MonsterCollectionScroll.transform as RectTransform;
 				transform.parent = previousParent.transform;
 				transform.localPosition = Vector3.zero;
 			}
 		}
 		else if(inDeck)
 		{
-			collectionScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().collectionScroll.transform as RectTransform;
+			collectionScrollField = deckbuilderPanel.GetComponent<DeckbuilderUI>().MonsterCollectionScroll.transform as RectTransform;
 
 			if(RectTransformUtility.RectangleContainsScreenPoint(collectionScrollField, Input.mousePosition))
 			{
