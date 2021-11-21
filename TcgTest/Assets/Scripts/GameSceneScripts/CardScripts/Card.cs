@@ -339,12 +339,12 @@ public abstract class Card : MonoBehaviourPun
             if (direction.magnitude < 7)
             {
                 foreach (MonsterCard card in Player.Field)
-                    if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 7)
+                    if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 12)
                     {
                         GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
                         return;
                     }
-                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,20,0), NetworkTarget.Local,cardStats.CardName);
+                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,22,0), NetworkTarget.Local,cardStats.CardName);
                 targeting = true;
                 continue;
             }

@@ -42,7 +42,6 @@ public class MonsterCard : Card
     private void OnMouseDrag()
     {
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
-       // GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local, cardStats.CardName);
         OnMouseDragEvent?.Invoke();
     }
 

@@ -37,6 +37,8 @@ public class GameUIManager : MonoBehaviourPun
     public Arrow Arrow { get => arrow; set => arrow = value; }
     public GameObject Gem { get => gem; set => gem = value; }
     public Slider TimeSlider { get => timeSlider; set => timeSlider = value; }
+    private int rematchCounter = 0;
+    [SerializeField] private TMP_Text rematchCounteText;
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -47,6 +49,20 @@ public class GameUIManager : MonoBehaviourPun
         SetGameState(GameState.CoinFlip);
         EndTurnButton.onClick.AddListener(() => { EndTurn(); });
         StartCoroutine(NameSelector());
+    }
+    [PunRPC]
+    public void RPC_SetReMatchCounter()
+    {
+        rematchCounter++;
+        rematchCounteText.text = rematchCounter + " / 2"; 
+        if(rematchCounter == 2)
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
+    public void Rematch()
+    {
+        photonView.RPC(nameof(RPC_SetReMatchCounter), RpcTarget.All);
     }
     public IEnumerator NameSelector()
     {
