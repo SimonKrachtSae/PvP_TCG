@@ -9,7 +9,9 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] private AudioSource drawSound;
     [SerializeField] private AudioSource summonSound;
     [SerializeField] private AudioSource clickSound;
-    [SerializeField] private AudioSource menuMusicSound;
+    [SerializeField] private AudioSource menuMusic;
+    [SerializeField] private AudioSource gameMusic;
+
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -45,7 +47,10 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
                 summonSound.Play();
                 break;
             case AudioType.MenuMusic:
-                menuMusicSound.Play();
+                menuMusic.Play();
+                break;
+                case AudioType.GameMusic:
+                gameMusic.Play();
                 break;
             case AudioType.Click:
                 clickSound.Play();
@@ -61,5 +66,6 @@ public enum AudioType
     Draw,
     Summon,
     Click,
-    MenuMusic
+    MenuMusic,
+    GameMusic
 }
