@@ -35,7 +35,7 @@ public class DeckUIManager : MB_Singleton<DeckUIManager>
 			else 
 				deckCard = (GameObject)Instantiate(Resources.Load(s), DeckbuilderUI.Instance.MonsterCollectionScroll.transform.GetChild(0));
 			deckCard.name = s;
-			deckCard.transform.localScale = new Vector3(2, 2, 2);
+			deckCard.transform.localScale = new Vector3(4, 4, 2);
 			deckCard.AddComponent(typeof(MyCardDragHandler));
 			deckCard.GetComponent<MyCardDragHandler>().Index = i;
 		}
