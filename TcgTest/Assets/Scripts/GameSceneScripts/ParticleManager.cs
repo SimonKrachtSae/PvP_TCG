@@ -48,7 +48,7 @@ public class ParticleManager : MonoBehaviourPun
                 if (!burn.isPlaying) burn.Play();
                 break;
             case ParticleType.CardOverField:
-                cardOverField.gameObject.transform.position = position + offset;
+                cardOverField.gameObject.transform.position = new Vector3(position.x,position.y,cardOverField.gameObject.transform.position.z);
                 if (!cardOverField.isPlaying) cardOverField.Play();
                 break;
         }

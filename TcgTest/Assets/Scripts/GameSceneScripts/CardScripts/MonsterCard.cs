@@ -42,7 +42,6 @@ public class MonsterCard : Card
     private void OnMouseDrag()
     {
         mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, transform.position.z));
-       // GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.Drag, new Vector3(transform.position.x, transform.position.y - transform.lossyScale.y / 2, transform.position.z), NetworkTarget.Local, cardStats.CardName);
         OnMouseDragEvent?.Invoke();
     }
 
@@ -112,6 +111,8 @@ public class MonsterCard : Card
             int value = ((MonsterCardStats)cardStats).Attack - ((MonsterCardStats)attackTarget.CardStats).Defense;
             if (value > 0)
             {
+                AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.Other);
+                AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.Local);
                 attackTarget.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
                 Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
                 ((MonsterCard)attackTarget).Call_SendToGraveyard();
@@ -119,6 +120,8 @@ public class MonsterCard : Card
             }
             else if (value < 0)
             {
+                AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.Local);
+                AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.Other);
                 ((MonsterCard)attackTarget).Call_PlayBlockParticles();
                 ((MonsterCardStats)attackTarget.CardStats).Effect.Call_BlockSuccessfull();
                 Call_ParticleBomb(value.ToString(), Color.red, NetworkTarget.All);
@@ -133,6 +136,7 @@ public class MonsterCard : Card
         {
             if (gameManager.Enemy.Field.Count == 0)
             {
+                AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.All);
                 photonView.RPC(nameof(RPC_PlayAttackParticles), RpcTarget.All);
                 Player.Call_DrawCards(1);
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
@@ -141,6 +145,7 @@ public class MonsterCard : Card
             }
             else
             {
+                AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.Other);
                 if (((MonsterCardStats)cardStats).Effect != null) ((MonsterCardStats)cardStats).Effect.Call_OnAttack();
                 gameManager.AttackingMonster = this;
                 gameManager.Call_SetTurnState(NetworkTarget.Local, TurnState.Busy);
@@ -199,11 +204,13 @@ public class MonsterCard : Card
     [PunRPC]
     public void PlaySummonParticles()
     {
+        AudioManager.Instance.Call_PlaySound(AudioType.Summon, NetworkTarget.Local);
         summonParticles.Play();
     }
     [PunRPC]
     public void RPC_PlayBurnParticles()
     {
+        AudioManager.Instance.Call_PlaySound(AudioType.Burn, NetworkTarget.Local);
         ParticleSystem system = Instantiate(burnParticles, this.transform.position,Quaternion.identity).GetComponent<ParticleSystem>();
         system.Play();
     }

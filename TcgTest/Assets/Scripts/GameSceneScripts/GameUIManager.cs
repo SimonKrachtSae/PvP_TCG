@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.UI;
@@ -7,6 +6,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 public class GameUIManager : MonoBehaviourPun
 {
+    public Animator Geisha;
     public static GameUIManager Instance;
     [SerializeField] private Arrow arrow;
     [SerializeField] private GameObject CoinFlipCanvas;
@@ -37,6 +37,8 @@ public class GameUIManager : MonoBehaviourPun
     public Arrow Arrow { get => arrow; set => arrow = value; }
     public GameObject Gem { get => gem; set => gem = value; }
     public Slider TimeSlider { get => timeSlider; set => timeSlider = value; }
+    private int rematchCounter = 0;
+    [SerializeField] private TMP_Text rematchCounteText;
     private void Awake()
     {
         if (Instance != null) Destroy(this.gameObject);
@@ -47,6 +49,20 @@ public class GameUIManager : MonoBehaviourPun
         SetGameState(GameState.CoinFlip);
         EndTurnButton.onClick.AddListener(() => { EndTurn(); });
         StartCoroutine(NameSelector());
+    }
+    [PunRPC]
+    public void RPC_SetReMatchCounter()
+    {
+        rematchCounter++;
+        rematchCounteText.text = rematchCounter + " / 2"; 
+        if(rematchCounter == 2)
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
+    public void Rematch()
+    {
+        photonView.RPC(nameof(RPC_SetReMatchCounter), RpcTarget.All);
     }
     public IEnumerator NameSelector()
     {
@@ -67,8 +83,6 @@ public class GameUIManager : MonoBehaviourPun
                 StartGame();
             else
                 photonView.RPC(nameof(PlayerStartGame), RpcTarget.Others);
-            //Debug.Log("cheeeeseee");
-            //photonView.RPC(nameof(RPC_SetNameText), RpcTarget.All, NameText.text);
         }
     }
     [PunRPC]
@@ -118,7 +132,7 @@ public class GameUIManager : MonoBehaviourPun
                 transform.GetChild(0).gameObject.SetActive(false);
                 Game_Manager.Instance.Player.gameObject.SetActive(false);
                 Game_Manager.Instance.Enemy.gameObject.SetActive(false);
-                if (Game_Manager.Instance.Player.DeckList.Count == 1) winText.text = "You Win!!!";
+                if (Game_Manager.Instance.Player.DeckList.Count <= 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
                 foreach (PhotonView photonView in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<PhotonView>()) PhotonNetwork.Destroy(photonView.gameObject);
                 break;
@@ -186,6 +200,7 @@ public class GameUIManager : MonoBehaviourPun
         Game_Manager.Instance.TimerTime = 60;
         Game_Manager.Instance.StartCoroutine(Game_Manager.Instance.TimerCoroutine);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
+
     }
     [PunRPC]
     public void RPC_EndTurn()

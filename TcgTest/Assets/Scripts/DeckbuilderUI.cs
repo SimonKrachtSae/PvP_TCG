@@ -32,12 +32,6 @@ public class DeckbuilderUI : MonoBehaviour
 	}
     public void BackToLobbyUI()
 	{
-		int cardsInDeck = MB_SingletonServiceLocator.Instance.GetSingleton<Deck>().Cards.Count;
-		if (cardsInDeck < 20)
-        {
-			MB_SingletonServiceLocator.Instance.GetSingleton<InfoText>().ShowInfoText("Current deck must contain a minimum of 20 cards! Currently: " + cardsInDeck, 1);
-			return;
-        }
 		continueButton.SetActive(true);
 		lobbyUI.SetActive(true);
 		deckBuilderPanel.SetActive(false);

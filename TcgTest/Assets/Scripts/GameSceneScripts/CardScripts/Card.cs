@@ -126,6 +126,7 @@ public abstract class Card : MonoBehaviourPun
     {
         photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
+        AudioManager.Instance.Call_PlaySound(AudioType.Draw, NetworkTarget.Local);
         MoveTowardsHand(Player.HandParent.transform.position);
         Call_RotateToFront(NetworkTarget.Local);
     }
@@ -339,12 +340,12 @@ public abstract class Card : MonoBehaviourPun
             if (direction.magnitude < 7)
             {
                 foreach (MonsterCard card in Player.Field)
-                    if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 7)
+                    if ((card.gameObject.transform.position - Board.Instance.PlayerMonsterFields[i].transform.position).magnitude < 12)
                     {
                         GameUIManager.Instance.ParticleManager.Local_Stop(ParticleType.CardOverField);
                         return;
                     }
-                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,20,0), NetworkTarget.Local,cardStats.CardName);
+                GameUIManager.Instance.ParticleManager.Call_Play(ParticleType.CardOverField, Board.Instance.PlayerMonsterFields[i].transform.position - new Vector3(0,22,0), NetworkTarget.Local,cardStats.CardName);
                 targeting = true;
                 continue;
             }
@@ -360,6 +361,7 @@ public abstract class Card : MonoBehaviourPun
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
+        AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.All);
         gameManager.DestroyCounter--;
         if (Player.Field.Count == 0) gameManager.DestroyCounter = 0;
     }
