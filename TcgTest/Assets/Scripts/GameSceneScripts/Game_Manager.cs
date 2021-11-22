@@ -254,6 +254,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks
 
         if (index == 6)
         {
+            AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.All);
             Player.Call_DrawCards(1);
             if (((MonsterCardStats)AttackingMonster.CardStats).Effect != null) ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_OnDirectAttack();
             Call_SetTurnState(NetworkTarget.Local, TurnState.AttackPhase);
@@ -265,6 +266,8 @@ public class Game_Manager : MonoBehaviourPunCallbacks
         int value =((MonsterCardStats)AttackingMonster.CardStats).Attack - ((MonsterCardStats)blockingMonster.CardStats).Defense;
         if (value > 0)
         {
+            AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.Local);
+            AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.Other);
             ((MonsterCardStats)AttackingMonster.CardStats).Effect.Call_BattleWon();
             blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
             AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
@@ -272,11 +275,17 @@ public class Game_Manager : MonoBehaviourPunCallbacks
         }
         else if (value < 0)
         {
+            AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.Other);
+            AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.Local);
             ((MonsterCard)blockingMonster).Call_PlayBlockParticles();
             ((MonsterCardStats)blockingMonster.CardStats).Effect.Call_BlockSuccessfull();
             blockingMonster.Call_ParticleBomb((-value).ToString(), Color.red, NetworkTarget.All);
             AttackingMonster.Call_ParticleBomb(value.ToString(), Color.green, NetworkTarget.All);
             AttackingMonster.Call_SendToGraveyard();
+        }
+        else
+        {
+            AudioManager.Instance.Call_PlaySound(AudioType.Attack, NetworkTarget.All);
         }
         Call_SetTurnState(NetworkTarget.Local, TurnState.AttackPhase);
         Call_SetTurnState(NetworkTarget.Other, TurnState.Busy);
@@ -292,6 +301,7 @@ public class Game_Manager : MonoBehaviourPunCallbacks
     /// </remarks>
     public void StartTurn()
     {
+        GameUIManager.Instance.Geisha.Play("Players Turn");
         CurrentDuelist = DuelistType.Player;
         Player.Mana = turn + Player.ManaBoost;
         Call_SetTurnState(NetworkTarget.Local, TurnState.StartPhase);

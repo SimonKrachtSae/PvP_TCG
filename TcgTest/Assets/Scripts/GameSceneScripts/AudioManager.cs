@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.SceneManagement;
-public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
+public class AudioManager : MonoBehaviourPun
 {
     public static AudioManager Instance;
     [SerializeField] private AudioSource drawSound;
     [SerializeField] private AudioSource summonSound;
     [SerializeField] private AudioSource clickSound;
+    [SerializeField] private AudioSource burnSound;
+    [SerializeField] private AudioSource destroySound;
+    [SerializeField] private AudioSource attackSound;
     [SerializeField] private AudioSource menuMusic;
     [SerializeField] private AudioSource gameMusic;
 
@@ -35,12 +38,15 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         Local_PlaySound(audioType);
     }
+    public void PlayClickSound()
+    {
+        clickSound.Play();
+    }
     public void Local_PlaySound(AudioType audioType)
     {
         switch (audioType)
         {
             case AudioType.Draw:
-                drawSound.volume = 1;
                 drawSound.Play();
                 break;
             case AudioType.Summon:
@@ -50,21 +56,32 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
                 menuMusic.Play();
                 break;
                 case AudioType.GameMusic:
+                if (menuMusic.isPlaying) menuMusic.Stop();
                 gameMusic.Play();
                 break;
             case AudioType.Click:
                 clickSound.Play();
                 break;
+            case AudioType.Burn:
+                burnSound.Play();
+                break;
+            case AudioType.Attack:
+                attackSound.Play();
+                break;
+            case AudioType.Destroy:
+                destroySound.Play();
+                break;
         }
     }
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-    }
+
 }
 public enum AudioType
 {
     Draw,
     Summon,
+    Attack,
+    Burn,
+    Destroy,
     Click,
     MenuMusic,
     GameMusic

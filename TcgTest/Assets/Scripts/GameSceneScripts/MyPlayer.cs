@@ -2,11 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using UnityEngine.Events;
 public class MyPlayer : MonoBehaviourPunCallbacks
 {
-    //[SerializeField] private List<GameObject> startingDeck;
-    //public List<GameObject> StartingDeck { get => startingDeck; set => startingDeck = value; }
     private List<Card> deckList = new List<Card>();
     public List<Card> DeckList
     {

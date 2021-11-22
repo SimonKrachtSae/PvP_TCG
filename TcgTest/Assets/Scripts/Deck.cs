@@ -22,6 +22,7 @@ public class Deck: MB_Singleton<Deck>
     {
 		base.Awake();
 		deckData = (DeckData)Resources.Load("DeckData");
+		DontDestroyOnLoad(this.gameObject);
     }
 	protected new void OnDestroy()
 	{

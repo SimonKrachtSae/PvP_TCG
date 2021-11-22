@@ -126,6 +126,7 @@ public abstract class Card : MonoBehaviourPun
     {
         photonView.RPC(nameof(RPC_RemoveFromDeck), RpcTarget.All);
         photonView.RPC(nameof(RPC_AddToHand), RpcTarget.All);
+        AudioManager.Instance.Call_PlaySound(AudioType.Draw, NetworkTarget.Local);
         MoveTowardsHand(Player.HandParent.transform.position);
         Call_RotateToFront(NetworkTarget.Local);
     }
@@ -360,6 +361,7 @@ public abstract class Card : MonoBehaviourPun
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
+        AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.All);
         gameManager.DestroyCounter--;
         if (Player.Field.Count == 0) gameManager.DestroyCounter = 0;
     }
