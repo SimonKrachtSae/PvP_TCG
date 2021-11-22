@@ -49,13 +49,19 @@ public class AudioManager : MonoBehaviourPunCallbacks, IPunObservable
             case AudioType.MenuMusic:
                 menuMusic.Play();
                 break;
-                case AudioType.GameMusic:
+             case AudioType.GameMusic:
                 gameMusic.Play();
                 break;
             case AudioType.Click:
                 clickSound.Play();
                 break;
         }
+       // Scene currentScene = SceneManager.GetActiveScene();
+       // string sceneName = currentScene.name;
+       // if (sceneName == "GameScene")
+       // {
+          //  gameMusic.Play();
+       // }
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
