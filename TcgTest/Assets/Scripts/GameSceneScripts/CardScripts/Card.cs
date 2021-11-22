@@ -361,6 +361,7 @@ public abstract class Card : MonoBehaviourPun
     public void Event_Destroy()
     {
         Call_SendToGraveyard();
+        AudioManager.Instance.Call_PlaySound(AudioType.Destroy, NetworkTarget.All);
         gameManager.DestroyCounter--;
         if (Player.Field.Count == 0) gameManager.DestroyCounter = 0;
     }

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.UI;
@@ -133,7 +132,7 @@ public class GameUIManager : MonoBehaviourPun
                 transform.GetChild(0).gameObject.SetActive(false);
                 Game_Manager.Instance.Player.gameObject.SetActive(false);
                 Game_Manager.Instance.Enemy.gameObject.SetActive(false);
-                if (Game_Manager.Instance.Player.DeckList.Count == 1) winText.text = "You Win!!!";
+                if (Game_Manager.Instance.Player.DeckList.Count <= 1) winText.text = "You Win!!!";
                 else winText.text = "You Lose...";
                 foreach (PhotonView photonView in Game_Manager.Instance.Player.gameObject.GetComponentsInChildren<PhotonView>()) PhotonNetwork.Destroy(photonView.gameObject);
                 break;
