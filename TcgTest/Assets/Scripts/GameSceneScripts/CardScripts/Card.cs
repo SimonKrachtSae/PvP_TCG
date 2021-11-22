@@ -107,7 +107,7 @@ public abstract class Card : MonoBehaviourPun
                 return;
             }
             backGroundImage.SetActive(false);
-            cardInfo.AssignCard(cardStats.CardName,5);
+            cardInfo.AssignCard(cardStats.CardName,4);
         }
     }
     public void Call_ParticleBomb(string s, Color color, NetworkTarget target)
