@@ -156,6 +156,11 @@ public class MyPlayer : MonoBehaviourPunCallbacks
     public void RPC_UpdateMana(int value)
     {
         mana = value;
+        if (value > 20) 
+        {
+            mana = 20;
+            value = 20;
+        }
         int dif = value - gems.Count;
         if (dif == 0) return;
         else if(dif < 0)
