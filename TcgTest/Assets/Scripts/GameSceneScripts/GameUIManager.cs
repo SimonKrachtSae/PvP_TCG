@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 public class GameUIManager : MonoBehaviourPun
 {
+    public Animator Geisha;
     public static GameUIManager Instance;
     [SerializeField] private Arrow arrow;
     [SerializeField] private GameObject CoinFlipCanvas;
@@ -83,8 +84,6 @@ public class GameUIManager : MonoBehaviourPun
                 StartGame();
             else
                 photonView.RPC(nameof(PlayerStartGame), RpcTarget.Others);
-            //Debug.Log("cheeeeseee");
-            //photonView.RPC(nameof(RPC_SetNameText), RpcTarget.All, NameText.text);
         }
     }
     [PunRPC]
@@ -202,6 +201,7 @@ public class GameUIManager : MonoBehaviourPun
         Game_Manager.Instance.TimerTime = 60;
         Game_Manager.Instance.StartCoroutine(Game_Manager.Instance.TimerCoroutine);
         photonView.RPC(nameof(RPC_EndTurn), RpcTarget.Others);
+
     }
     [PunRPC]
     public void RPC_EndTurn()
